@@ -89,6 +89,18 @@ def scrape_vehicle():
             scraper = EnhancedVehicleScraper()
             vehicle_data = scraper.scrape_vehicle_data(registration)
             
+            # If scraping fails due to blocking, inform user about the issue
+            if not vehicle_data:
+                search_record.success = False
+                search_record.error_message = 'Website blocking detected - direct scraping not available'
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': 'The website is currently blocking automated requests. This is a common anti-scraping measure used by checkcardetails.co.uk.'
+                }), 403
+            
             if vehicle_data:
                 # Store or update vehicle data in database
                 if existing_vehicle:
@@ -401,6 +413,61 @@ def get_vehicle(registration):
         else:
             return jsonify({'success': False, 'error': 'Vehicle not found'}), 404
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin')
+def admin():
+    """Database administration page"""
+    return render_template('admin.html')
+
+@app.route('/api/add-test-data', methods=['POST'])
+def add_test_data():
+    """Add test data to demonstrate database functionality"""
+    try:
+        data = request.get_json()
+        registration = data.get('registration', '').strip().upper()
+        
+        if not registration:
+            return jsonify({'success': False, 'error': 'Registration required'}), 400
+        
+        # Get sample data
+        vehicle_data = get_sample_vehicle_data(registration)
+        
+        # Check if vehicle already exists
+        existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
+        
+        if existing_vehicle:
+            # Update existing record
+            vehicle_record = existing_vehicle
+        else:
+            # Create new record
+            vehicle_record = VehicleData()
+            vehicle_record.registration = registration
+        
+        # Map data to database fields
+        _update_vehicle_record(vehicle_record, vehicle_data)
+        
+        if not existing_vehicle:
+            db.session.add(vehicle_record)
+        
+        # Add search history record
+        search_record = SearchHistory()
+        search_record.registration = registration
+        search_record.ip_address = request.remote_addr
+        search_record.user_agent = request.headers.get('User-Agent', '')
+        search_record.success = True
+        
+        db.session.add(search_record)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Test data added for {registration}',
+            'vehicle': vehicle_record.to_dict()
+        })
+        
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
