@@ -16,6 +16,9 @@ function initializeEventListeners() {
     // VNC search button
     document.getElementById('vncSearchBtn').addEventListener('click', handleVncSearch);
     
+    // Demo button
+    document.getElementById('demoBtn').addEventListener('click', handleDemoData);
+    
     // Export buttons
     document.getElementById('exportJsonBtn').addEventListener('click', () => exportData('json'));
     document.getElementById('exportCsvBtn').addEventListener('click', () => exportData('csv'));
@@ -154,6 +157,43 @@ async function handleVncSearch() {
     } catch (error) {
         console.error('VNC search error:', error);
         showError('Network error: Unable to perform VNC browser search');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function handleDemoData() {
+    const registration = document.getElementById('registration').value.trim().toUpperCase();
+    
+    if (!registration) {
+        showError('Please enter a vehicle registration number');
+        return;
+    }
+    
+    if (!validateRegistration(registration)) {
+        showError('Please enter a valid UK vehicle registration number');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        hideError();
+        hideResults();
+        
+        const response = await fetch(`/api/demo-data/${registration}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            currentVehicleData = result.data;
+            displayResults(result.data, registration);
+            showSuccess(`Demonstration data displayed for ${registration}. Note: ${result.note}`);
+        } else {
+            showError(result.error || 'Failed to load demonstration data');
+        }
+        
+    } catch (error) {
+        console.error('Demo data error:', error);
+        showError('Network error: Unable to load demonstration data');
     } finally {
         showLoading(false);
     }
