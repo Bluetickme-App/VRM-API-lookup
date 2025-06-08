@@ -311,6 +311,16 @@ class SeleniumVehicleScraper:
             except Exception as e:
                 logger.warning(f"Could not find make using specific XPath: {e}")
             
+            # Extract description using the specific XPath you provided
+            try:
+                description_element = self.driver.find_element(By.XPATH, "//*[@id='modelv']")
+                description_text = description_element.text.strip()
+                if description_text and description_text.lower() not in ['unknown', 'n/a', '-']:
+                    vehicle_data['basic_info']['description'] = description_text
+                    logger.info(f"Found description using XPath: {description_text}")
+            except Exception as e:
+                logger.warning(f"Could not find description using specific XPath: {e}")
+            
             # Try alternative XPaths for other vehicle data
             xpath_mappings = {
                 'make': [
