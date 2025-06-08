@@ -149,8 +149,17 @@ class SeleniumVehicleScraper:
                     search_input.send_keys(Keys.RETURN)
                     logger.info("Pressed Enter to submit")
                 
-                # Wait for results page
-                time.sleep(8)
+                # Wait for results page to load completely
+                time.sleep(10)
+                
+                # Wait for vehicle data to appear
+                try:
+                    self.wait.until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
+                    logger.info("Results page loaded")
+                except TimeoutException:
+                    logger.warning("Timeout waiting for results page")
                 
                 # Extract vehicle data from the results page
                 vehicle_data = self._extract_vehicle_data()
@@ -188,17 +197,299 @@ class SeleniumVehicleScraper:
         }
         
         try:
-            # Extract basic vehicle title
-            try:
-                title_elements = self.driver.find_elements(By.TAG_NAME, "h1")
-                for element in title_elements:
-                    text = element.text.strip()
-                    if text and len(text) > 3:
-                        vehicle_data['basic_info']['title'] = text
-                        break
-            except:
-                pass
+            # Save current page source for debugging
+            page_source = self.driver.page_source
+            logger.info(f"Page title: {self.driver.title}")
             
+            # Extract vehicle data using comprehensive approach
+            
+            # Look for any structured content first
+            self._extract_structured_data(vehicle_data)
+            
+            # Extract from page text patterns 
+            self._extract_from_text_patterns(vehicle_data, page_source)
+            
+            # Extract from all visible elements
+            self._extract_from_elements(vehicle_data)
+            
+            # Extract from table structures
+            self._extract_from_tables(vehicle_data)
+            
+            # Extract tax/MOT information
+            self._extract_tax_mot_data(vehicle_data)
+            
+            logger.info(f"Extracted data structure: {vehicle_data}")
+            
+        except Exception as e:
+            logger.error(f"Error in _extract_vehicle_data: {e}")
+            
+        return vehicle_data
+    
+    def _extract_structured_data(self, vehicle_data: dict):
+        """Extract data from structured elements like divs with specific classes"""
+        try:
+            # Look for common vehicle data containers
+            container_selectors = [
+                ".vehicle-info", ".car-details", ".vehicle-details", 
+                "#vehicle-info", "#car-details", ".info-container"
+            ]
+            
+            for selector in container_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for element in elements:
+                        text = element.text
+                        if text and len(text) > 10:
+                            self._parse_data_from_text(vehicle_data, text)
+                except:
+                    continue
+                    
+        except Exception as e:
+            logger.error(f"Error in structured data extraction: {e}")
+    
+    def _extract_tax_mot_data(self, vehicle_data: dict):
+        """Extract TAX and MOT specific information"""
+        try:
+            # Look for TAX/MOT related text
+            tax_mot_keywords = ['tax', 'mot', 'expires', 'expiry', 'valid', 'due']
+            
+            all_text_elements = self.driver.find_elements(By.XPATH, "//*[text()]")
+            
+            for element in all_text_elements:
+                try:
+                    text = element.text.strip()
+                    text_lower = text.lower()
+                    
+                    if any(keyword in text_lower for keyword in tax_mot_keywords):
+                        # Extract dates and status
+                        import re
+                        
+                        # Look for date patterns
+                        date_pattern = r'(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{4}|\d{1,2}\s+\w+\s+\d{4})'
+                        dates = re.findall(date_pattern, text)
+                        
+                        if 'tax' in text_lower and dates:
+                            vehicle_data['tax_mot']['tax_expiry'] = dates[0]
+                        elif 'mot' in text_lower and dates:
+                            vehicle_data['tax_mot']['mot_expiry'] = dates[0]
+                            
+                        # Look for days remaining
+                        days_pattern = r'(\d+)\s*days'
+                        days_match = re.search(days_pattern, text_lower)
+                        if days_match:
+                            days = days_match.group(1)
+                            if 'tax' in text_lower:
+                                vehicle_data['tax_mot']['tax_days_left'] = days
+                            elif 'mot' in text_lower:
+                                vehicle_data['tax_mot']['mot_days_left'] = days
+                                
+                except:
+                    continue
+                    
+        except Exception as e:
+            logger.error(f"Error in TAX/MOT extraction: {e}")
+    
+    def _parse_data_from_text(self, vehicle_data: dict, text: str):
+        """Parse vehicle data from a block of text"""
+        try:
+            import re
+            
+            lines = text.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if ':' not in line:
+                    continue
+                    
+                parts = line.split(':', 1)
+                if len(parts) != 2:
+                    continue
+                    
+                key = parts[0].strip().lower()
+                value = parts[1].strip()
+                
+                if not value or value.lower() in ['unknown', 'n/a', '-', '']:
+                    continue
+                
+                # Map common vehicle data fields
+                if 'make' in key or 'manufacturer' in key:
+                    vehicle_data['basic_info']['make'] = value
+                elif 'model' in key:
+                    vehicle_data['basic_info']['model'] = value
+                elif 'year' in key or 'registration year' in key:
+                    year_match = re.search(r'(\d{4})', value)
+                    if year_match:
+                        vehicle_data['basic_info']['year'] = year_match.group(1)
+                elif 'colour' in key or 'color' in key:
+                    vehicle_data['basic_info']['color'] = value
+                elif 'fuel' in key:
+                    vehicle_data['basic_info']['fuel_type'] = value
+                elif 'engine' in key:
+                    vehicle_data['vehicle_details']['engine_size'] = value
+                elif 'transmission' in key:
+                    vehicle_data['vehicle_details']['transmission'] = value
+                elif 'body' in key:
+                    vehicle_data['vehicle_details']['body_style'] = value
+                elif 'doors' in key:
+                    vehicle_data['vehicle_details']['doors'] = value
+                    
+        except Exception as e:
+            logger.error(f"Error parsing text data: {e}")
+    
+    def _extract_from_text_patterns(self, vehicle_data: dict, page_source: str):
+        """Extract vehicle data using text pattern matching"""
+        try:
+            import re
+            
+            # Vehicle make and model patterns
+            make_patterns = [
+                r'Make[:\s]+([A-Z][A-Za-z\s]+)',
+                r'Manufacturer[:\s]+([A-Z][A-Za-z\s]+)',
+                r'Brand[:\s]+([A-Z][A-Za-z\s]+)'
+            ]
+            
+            for pattern in make_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    vehicle_data['basic_info']['make'] = match.group(1).strip()
+                    break
+            
+            # Model patterns
+            model_patterns = [
+                r'Model[:\s]+([A-Za-z0-9\s\-]+)',
+                r'Vehicle Model[:\s]+([A-Za-z0-9\s\-]+)'
+            ]
+            
+            for pattern in model_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    vehicle_data['basic_info']['model'] = match.group(1).strip()
+                    break
+            
+            # Year patterns
+            year_patterns = [
+                r'Year[:\s]+(\d{4})',
+                r'Registration Year[:\s]+(\d{4})',
+                r'Model Year[:\s]+(\d{4})'
+            ]
+            
+            for pattern in year_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    vehicle_data['basic_info']['year'] = match.group(1)
+                    break
+            
+            # Color patterns
+            color_patterns = [
+                r'Colour[:\s]+([A-Za-z\s]+)',
+                r'Color[:\s]+([A-Za-z\s]+)'
+            ]
+            
+            for pattern in color_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    color = match.group(1).strip()
+                    if len(color) < 30:  # Reasonable color name length
+                        vehicle_data['basic_info']['color'] = color
+                    break
+            
+            # Fuel type patterns
+            fuel_patterns = [
+                r'Fuel[:\s]+([A-Za-z\s]+)',
+                r'Fuel Type[:\s]+([A-Za-z\s]+)'
+            ]
+            
+            for pattern in fuel_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    fuel = match.group(1).strip()
+                    if len(fuel) < 20:  # Reasonable fuel type length
+                        vehicle_data['basic_info']['fuel_type'] = fuel
+                    break
+                        
+        except Exception as e:
+            logger.error(f"Error in text pattern extraction: {e}")
+    
+    def _extract_from_elements(self, vehicle_data: dict):
+        """Extract vehicle data from page elements"""
+        try:
+            # Look for elements containing vehicle information
+            all_elements = self.driver.find_elements(By.XPATH, "//*[text()]")
+            
+            for element in all_elements:
+                try:
+                    text = element.text.strip()
+                    if not text:
+                        continue
+                    
+                    # Check for make/model/year in element text
+                    if 'make' in text.lower() and ':' in text:
+                        parts = text.split(':')
+                        if len(parts) >= 2:
+                            vehicle_data['basic_info']['make'] = parts[1].strip()
+                    
+                    elif 'model' in text.lower() and ':' in text:
+                        parts = text.split(':')
+                        if len(parts) >= 2:
+                            vehicle_data['basic_info']['model'] = parts[1].strip()
+                    
+                    elif 'year' in text.lower() and ':' in text:
+                        parts = text.split(':')
+                        if len(parts) >= 2:
+                            year_text = parts[1].strip()
+                            year_match = re.search(r'(\d{4})', year_text)
+                            if year_match:
+                                vehicle_data['basic_info']['year'] = year_match.group(1)
+                    
+                    elif 'colour' in text.lower() and ':' in text:
+                        parts = text.split(':')
+                        if len(parts) >= 2:
+                            vehicle_data['basic_info']['color'] = parts[1].strip()
+                    
+                    elif 'fuel' in text.lower() and ':' in text:
+                        parts = text.split(':')
+                        if len(parts) >= 2:
+                            vehicle_data['basic_info']['fuel_type'] = parts[1].strip()
+                            
+                except Exception as e:
+                    continue
+                    
+        except Exception as e:
+            logger.error(f"Error in element extraction: {e}")
+    
+    def _extract_from_tables(self, vehicle_data: dict):
+        """Extract vehicle data from table structures"""
+        try:
+            tables = self.driver.find_elements(By.TAG_NAME, "table")
+            for table in tables:
+                rows = table.find_elements(By.TAG_NAME, "tr")
+                for row in rows:
+                    cells = row.find_elements(By.TAG_NAME, "td")
+                    if len(cells) >= 2:
+                        key = cells[0].text.strip().lower()
+                        value = cells[1].text.strip()
+                        
+                        if 'make' in key:
+                            vehicle_data['basic_info']['make'] = value
+                        elif 'model' in key:
+                            vehicle_data['basic_info']['model'] = value
+                        elif 'year' in key:
+                            vehicle_data['basic_info']['year'] = value
+                        elif 'colour' in key or 'color' in key:
+                            vehicle_data['basic_info']['color'] = value
+                        elif 'fuel' in key:
+                            vehicle_data['basic_info']['fuel_type'] = value
+                        elif 'engine' in key:
+                            vehicle_data['vehicle_details']['engine_size'] = value
+                        elif 'transmission' in key:
+                            vehicle_data['vehicle_details']['transmission'] = value
+                            
+        except Exception as e:
+            logger.error(f"Error in table extraction: {e}")
+    
+    def _extract_legacy_data(self, vehicle_data: dict):
+        """Legacy extraction method - keeping original patterns"""
+        try:
             # Extract TAX information
             try:
                 tax_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'TAX')]")
