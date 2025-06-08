@@ -285,16 +285,30 @@ function displayVehicleSummary(data) {
     const basicInfo = data.basic_info || {};
     const vehicleDetails = data.vehicle_details || {};
     
-    const title = basicInfo.title || 'Vehicle Information';
-    const model = vehicleDetails.model || vehicleDetails.model_variant || 'Unknown';
-    const year = vehicleDetails.year || vehicleDetails.year_manufacture || 'Unknown';
-    const color = vehicleDetails.color || vehicleDetails.primary_colour || 'Unknown';
-    const fuel = vehicleDetails.fuel || vehicleDetails.fuel_type || 'Unknown';
+    // Extract data from the correct fields based on what the scraper provides
+    const make = basicInfo.make || 'Unknown';
+    const model = basicInfo.model || vehicleDetails.model || 'Unknown';
+    const year = basicInfo.year || vehicleDetails.year || 'Unknown';
+    const color = basicInfo.color || vehicleDetails.color || 'Unknown';
+    const fuel = basicInfo.fuel_type || vehicleDetails.fuel_type || 'Unknown';
+    const description = basicInfo.description || '';
+    
+    const title = `${make} ${model}`.trim() || 'Vehicle Information';
+    
+    const transmission = vehicleDetails.transmission || 'Unknown';
+    const engineSize = vehicleDetails.engine_size || 'Unknown';
     
     summaryContainer.innerHTML = `
         <div class="col-md-8">
             <h4 class="text-primary mb-3">${escapeHtml(title)}</h4>
+            ${description ? `<p class="text-muted mb-3">${escapeHtml(description.substring(0, 200))}${description.length > 200 ? '...' : ''}</p>` : ''}
             <div class="row">
+                <div class="col-6 col-md-3">
+                    <div class="vehicle-info-item">
+                        <div class="vehicle-info-label">Make</div>
+                        <div class="vehicle-info-value">${escapeHtml(make)}</div>
+                    </div>
+                </div>
                 <div class="col-6 col-md-3">
                     <div class="vehicle-info-item">
                         <div class="vehicle-info-label">Model</div>
@@ -317,6 +331,18 @@ function displayVehicleSummary(data) {
                     <div class="vehicle-info-item">
                         <div class="vehicle-info-label">Fuel Type</div>
                         <div class="vehicle-info-value">${escapeHtml(fuel)}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="vehicle-info-item">
+                        <div class="vehicle-info-label">Transmission</div>
+                        <div class="vehicle-info-value">${escapeHtml(transmission)}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="vehicle-info-item">
+                        <div class="vehicle-info-label">Engine</div>
+                        <div class="vehicle-info-value">${escapeHtml(engineSize)}</div>
                     </div>
                 </div>
             </div>
