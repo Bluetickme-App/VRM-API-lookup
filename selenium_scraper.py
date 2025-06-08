@@ -299,9 +299,53 @@ class SeleniumVehicleScraper:
             logger.error(f"Error inferring make from model: {e}")
     
     def _extract_structured_data(self, vehicle_data: dict):
-        """Extract data from structured elements like divs with specific classes"""
+        """Extract data from structured elements using specific XPaths"""
         try:
-            # Look for common vehicle data containers
+            # Extract make using the specific XPath you provided
+            try:
+                make_element = self.driver.find_element(By.XPATH, "/html/body/section/div[2]/div/h5[1]")
+                make_text = make_element.text.strip()
+                if make_text and make_text.lower() not in ['unknown', 'n/a', '-']:
+                    vehicle_data['basic_info']['make'] = make_text
+                    logger.info(f"Found make using XPath: {make_text}")
+            except Exception as e:
+                logger.warning(f"Could not find make using specific XPath: {e}")
+            
+            # Try alternative XPaths for other vehicle data
+            xpath_mappings = {
+                'make': [
+                    "/html/body/section/div[2]/div/h5[1]",
+                    "//h5[contains(text(), 'Make') or position()=1]",
+                    "//span[contains(@class, 'make')]",
+                    "//div[contains(@class, 'make')]"
+                ],
+                'model': [
+                    "//h5[contains(text(), 'Model') or position()=2]",
+                    "//span[contains(@class, 'model')]",
+                    "//div[contains(@class, 'model')]"
+                ],
+                'year': [
+                    "//h5[contains(text(), 'Year') or contains(text(), '20')]",
+                    "//span[contains(@class, 'year')]"
+                ]
+            }
+            
+            for field, xpaths in xpath_mappings.items():
+                if vehicle_data['basic_info'].get(field):
+                    continue  # Skip if already found
+                    
+                for xpath in xpaths:
+                    try:
+                        element = self.driver.find_element(By.XPATH, xpath)
+                        text = element.text.strip()
+                        if text and text.lower() not in ['unknown', 'n/a', '-', '']:
+                            vehicle_data['basic_info'][field] = text
+                            logger.info(f"Found {field} using XPath {xpath}: {text}")
+                            break
+                    except:
+                        continue
+            
+            # Look for common vehicle data containers as fallback
             container_selectors = [
                 ".vehicle-info", ".car-details", ".vehicle-details", 
                 "#vehicle-info", "#car-details", ".info-container"
