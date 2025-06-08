@@ -35,7 +35,7 @@ def scrape_vehicle():
             }), 400
         
         # Initialize scraper and extract data
-        scraper = VehicleScraper()
+        scraper = EnhancedVehicleScraper()
         vehicle_data = scraper.scrape_vehicle_data(registration)
         
         if vehicle_data:
@@ -62,7 +62,7 @@ def export_data(format_type, registration):
     """Export vehicle data in JSON or CSV format"""
     try:
         # Re-scrape data for export (in production, you might want to cache this)
-        scraper = VehicleScraper()
+        scraper = EnhancedVehicleScraper()
         vehicle_data = scraper.scrape_vehicle_data(registration.upper())
         
         if not vehicle_data:
