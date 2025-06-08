@@ -555,6 +555,7 @@ def get_vehicle_data_api():
                 'fuel_type': existing_vehicle.fuel_type,
                 'transmission': existing_vehicle.transmission,
                 'engine_size': existing_vehicle.engine_size,
+                'total_keepers': existing_vehicle.total_keepers,
                 'source': 'cached_data'
             })
         
@@ -574,6 +575,7 @@ def get_vehicle_data_api():
             db.session.commit()
             
             # Return simple API response
+            additional_info = vehicle_data.get('additional', {})
             return jsonify({
                 'success': True,
                 'registration': registration,
@@ -585,6 +587,7 @@ def get_vehicle_data_api():
                 'fuel_type': basic_info.get('fuel_type'),
                 'transmission': vehicle_details.get('transmission'),
                 'engine_size': vehicle_details.get('engine_size'),
+                'total_keepers': additional_info.get('total_keepers'),
                 'source': 'fresh_scrape'
             })
         else:

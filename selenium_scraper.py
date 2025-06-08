@@ -357,7 +357,29 @@ class SeleniumVehicleScraper:
     def _extract_structured_data(self, vehicle_data: dict):
         """Extract data from structured elements using specific XPaths"""
         try:
-            # Extract make using the specific XPath you provided
+            # Extract Total Keepers using the new XPath
+            try:
+                total_keepers_element = self.driver.find_element(By.XPATH, "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]")
+                total_keepers_text = total_keepers_element.text.strip()
+                if total_keepers_text and total_keepers_text.isdigit():
+                    vehicle_data['additional'] = vehicle_data.get('additional', {})
+                    vehicle_data['additional']['total_keepers'] = int(total_keepers_text)
+                    logger.info(f"Found total keepers using XPath: {total_keepers_text}")
+            except Exception as e:
+                logger.warning(f"Could not find total keepers using specific XPath: {e}")
+
+            # Extract Model Variant/Derivative using the specific XPath
+            try:
+                model_variant_element = self.driver.find_element(By.XPATH, "//*[@id='modelv']")
+                model_variant_text = model_variant_element.text.strip()
+                if model_variant_text and model_variant_text.lower() not in ['unknown', 'n/a', '-']:
+                    vehicle_data['basic_info']['model'] = model_variant_text
+                    vehicle_data['basic_info']['description'] = model_variant_text
+                    logger.info(f"Found model variant using XPath: {model_variant_text}")
+            except Exception as e:
+                logger.warning(f"Could not find model variant using specific XPath: {e}")
+            
+            # Extract make using the original XPath (keeping as fallback)
             try:
                 make_element = self.driver.find_element(By.XPATH, "/html/body/section/div[2]/div/h5[1]")
                 make_text = make_element.text.strip()
@@ -366,16 +388,6 @@ class SeleniumVehicleScraper:
                     logger.info(f"Found make using XPath: {make_text}")
             except Exception as e:
                 logger.warning(f"Could not find make using specific XPath: {e}")
-            
-            # Extract description using the specific XPath you provided
-            try:
-                description_element = self.driver.find_element(By.XPATH, "//*[@id='modelv']")
-                description_text = description_element.text.strip()
-                if description_text and description_text.lower() not in ['unknown', 'n/a', '-']:
-                    vehicle_data['basic_info']['description'] = description_text
-                    logger.info(f"Found description using XPath: {description_text}")
-            except Exception as e:
-                logger.warning(f"Could not find description using specific XPath: {e}")
                 
             # Extract full description from visible text patterns
             try:
