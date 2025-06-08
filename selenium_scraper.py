@@ -201,7 +201,7 @@ class SeleniumVehicleScraper:
             page_source = self.driver.page_source
             logger.info(f"Page title: {self.driver.title}")
             
-            # Look for all text content on the page for debugging
+            # Look for all text content on the page for debugging and processing
             all_visible_text = []
             try:
                 elements_with_text = self.driver.find_elements(By.XPATH, "//*[normalize-space(text())]")
@@ -213,8 +213,12 @@ class SeleniumVehicleScraper:
                     except:
                         continue
                 logger.info(f"Sample visible text: {all_visible_text[:20]}")
+                self.all_visible_text = all_visible_text  # Store for later use
             except:
                 pass
+            
+            # Extract TAX and MOT data directly from visible text
+            self._extract_tax_mot_from_visible_text(vehicle_data, all_visible_text)
             
             # Extract vehicle data using comprehensive approach
             
@@ -243,6 +247,58 @@ class SeleniumVehicleScraper:
             logger.error(f"Error in _extract_vehicle_data: {e}")
             
         return vehicle_data
+    
+    def _extract_tax_mot_from_visible_text(self, vehicle_data: dict, visible_text_list: list):
+        """Extract TAX and MOT data from the visible text array"""
+        try:
+            import re
+            
+            # Join all visible text for pattern matching
+            full_text = ' '.join(visible_text_list)
+            
+            # Look for TAX information
+            for i, text in enumerate(visible_text_list):
+                if 'TAX' in text:
+                    # Check next few items for expiry date and days left
+                    for j in range(i+1, min(i+4, len(visible_text_list))):
+                        next_text = visible_text_list[j]
+                        
+                        # Look for expiry date pattern
+                        if 'Expires:' in next_text:
+                            date_match = re.search(r'Expires:\s*(.+)', next_text)
+                            if date_match:
+                                vehicle_data['tax_mot']['tax_expiry'] = date_match.group(1).strip()
+                                
+                        # Look for days left
+                        elif 'days left' in next_text:
+                            days_match = re.search(r'(\d+)\s+days\s+left', next_text)
+                            if days_match:
+                                vehicle_data['tax_mot']['tax_days_left'] = int(days_match.group(1))
+                                
+                # Look for MOT information
+                elif 'MOT' in text:
+                    # Check next few items for expiry date and days left
+                    for j in range(i+1, min(i+4, len(visible_text_list))):
+                        next_text = visible_text_list[j]
+                        
+                        # Look for expiry date pattern
+                        if 'Expires:' in next_text:
+                            date_match = re.search(r'Expires:\s*(.+)', next_text)
+                            if date_match:
+                                vehicle_data['tax_mot']['mot_expiry'] = date_match.group(1).strip()
+                                
+                        # Look for days left
+                        elif 'days left' in next_text:
+                            days_match = re.search(r'(\d+)\s+days\s+left', next_text)
+                            if days_match:
+                                vehicle_data['tax_mot']['mot_days_left'] = int(days_match.group(1))
+            
+            # Log what we found
+            if vehicle_data['tax_mot']:
+                logger.info(f"Extracted TAX/MOT data: {vehicle_data['tax_mot']}")
+                        
+        except Exception as e:
+            logger.error(f"Error extracting TAX/MOT from visible text: {e}")
     
     def _infer_make_from_model(self, vehicle_data: dict):
         """Infer vehicle make from model when make is not explicitly found"""
@@ -320,6 +376,18 @@ class SeleniumVehicleScraper:
                     logger.info(f"Found description using XPath: {description_text}")
             except Exception as e:
                 logger.warning(f"Could not find description using specific XPath: {e}")
+                
+            # Try to find full description from visible text
+            try:
+                visible_text = ' '.join(self.all_visible_text) if hasattr(self, 'all_visible_text') else ''
+                if 'Limited Edition' in visible_text:
+                    import re
+                    full_desc_match = re.search(r'(Compass[^,]*Limited Edition[^,]*)', visible_text)
+                    if full_desc_match:
+                        vehicle_data['basic_info']['description'] = full_desc_match.group(1)
+                        logger.info(f"Found full description: {full_desc_match.group(1)}")
+            except:
+                pass
             
             # Try alternative XPaths for other vehicle data
             xpath_mappings = {
