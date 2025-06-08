@@ -10,7 +10,7 @@ import csv
 import io
 import os
 from datetime import datetime
-from vehicle_scraper import VehicleScraper
+from enhanced_scraper import EnhancedVehicleScraper
 from utils import validate_registration, sanitize_filename
 
 app = Flask(__name__)

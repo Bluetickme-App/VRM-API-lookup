@@ -7,8 +7,10 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
+from webdriver_manager.firefox import GeckoDriverManager
 from data_extractor import DataExtractor
 from config import SCRAPER_CONFIG
 import time
@@ -27,17 +29,19 @@ class VehicleScraper:
         self.data_extractor = DataExtractor()
         
     def _setup_driver(self):
-        """Initialize Chrome WebDriver with appropriate options"""
+        """Initialize Firefox WebDriver with appropriate options"""
         try:
-            chrome_options = Options()
-            chrome_options.add_argument('--headless')  # Run in background
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument('--disable-gpu')
-            chrome_options.add_argument('--window-size=1920,1080')
-            chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+            firefox_options = Options()
+            firefox_options.add_argument('--headless')  # Run in background
+            firefox_options.add_argument('--no-sandbox')
+            firefox_options.add_argument('--disable-dev-shm-usage')
+            firefox_options.add_argument('--disable-gpu')
+            firefox_options.add_argument('--window-size=1920,1080')
+            firefox_options.set_preference("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0")
             
-            self.driver = webdriver.Chrome(options=chrome_options)
+            # Use webdriver-manager to automatically manage GeckoDriver
+            service = Service(GeckoDriverManager().install())
+            self.driver = webdriver.Firefox(service=service, options=firefox_options)
             self.wait = WebDriverWait(self.driver, SCRAPER_CONFIG['timeout'])
             logger.info("WebDriver initialized successfully")
             
