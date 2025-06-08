@@ -148,6 +148,7 @@ async function handleVncSearch() {
         
         if (result.success) {
             currentVehicleData = result.data;
+            currentRegistration = registration;
             displayResults(result.data, registration);
             showSuccess(`Vehicle data successfully retrieved via VNC browser for ${registration}`);
         } else {
