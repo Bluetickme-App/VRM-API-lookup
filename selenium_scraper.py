@@ -201,6 +201,21 @@ class SeleniumVehicleScraper:
             page_source = self.driver.page_source
             logger.info(f"Page title: {self.driver.title}")
             
+            # Look for all text content on the page for debugging
+            all_visible_text = []
+            try:
+                elements_with_text = self.driver.find_elements(By.XPATH, "//*[normalize-space(text())]")
+                for element in elements_with_text[:100]:  # Limit to first 100 for performance
+                    try:
+                        text = element.text.strip()
+                        if text and len(text) > 1 and text not in all_visible_text:
+                            all_visible_text.append(text)
+                    except:
+                        continue
+                logger.info(f"Sample visible text: {all_visible_text[:20]}")
+            except:
+                pass
+            
             # Extract vehicle data using comprehensive approach
             
             # Look for any structured content first
@@ -218,12 +233,70 @@ class SeleniumVehicleScraper:
             # Extract tax/MOT information
             self._extract_tax_mot_data(vehicle_data)
             
+            # Post-process: Apply make inference if still missing
+            if not vehicle_data['basic_info'].get('make') and vehicle_data['basic_info'].get('model'):
+                self._infer_make_from_model(vehicle_data)
+            
             logger.info(f"Extracted data structure: {vehicle_data}")
             
         except Exception as e:
             logger.error(f"Error in _extract_vehicle_data: {e}")
             
         return vehicle_data
+    
+    def _infer_make_from_model(self, vehicle_data: dict):
+        """Infer vehicle make from model when make is not explicitly found"""
+        try:
+            model = vehicle_data['basic_info'].get('model', '').lower()
+            
+            # Common make-model mappings
+            model_to_make = {
+                'compass': 'Jeep',
+                'wrangler': 'Jeep', 
+                'cherokee': 'Jeep',
+                'renegade': 'Jeep',
+                'focus': 'Ford',
+                'fiesta': 'Ford',
+                'mondeo': 'Ford',
+                'kuga': 'Ford',
+                'golf': 'Volkswagen',
+                'polo': 'Volkswagen',
+                'passat': 'Volkswagen',
+                'tiguan': 'Volkswagen',
+                'corolla': 'Toyota',
+                'yaris': 'Toyota',
+                'camry': 'Toyota',
+                'prius': 'Toyota',
+                'civic': 'Honda',
+                'accord': 'Honda',
+                'crv': 'Honda',
+                'hrv': 'Honda',
+                'astra': 'Vauxhall',
+                'corsa': 'Vauxhall',
+                'insignia': 'Vauxhall',
+                'mokka': 'Vauxhall',
+                'clio': 'Renault',
+                'megane': 'Renault',
+                'captur': 'Renault',
+                'scenic': 'Renault',
+                '208': 'Peugeot',
+                '308': 'Peugeot',
+                '508': 'Peugeot',
+                '2008': 'Peugeot',
+                'c3': 'Citroen',
+                'c4': 'Citroen',
+                'c5': 'Citroen',
+                'berlingo': 'Citroen'
+            }
+            
+            for model_name, make_name in model_to_make.items():
+                if model_name in model:
+                    vehicle_data['basic_info']['make'] = make_name
+                    logger.info(f"Inferred make '{make_name}' from model '{model}'")
+                    break
+                    
+        except Exception as e:
+            logger.error(f"Error inferring make from model: {e}")
     
     def _extract_structured_data(self, vehicle_data: dict):
         """Extract data from structured elements like divs with specific classes"""
@@ -264,14 +337,33 @@ class SeleniumVehicleScraper:
                         # Extract dates and status
                         import re
                         
-                        # Look for date patterns
-                        date_pattern = r'(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{4}|\d{1,2}\s+\w+\s+\d{4})'
-                        dates = re.findall(date_pattern, text)
+                        # Look for date patterns - improved patterns
+                        date_patterns = [
+                            r'(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{4})',  # DD/MM/YYYY, DD-MM-YYYY
+                            r'(\d{1,2}\s+\w+\s+\d{4})',  # DD Month YYYY
+                            r'(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})',  # YYYY/MM/DD
+                            r'(\w+\s+\d{1,2},?\s+\d{4})'  # Month DD, YYYY
+                        ]
                         
-                        if 'tax' in text_lower and dates:
-                            vehicle_data['tax_mot']['tax_expiry'] = dates[0]
-                        elif 'mot' in text_lower and dates:
-                            vehicle_data['tax_mot']['mot_expiry'] = dates[0]
+                        dates = []
+                        for pattern in date_patterns:
+                            dates.extend(re.findall(pattern, text))
+                        
+                        if dates:
+                            if 'tax' in text_lower:
+                                vehicle_data['tax_mot']['tax_expiry'] = dates[0]
+                                # Look for status
+                                if 'valid' in text_lower:
+                                    vehicle_data['tax_mot']['tax_status'] = 'Valid'
+                                elif 'expired' in text_lower or 'due' in text_lower:
+                                    vehicle_data['tax_mot']['tax_status'] = 'Expired'
+                            elif 'mot' in text_lower:
+                                vehicle_data['tax_mot']['mot_expiry'] = dates[0]
+                                # Look for status
+                                if 'valid' in text_lower:
+                                    vehicle_data['tax_mot']['mot_status'] = 'Valid'
+                                elif 'expired' in text_lower or 'due' in text_lower:
+                                    vehicle_data['tax_mot']['mot_status'] = 'Expired'
                             
                         # Look for days remaining
                         days_pattern = r'(\d+)\s*days'
@@ -312,10 +404,30 @@ class SeleniumVehicleScraper:
                     continue
                 
                 # Map common vehicle data fields
-                if 'make' in key or 'manufacturer' in key:
+                if 'make' in key or 'manufacturer' in key or 'brand' in key:
                     vehicle_data['basic_info']['make'] = value
                 elif 'model' in key:
                     vehicle_data['basic_info']['model'] = value
+                    # If we have a model but no make, try to infer make from common patterns
+                    if not vehicle_data['basic_info'].get('make'):
+                        # Common make-model patterns
+                        model_to_make = {
+                            'compass': 'Jeep',
+                            'wrangler': 'Jeep', 
+                            'cherokee': 'Jeep',
+                            'focus': 'Ford',
+                            'fiesta': 'Ford',
+                            'golf': 'Volkswagen',
+                            'polo': 'Volkswagen',
+                            'corolla': 'Toyota',
+                            'civic': 'Honda',
+                            'accord': 'Honda'
+                        }
+                        model_lower = value.lower()
+                        for model_name, make_name in model_to_make.items():
+                            if model_name in model_lower:
+                                vehicle_data['basic_info']['make'] = make_name
+                                break
                 elif 'year' in key or 'registration year' in key:
                     year_match = re.search(r'(\d{4})', value)
                     if year_match:
