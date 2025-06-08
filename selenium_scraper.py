@@ -377,17 +377,28 @@ class SeleniumVehicleScraper:
             except Exception as e:
                 logger.warning(f"Could not find description using specific XPath: {e}")
                 
-            # Try to find full description from visible text
+            # Extract full description from visible text patterns
             try:
-                visible_text = ' '.join(self.all_visible_text) if hasattr(self, 'all_visible_text') else ''
-                if 'Limited Edition' in visible_text:
-                    import re
-                    full_desc_match = re.search(r'(Compass[^,]*Limited Edition[^,]*)', visible_text)
-                    if full_desc_match:
-                        vehicle_data['basic_info']['description'] = full_desc_match.group(1)
-                        logger.info(f"Found full description: {full_desc_match.group(1)}")
-            except:
-                pass
+                if hasattr(self, 'all_visible_text'):
+                    visible_text_list = self.all_visible_text
+                    
+                    # Look for full description patterns in the visible text
+                    for i, text in enumerate(visible_text_list):
+                        if 'Description' in text and i + 1 < len(visible_text_list):
+                            next_text = visible_text_list[i + 1]
+                            # Check if next text contains detailed description
+                            if any(keyword in next_text for keyword in ['SE', 'TDI', 'Quattro', 'Auto', 'Limited', 'Edition', 'Sport', 'Turbo']):
+                                vehicle_data['basic_info']['description'] = next_text
+                                logger.info(f"Found detailed description: {next_text}")
+                                break
+                        elif 'Model Description' in text and i + 1 < len(visible_text_list):
+                            next_text = visible_text_list[i + 1]
+                            if next_text != 'Not Available' and len(next_text) > 3:
+                                vehicle_data['basic_info']['description'] = next_text
+                                logger.info(f"Found model description: {next_text}")
+                                break
+            except Exception as e:
+                logger.warning(f"Error extracting detailed description: {e}")
             
             # Try alternative XPaths for other vehicle data
             xpath_mappings = {
