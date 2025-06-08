@@ -11,10 +11,16 @@ import io
 import os
 from datetime import datetime
 from enhanced_scraper import EnhancedVehicleScraper
+from selenium_scraper import SeleniumVehicleScraper
 from test_data_service import get_sample_vehicle_data
 from utils import validate_registration, sanitize_filename
 from models import db, VehicleData, SearchHistory
 from sqlalchemy.orm import DeclarativeBase
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Base(DeclarativeBase):
     pass
@@ -85,21 +91,27 @@ def scrape_vehicle():
                         'scraped_at': existing_vehicle.updated_at.isoformat()
                     })
             
-            # Initialize scraper and extract data
+            # Try enhanced scraper first (direct HTTP)
             scraper = EnhancedVehicleScraper()
             vehicle_data = scraper.scrape_vehicle_data(registration)
             
-            # If scraping fails due to blocking, inform user about the issue
+            # If HTTP scraping fails, try Selenium browser automation
+            if not vehicle_data:
+                logger.info("HTTP scraping failed, trying Selenium browser automation")
+                selenium_scraper = SeleniumVehicleScraper(headless=True)
+                vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
+            
+            # If both methods fail, log the attempt
             if not vehicle_data:
                 search_record.success = False
-                search_record.error_message = 'Website blocking detected - direct scraping not available'
+                search_record.error_message = 'Website blocking detected - all scraping methods failed'
                 db.session.add(search_record)
                 db.session.commit()
                 
                 return jsonify({
                     'success': False,
-                    'error': 'The website is currently blocking automated requests. This is a common anti-scraping measure used by checkcardetails.co.uk.'
-                }), 403
+                    'error': 'Unable to extract vehicle data. The website may be blocking automated requests or the registration may not be found.'
+                }), 404
             
             if vehicle_data:
                 # Store or update vehicle data in database
@@ -469,6 +481,81 @@ def add_test_data():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/scrape-vnc', methods=['POST'])
+def scrape_vehicle_vnc():
+    """VNC-based scraping endpoint for interactive browser automation"""
+    try:
+        data = request.get_json()
+        registration = data.get('registration', '').strip().upper()
+        
+        if not validate_registration(registration):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid registration number format'
+            }), 400
+        
+        # Log search attempt
+        search_record = SearchHistory()
+        search_record.registration = registration
+        search_record.ip_address = request.remote_addr
+        search_record.user_agent = request.headers.get('User-Agent', '')
+        
+        try:
+            # Use Selenium with visible browser (VNC)
+            selenium_scraper = SeleniumVehicleScraper(headless=False)
+            vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
+            
+            if vehicle_data:
+                # Check if vehicle already exists
+                existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
+                
+                if existing_vehicle:
+                    vehicle_record = existing_vehicle
+                else:
+                    vehicle_record = VehicleData()
+                    vehicle_record.registration = registration
+                
+                # Map data to database fields
+                _update_vehicle_record(vehicle_record, vehicle_data)
+                
+                if not existing_vehicle:
+                    db.session.add(vehicle_record)
+                
+                search_record.success = True
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'data': vehicle_record.to_dict(),
+                    'registration': registration,
+                    'source': 'vnc_scrape',
+                    'scraped_at': datetime.utcnow().isoformat()
+                })
+            else:
+                search_record.success = False
+                search_record.error_message = 'VNC scraping failed - no data extracted'
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': 'VNC scraping failed to extract vehicle data'
+                }), 404
+                
+        except Exception as scrape_error:
+            search_record.success = False
+            search_record.error_message = str(scrape_error)
+            db.session.add(search_record)
+            db.session.commit()
+            raise scrape_error
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'VNC scraping failed: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

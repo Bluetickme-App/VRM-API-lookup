@@ -13,6 +13,9 @@ function initializeEventListeners() {
     // Search form submission
     document.getElementById('searchForm').addEventListener('submit', handleSearch);
     
+    // VNC search button
+    document.getElementById('vncSearchBtn').addEventListener('click', handleVncSearch);
+    
     // Export buttons
     document.getElementById('exportJsonBtn').addEventListener('click', () => exportData('json'));
     document.getElementById('exportCsvBtn').addEventListener('click', () => exportData('csv'));
@@ -107,6 +110,50 @@ async function handleSearch(event) {
     } catch (error) {
         console.error('Search error:', error);
         showError('Network error: Unable to retrieve vehicle data');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function handleVncSearch() {
+    const registration = document.getElementById('registration').value.trim().toUpperCase();
+    
+    if (!registration) {
+        showError('Please enter a vehicle registration number');
+        return;
+    }
+    
+    if (!validateRegistration(registration)) {
+        showError('Please enter a valid UK vehicle registration number');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        hideError();
+        hideResults();
+        
+        const response = await fetch('/api/scrape-vnc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ registration: registration })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            currentVehicleData = result.data;
+            displayResults(result.data, registration);
+            showSuccess(`Vehicle data successfully retrieved via VNC browser for ${registration}`);
+        } else {
+            showError(result.error || 'VNC browser search failed');
+        }
+        
+    } catch (error) {
+        console.error('VNC search error:', error);
+        showError('Network error: Unable to perform VNC browser search');
     } finally {
         showLoading(false);
     }
