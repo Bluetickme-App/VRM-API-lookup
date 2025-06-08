@@ -5,6 +5,7 @@ Provides web interface for scraping vehicle data from checkcardetails.co.uk
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
+from flask_cors import CORS
 import json
 import csv
 import io
@@ -27,6 +28,9 @@ class Base(DeclarativeBase):
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+
+# Enable CORS for API access
+CORS(app)
 
 # Database configuration
 database_url = os.environ.get("DATABASE_URL")

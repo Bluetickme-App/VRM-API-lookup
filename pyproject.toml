@@ -12,4 +12,6 @@ dependencies = [
     "trafilatura>=2.0.0",
     "webdriver-manager>=4.0.2",
     "psycopg2-binary>=2.9.10",
+    "flask-cors>=6.0.0",
+    "sqlalchemy>=2.0.41",
 ]
