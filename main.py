@@ -387,6 +387,56 @@ def get_vehicle(registration):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/docs')
+def api_docs():
+    """API Documentation"""
+    docs = """
+    # Vehicle Data API Documentation
+    
+    ## Endpoint: /api/vehicle-data
+    **Methods:** GET, POST
+    
+    ### Request Examples:
+    
+    **GET Request:**
+    ```
+    GET /api/vehicle-data?registration=RE13CEO
+    ```
+    
+    **POST Request:**
+    ```json
+    {
+        "registration": "RE13CEO"
+    }
+    ```
+    
+    ### Response Format:
+    ```json
+    {
+        "success": true,
+        "registration": "RE13CEO",
+        "make": "FERRARI F12BERLINETTA AB S-A",
+        "model": "F12berlinetta Ab S-a",
+        "description": "F12 Berlinetta AB Semi-Auto",
+        "year": 2013,
+        "color": "Black",
+        "fuel_type": "PETROL",
+        "transmission": "Auto 7 Gears",
+        "engine_size": "6262 cc",
+        "source": "fresh_scrape"
+    }
+    ```
+    
+    ### Error Response:
+    ```json
+    {
+        "success": false,
+        "error": "Invalid registration number format"
+    }
+    ```
+    """
+    return f"<pre>{docs}</pre>"
+
 @app.route('/admin')
 def admin():
     """Database administration page"""
@@ -467,6 +517,83 @@ def get_demo_data(registration):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/vehicle-data', methods=['POST', 'GET'])
+def get_vehicle_data_api():
+    """Simple API endpoint for external calls - returns basic vehicle data"""
+    try:
+        # Handle both GET and POST requests
+        if request.method == 'GET':
+            registration = request.args.get('registration', '').strip().upper()
+        else:
+            data = request.get_json()
+            registration = data.get('registration', '').strip().upper() if data else ''
+        
+        if not validate_registration(registration):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid registration number format'
+            }), 400
+        
+        # Check if we have cached data first
+        existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
+        
+        if existing_vehicle and existing_vehicle.make:
+            # Return cached data in simple format
+            return jsonify({
+                'success': True,
+                'registration': registration,
+                'make': existing_vehicle.make,
+                'model': existing_vehicle.model,
+                'description': existing_vehicle.description,
+                'year': existing_vehicle.year,
+                'color': existing_vehicle.color,
+                'fuel_type': existing_vehicle.fuel_type,
+                'transmission': existing_vehicle.transmission,
+                'engine_size': existing_vehicle.engine_size,
+                'source': 'cached_data'
+            })
+        
+        # If no cached data, scrape fresh
+        selenium_scraper = SeleniumVehicleScraper(headless=True)  # Headless for API
+        vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
+        
+        if vehicle_data and vehicle_data.get('basic_info'):
+            basic_info = vehicle_data.get('basic_info', {})
+            vehicle_details = vehicle_data.get('vehicle_details', {})
+            
+            # Store in database for caching
+            vehicle_record = VehicleData()
+            vehicle_record.registration = registration
+            _update_vehicle_record(vehicle_record, vehicle_data)
+            db.session.add(vehicle_record)
+            db.session.commit()
+            
+            # Return simple API response
+            return jsonify({
+                'success': True,
+                'registration': registration,
+                'make': basic_info.get('make'),
+                'model': basic_info.get('model'),
+                'description': basic_info.get('description'),
+                'year': basic_info.get('year'),
+                'color': basic_info.get('color'),
+                'fuel_type': basic_info.get('fuel_type'),
+                'transmission': vehicle_details.get('transmission'),
+                'engine_size': vehicle_details.get('engine_size'),
+                'source': 'fresh_scrape'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Vehicle data not found or scraping failed'
+            }), 404
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'API error: {str(e)}'
+        }), 500
 
 @app.route('/api/scrape-vnc', methods=['POST'])
 def scrape_vehicle_vnc():
