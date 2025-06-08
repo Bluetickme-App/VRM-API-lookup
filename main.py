@@ -236,87 +236,52 @@ def _update_vehicle_record(vehicle_record, vehicle_data):
     from datetime import datetime
     import re
     
-    # Extract basic info
+    # Extract basic info from the correct structure
     basic_info = vehicle_data.get('basic_info', {})
-    if basic_info.get('title'):
-        title_parts = basic_info['title'].split()
-        if len(title_parts) >= 2:
-            vehicle_record.make = title_parts[0]
-            vehicle_record.model = ' '.join(title_parts[1:])
+    vehicle_details = vehicle_data.get('vehicle_details', {})
+    tax_mot = vehicle_data.get('tax_mot', {})
     
-    # Extract vehicle details
-    details = vehicle_data.get('vehicle_details', {})
-    vehicle_record.variant = details.get('model_variant') or details.get('variant')
-    vehicle_record.description = details.get('description')
-    vehicle_record.color = details.get('primary_colour') or details.get('color')
-    vehicle_record.fuel_type = details.get('fuel_type')
-    vehicle_record.transmission = details.get('transmission')
-    vehicle_record.engine_size = details.get('engine')
-    vehicle_record.body_style = details.get('body_style')
-    vehicle_record.euro_status = details.get('euro_status')
-    vehicle_record.type_approval = details.get('type_approval')
-    vehicle_record.wheel_plan = details.get('wheel_plan')
-    vehicle_record.vehicle_age = details.get('vehicle_age')
-    vehicle_record.registration_place = details.get('registration_place')
-    
-    # Parse year
-    if details.get('year_manufacture'):
+    # Map basic vehicle information
+    vehicle_record.make = basic_info.get('make')
+    vehicle_record.model = basic_info.get('model')
+    vehicle_record.description = basic_info.get('description')
+    vehicle_record.color = basic_info.get('color')
+    vehicle_record.fuel_type = basic_info.get('fuel_type')
+    if basic_info.get('year'):
         try:
-            vehicle_record.year = int(details['year_manufacture'])
+            vehicle_record.year = int(basic_info['year'])
         except (ValueError, TypeError):
             pass
     
-    # Parse dates
-    if details.get('registration_date'):
-        try:
-            date_str = details['registration_date']
-            for fmt in ['%d/%m/%Y', '%d %B %Y', '%Y-%m-%d']:
-                try:
-                    vehicle_record.registration_date = datetime.strptime(date_str, fmt).date()
-                    break
-                except ValueError:
-                    continue
-        except:
-            pass
+    # Map vehicle details
+    vehicle_record.transmission = vehicle_details.get('transmission')
+    vehicle_record.engine_size = vehicle_details.get('engine_size')
     
-    # Extract tax and MOT info
-    tax_mot = vehicle_data.get('tax_mot', {})
+    # Map TAX/MOT information
     if tax_mot.get('tax_expiry'):
         try:
-            date_str = tax_mot['tax_expiry']
-            for fmt in ['%d %B %Y', '%d/%m/%Y', '%Y-%m-%d']:
-                try:
-                    vehicle_record.tax_expiry = datetime.strptime(date_str, fmt).date()
-                    break
-                except ValueError:
-                    continue
+            from datetime import datetime
+            tax_date = datetime.strptime(tax_mot['tax_expiry'], '%d %b %Y').date()
+            vehicle_record.tax_expiry = tax_date
         except:
             pass
     
+    if tax_mot.get('tax_days_left'):
+        vehicle_record.tax_days_left = tax_mot['tax_days_left']
+        
     if tax_mot.get('mot_expiry'):
         try:
-            date_str = tax_mot['mot_expiry']
-            for fmt in ['%d %B %Y', '%d/%m/%Y', '%Y-%m-%d']:
-                try:
-                    vehicle_record.mot_expiry = datetime.strptime(date_str, fmt).date()
-                    break
-                except ValueError:
-                    continue
+            from datetime import datetime
+            mot_date = datetime.strptime(tax_mot['mot_expiry'], '%d %b %Y').date()
+            vehicle_record.mot_expiry = mot_date
         except:
-            pass
-    
-    # Parse days left
-    if tax_mot.get('tax_days_left'):
-        try:
-            vehicle_record.tax_days_left = int(tax_mot['tax_days_left'])
-        except (ValueError, TypeError):
             pass
     
     if tax_mot.get('mot_days_left'):
-        try:
-            vehicle_record.mot_days_left = int(tax_mot['mot_days_left'])
-        except (ValueError, TypeError):
-            pass
+        vehicle_record.mot_days_left = tax_mot['mot_days_left']
+    
+    # Store raw data for debugging
+    vehicle_record.raw_data = vehicle_data
     
     # Extract mileage info
     mileage = vehicle_data.get('mileage', {})
