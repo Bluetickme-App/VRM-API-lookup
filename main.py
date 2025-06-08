@@ -95,23 +95,18 @@ def scrape_vehicle():
             scraper = EnhancedVehicleScraper()
             vehicle_data = scraper.scrape_vehicle_data(registration)
             
-            # If HTTP scraping fails, try Selenium browser automation
-            if not vehicle_data:
-                logger.info("HTTP scraping failed, trying Selenium browser automation")
-                selenium_scraper = SeleniumVehicleScraper(headless=True)
-                vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
-            
-            # If both methods fail, log the attempt
+            # If HTTP scraping fails due to 403 blocking, inform user about browser automation option
             if not vehicle_data:
                 search_record.success = False
-                search_record.error_message = 'Website blocking detected - all scraping methods failed'
+                search_record.error_message = 'Website blocking detected - requires browser automation'
                 db.session.add(search_record)
                 db.session.commit()
                 
                 return jsonify({
                     'success': False,
-                    'error': 'Unable to extract vehicle data. The website may be blocking automated requests or the registration may not be found.'
-                }), 404
+                    'error': 'The website is blocking automated requests. Please use the "VNC Browser Search" button below for interactive scraping, or contact the website administrator for API access.',
+                    'suggestion': 'vnc_required'
+                }), 403
             
             if vehicle_data:
                 # Store or update vehicle data in database
@@ -480,6 +475,32 @@ def add_test_data():
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/demo-data/<registration>')
+def get_demo_data(registration):
+    """Get demonstration data for a registration number"""
+    try:
+        registration = registration.strip().upper()
+        
+        if not validate_registration(registration):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid registration number format'
+            }), 400
+        
+        # Generate demonstration data
+        demo_data = get_sample_vehicle_data(registration)
+        
+        return jsonify({
+            'success': True,
+            'data': demo_data,
+            'registration': registration,
+            'source': 'demonstration_data',
+            'note': 'This is demonstration data showing the expected structure. Real scraping requires browser automation due to website restrictions.'
+        })
+        
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/scrape-vnc', methods=['POST'])

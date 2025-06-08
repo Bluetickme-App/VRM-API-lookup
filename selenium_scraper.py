@@ -72,23 +72,85 @@ class SeleniumVehicleScraper:
             self.driver.get("https://www.checkcardetails.co.uk/")
             logger.info("Navigated to checkcardetails.co.uk")
             
-            # Wait for page to load
-            time.sleep(3)
+            # Wait for page to load and look for the input field
+            time.sleep(5)
             
-            # Find and fill the registration input
+            # Debug: Print page source to understand structure
+            logger.info("Page loaded, looking for input field...")
+            
+            # Find and fill the registration input - try multiple approaches
+            search_input = None
+            
+            # First, try to find any input fields on the page
             try:
-                search_input = self.wait.until(
-                    EC.presence_of_element_located((By.ID, "vrm"))
-                )
+                all_inputs = self.driver.find_elements(By.TAG_NAME, "input")
+                logger.info(f"Found {len(all_inputs)} input elements on page")
+                
+                for i, inp in enumerate(all_inputs):
+                    try:
+                        input_type = inp.get_attribute('type')
+                        input_id = inp.get_attribute('id')
+                        input_name = inp.get_attribute('name')
+                        input_placeholder = inp.get_attribute('placeholder')
+                        input_class = inp.get_attribute('class')
+                        
+                        logger.info(f"Input {i}: type='{input_type}', id='{input_id}', name='{input_name}', placeholder='{input_placeholder}', class='{input_class}'")
+                        
+                        # Look for registration-related input
+                        if (input_type == 'text' and 
+                            (input_placeholder and ('reg' in input_placeholder.lower() or 'vrm' in input_placeholder.lower())) or
+                            (input_id and ('reg' in input_id.lower() or 'vrm' in input_id.lower())) or
+                            (input_name and ('reg' in input_name.lower() or 'vrm' in input_name.lower()))):
+                            search_input = inp
+                            logger.info(f"Selected input field: {input_id or input_name or 'unnamed'}")
+                            break
+                    except Exception as e:
+                        logger.warning(f"Error examining input {i}: {e}")
+                        continue
+                
+                # If no specific match, try the first visible text input
+                if not search_input:
+                    for inp in all_inputs:
+                        try:
+                            if (inp.get_attribute('type') == 'text' and 
+                                inp.is_displayed() and inp.is_enabled()):
+                                search_input = inp
+                                logger.info("Using first visible text input")
+                                break
+                        except:
+                            continue
+                            
+            except Exception as e:
+                logger.error(f"Error finding input elements: {e}")
+            
+            if not search_input:
+                logger.error("Could not find any suitable registration input field")
+                # Save screenshot for debugging
+                try:
+                    self.driver.save_screenshot("/tmp/debug_screenshot.png")
+                    logger.info("Debug screenshot saved to /tmp/debug_screenshot.png")
+                except:
+                    pass
+                return None
+            
+            try:
+                # Clear and enter registration
                 search_input.clear()
+                search_input.click()
                 search_input.send_keys(registration.upper())
                 logger.info(f"Entered registration: {registration}")
                 
-                # Submit the form
-                search_input.send_keys(Keys.RETURN)
+                # Try to submit the form - look for submit button or press Enter
+                try:
+                    submit_button = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit'], input[type='submit'], .submit-btn")
+                    submit_button.click()
+                    logger.info("Clicked submit button")
+                except NoSuchElementException:
+                    search_input.send_keys(Keys.RETURN)
+                    logger.info("Pressed Enter to submit")
                 
                 # Wait for results page
-                time.sleep(5)
+                time.sleep(8)
                 
                 # Extract vehicle data from the results page
                 vehicle_data = self._extract_vehicle_data()
