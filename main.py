@@ -512,9 +512,57 @@ def scrape_vehicle_vnc():
                 db.session.add(search_record)
                 db.session.commit()
                 
+                # Convert database model back to frontend-expected format
+                frontend_data = {
+                    'basic_info': {
+                        'make': vehicle_record.make,
+                        'model': vehicle_record.model,
+                        'description': vehicle_record.description,
+                        'color': vehicle_record.color,
+                        'fuel_type': vehicle_record.fuel_type,
+                        'year': str(vehicle_record.year) if vehicle_record.year else None
+                    },
+                    'tax_mot': {
+                        'tax_expiry': vehicle_record.tax_expiry.strftime('%d %b %Y') if vehicle_record.tax_expiry else None,
+                        'tax_days_left': vehicle_record.tax_days_left,
+                        'mot_expiry': vehicle_record.mot_expiry.strftime('%d %b %Y') if vehicle_record.mot_expiry else None,
+                        'mot_days_left': vehicle_record.mot_days_left
+                    },
+                    'vehicle_details': {
+                        'transmission': vehicle_record.transmission,
+                        'engine_size': vehicle_record.engine_size,
+                        'body_style': vehicle_record.body_style
+                    },
+                    'performance': {
+                        'power': vehicle_record.power_bhp,
+                        'max_speed': vehicle_record.max_speed_mph,
+                        'torque': vehicle_record.torque_ftlb
+                    },
+                    'fuel_economy': {
+                        'urban': vehicle_record.urban_mpg,
+                        'extra_urban': vehicle_record.extra_urban_mpg,
+                        'combined': vehicle_record.combined_mpg
+                    },
+                    'safety': {
+                        'child': vehicle_record.child_safety_rating,
+                        'adult': vehicle_record.adult_safety_rating,
+                        'pedestrian': vehicle_record.pedestrian_safety_rating
+                    },
+                    'additional': {
+                        'co2_emissions': vehicle_record.co2_emissions,
+                        'tax_12_months': vehicle_record.tax_12_months,
+                        'tax_6_months': vehicle_record.tax_6_months
+                    },
+                    'mileage': {
+                        'last_mot_mileage': vehicle_record.last_mot_mileage,
+                        'average': vehicle_record.average_mileage,
+                        'status': vehicle_record.mileage_status
+                    }
+                }
+                
                 return jsonify({
                     'success': True,
-                    'data': vehicle_record.to_dict(),
+                    'data': frontend_data,
                     'registration': registration,
                     'source': 'vnc_scrape',
                     'scraped_at': datetime.utcnow().isoformat()
