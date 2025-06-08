@@ -1,0 +1,45 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["geckodriver"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Vehicle Scraper"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "install_dependencies"
+
+[[workflows.workflow]]
+name = "Vehicle Scraper"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uv add flask selenium && python main.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "install_dependencies"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uv add selenium flask"
+
+[deployment]
+run = ["sh", "-c", "uv add flask selenium && python main.py"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
