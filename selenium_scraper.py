@@ -30,25 +30,29 @@ class SeleniumVehicleScraper:
         self.headless = headless
         
     def _setup_driver(self):
-        """Initialize Firefox WebDriver with VNC display"""
+        """Initialize Firefox WebDriver with proper configuration"""
         try:
+            from webdriver_manager.firefox import GeckoDriverManager
+            
             firefox_options = Options()
             
             if self.headless:
                 firefox_options.add_argument('--headless')
             
-            # Configure for VNC display
+            # Basic Firefox options
             firefox_options.add_argument('--no-sandbox')
             firefox_options.add_argument('--disable-dev-shm-usage')
-            firefox_options.add_argument('--disable-gpu')
             firefox_options.add_argument('--window-size=1920,1080')
             
-            # Set display for VNC
-            if not self.headless:
-                os.environ['DISPLAY'] = ':1'
+            # Use webdriver-manager to get compatible geckodriver
+            try:
+                service = Service(GeckoDriverManager().install())
+                self.driver = webdriver.Firefox(service=service, options=firefox_options)
+            except Exception as service_error:
+                logger.warning(f"WebDriver manager failed: {service_error}, trying system geckodriver")
+                # Fallback to system geckodriver
+                self.driver = webdriver.Firefox(options=firefox_options)
             
-            # Use system geckodriver
-            self.driver = webdriver.Firefox(options=firefox_options)
             self.wait = WebDriverWait(self.driver, 20)
             
             logger.info("Firefox WebDriver initialized successfully")
