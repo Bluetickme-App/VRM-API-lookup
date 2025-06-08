@@ -24,6 +24,7 @@ def validate_registration(registration):
         r'^[A-Z]{3}[0-9]{1,3}[A-Z]$',   # Suffix format: ABC 123D
         r'^[0-9]{1,4}[A-Z]{1,3}$',      # Dateless format: 123 AB
         r'^[A-Z]{1,3}[0-9]{1,4}$',      # Early format: AB 1234
+        r'^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]$', # Format: FJ59PD0
     ]
     
     return any(re.match(pattern, reg) for pattern in patterns)
