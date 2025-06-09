@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeEventListeners() {
-    // Search form submission
-    document.getElementById('searchForm').addEventListener('submit', handleSearch);
-    
     // VNC search button
     document.getElementById('vncSearchBtn').addEventListener('click', handleVncSearch);
     
