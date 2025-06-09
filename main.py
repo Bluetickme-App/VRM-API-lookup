@@ -50,6 +50,12 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Add robots.txt route
+@app.route('/robots.txt')
+def robots_txt():
+    """Serve robots.txt to block crawlers"""
+    return send_file('static/robots.txt', mimetype='text/plain')
+
 # Password protection configuration
 FRONTEND_PASSWORD = os.environ.get("FRONTEND_PASSWORD", "admin123")
 
@@ -61,6 +67,19 @@ def require_auth(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# Add security headers to prevent crawling
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to prevent crawling and indexing"""
+    response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive, nosnippet, noimageindex'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

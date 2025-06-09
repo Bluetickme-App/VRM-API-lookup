@@ -40,10 +40,31 @@ class SeleniumVehicleScraper:
             if self.headless:
                 firefox_options.add_argument('--headless')
             
-            # Basic Firefox options
+            # Enhanced privacy and stealth options
             firefox_options.add_argument('--no-sandbox')
             firefox_options.add_argument('--disable-dev-shm-usage')
             firefox_options.add_argument('--window-size=1920,1080')
+            firefox_options.add_argument('--disable-blink-features=AutomationControlled')
+            firefox_options.add_argument('--disable-extensions')
+            firefox_options.add_argument('--disable-plugins')
+            firefox_options.add_argument('--disable-images')
+            firefox_options.add_argument('--disable-javascript')
+            firefox_options.add_argument('--disable-web-security')
+            firefox_options.add_argument('--allow-running-insecure-content')
+            
+            # Set custom user agent to mimic regular browser
+            firefox_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+            
+            # Privacy preferences
+            firefox_options.set_preference('dom.webdriver.enabled', False)
+            firefox_options.set_preference('useAutomationExtension', False)
+            firefox_options.set_preference('network.http.referer.spoofSource', True)
+            firefox_options.set_preference('privacy.donottrackheader.enabled', True)
+            firefox_options.set_preference('privacy.trackingprotection.enabled', True)
+            firefox_options.set_preference('privacy.trackingprotection.socialtracking.enabled', True)
+            firefox_options.set_preference('privacy.partition.network_state', False)
+            firefox_options.set_preference('network.cookie.cookieBehavior', 1)
+            firefox_options.set_preference('network.http.sendRefererHeader', 0)
             
             # Use webdriver-manager to get compatible geckodriver
             try:
@@ -55,6 +76,12 @@ class SeleniumVehicleScraper:
                 self.driver = webdriver.Firefox(options=firefox_options)
             
             self.wait = WebDriverWait(self.driver, 20)
+            
+            # Execute stealth scripts to hide automation
+            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            self.driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
+            self.driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})")
+            self.driver.execute_script("Object.defineProperty(screen, 'colorDepth', {get: () => 24})")
             
             logger.info("Firefox WebDriver initialized successfully")
             return True
