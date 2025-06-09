@@ -10,40 +10,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeEventListeners() {
+    // Search form submission
+    document.getElementById('searchForm').addEventListener('submit', handleSearch);
+    
     // VNC search button
-    const vncBtn = document.getElementById('vncSearchBtn');
-    if (vncBtn) {
-        vncBtn.addEventListener('click', handleVncSearch);
-    }
+    document.getElementById('vncSearchBtn').addEventListener('click', handleVncSearch);
     
     // Demo button
-    const demoBtn = document.getElementById('demoBtn');
-    if (demoBtn) {
-        demoBtn.addEventListener('click', handleDemoData);
-    }
+    document.getElementById('demoBtn').addEventListener('click', handleDemoData);
     
-    // Export buttons (these appear after search results)
-    const exportJsonBtn = document.getElementById('exportJsonBtn');
-    if (exportJsonBtn) {
-        exportJsonBtn.addEventListener('click', () => exportData('json'));
-    }
+    // Export buttons
+    document.getElementById('exportJsonBtn').addEventListener('click', () => exportData('json'));
+    document.getElementById('exportCsvBtn').addEventListener('click', () => exportData('csv'));
     
-    const exportCsvBtn = document.getElementById('exportCsvBtn');
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', () => exportData('csv'));
-    }
-    
-    // Raw data toggle (appears after search results)
-    const toggleBtn = document.getElementById('toggleRawData');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', toggleRawData);
-    }
+    // Raw data toggle
+    document.getElementById('toggleRawData').addEventListener('click', toggleRawData);
     
     // Registration input formatting
-    const regInput = document.getElementById('registration');
-    if (regInput) {
-        regInput.addEventListener('input', handleRegistrationInput);
-    }
+    document.getElementById('registration').addEventListener('input', handleRegistrationInput);
 }
 
 function formatRegistrationInput() {
@@ -152,7 +136,7 @@ async function handleVncSearch() {
         hideError();
         hideResults();
         
-        const response = await fetch('/api/vehicle-data', {
+        const response = await fetch('/api/scrape-vnc', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -163,35 +147,12 @@ async function handleVncSearch() {
         const result = await response.json();
         
         if (result.success) {
-            // Convert flat API response to expected nested format
-            const vehicleData = {
-                basic_info: {
-                    make: result.make || 'N/A',
-                    model: result.model || 'N/A',
-                    description: result.description || 'N/A',
-                    color: result.color || 'N/A',
-                    fuel_type: result.fuel_type || 'N/A',
-                    year: result.year || 'N/A'
-                },
-                tax_mot: {
-                    mot_expiry: result.mot_expiry || 'N/A'
-                },
-                vehicle_details: {
-                    transmission: result.transmission || 'N/A',
-                    engine_size: result.engine_size || 'N/A'
-                },
-                additional: {
-                    total_keepers: result.total_keepers || 'N/A'
-                },
-                raw_data: result
-            };
-            
-            currentVehicleData = vehicleData;
+            currentVehicleData = result.data;
             currentRegistration = registration;
-            displayResults(vehicleData, registration);
-            showSuccess(`Vehicle data retrieved for ${registration} (${result.source || 'unknown source'})`);
+            displayResults(result.data, registration);
+            showSuccess(`Vehicle data successfully retrieved via VNC browser for ${registration}`);
         } else {
-            showError(result.error || 'Vehicle lookup failed');
+            showError(result.error || 'VNC browser search failed');
         }
         
     } catch (error) {
