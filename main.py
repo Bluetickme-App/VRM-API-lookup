@@ -581,44 +581,82 @@ def get_vehicle_data_api():
                 'source': 'cached_data'
             })
         
-        # If no cached data, scrape fresh
-        selenium_scraper = SeleniumVehicleScraper(headless=True)  # Headless for API
-        vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
+        # If no cached data, scrape fresh with timeout protection
+        import signal
+        
+        def timeout_handler(signum, frame):
+            raise TimeoutError("Scraping operation timed out")
+        
+        try:
+            # Set 60 second timeout for scraping
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(60)
+            
+            selenium_scraper = SeleniumVehicleScraper(headless=True)  # Headless for API
+            vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
+            
+            signal.alarm(0)  # Cancel timeout
+            
+        except TimeoutError:
+            return jsonify({
+                'success': False,
+                'error': 'Request timed out - scraping took too long'
+            }), 408
+        except Exception as e:
+            logger.error(f"Scraping failed for {registration}: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to retrieve vehicle data: {str(e)}'
+            }), 500
         
         if vehicle_data and vehicle_data.get('basic_info'):
             basic_info = vehicle_data.get('basic_info', {})
-            vehicle_details = vehicle_data.get('vehicle_details', {})
             
-            # Store in database for caching
-            vehicle_record = VehicleData()
-            vehicle_record.registration = registration
-            _update_vehicle_record(vehicle_record, vehicle_data)
-            db.session.add(vehicle_record)
-            db.session.commit()
+            # Check if we got meaningful data (not generic navigation text)
+            make = basic_info.get('make', '')
+            model = basic_info.get('model', '')
             
-            # Return simple API response
-            additional_info = vehicle_data.get('additional', {})
-            tax_mot = vehicle_data.get('tax_mot', {})
-            return jsonify({
-                'success': True,
-                'registration': registration,
-                'make': basic_info.get('make'),
-                'model': basic_info.get('model'),
-                'description': basic_info.get('description'),
-                'year': basic_info.get('year'),
-                'color': basic_info.get('color'),
-                'fuel_type': basic_info.get('fuel_type'),
-                'transmission': vehicle_details.get('transmission'),
-                'engine_size': vehicle_details.get('engine_size'),
-                'mot_expiry': tax_mot.get('mot_expiry'),
-                'total_keepers': additional_info.get('total_keepers'),
-                'source': 'fresh_scrape'
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'error': 'Vehicle data not found or scraping failed'
-            }), 404
+            # Validate that we have actual vehicle data, not website navigation text
+            invalid_indicators = ['Vehicle details', 'Brand, model', 'See official', 'Track any changes']
+            is_valid_data = (
+                make and model and
+                not any(indicator in make for indicator in invalid_indicators) and
+                not any(indicator in model for indicator in invalid_indicators)
+            )
+            
+            if is_valid_data:
+                vehicle_details = vehicle_data.get('vehicle_details', {})
+                
+                # Store in database for caching
+                vehicle_record = VehicleData()
+                vehicle_record.registration = registration
+                _update_vehicle_record(vehicle_record, vehicle_data)
+                db.session.add(vehicle_record)
+                db.session.commit()
+                
+                # Return simple API response
+                additional_info = vehicle_data.get('additional', {})
+                tax_mot = vehicle_data.get('tax_mot', {})
+                return jsonify({
+                    'success': True,
+                    'registration': registration,
+                    'make': make,
+                    'model': model,
+                    'description': basic_info.get('description'),
+                    'year': basic_info.get('year'),
+                    'color': basic_info.get('color'),
+                    'fuel_type': basic_info.get('fuel_type'),
+                    'transmission': vehicle_details.get('transmission'),
+                    'engine_size': vehicle_details.get('engine_size'),
+                    'mot_expiry': tax_mot.get('mot_expiry'),
+                    'total_keepers': additional_info.get('total_keepers'),
+                    'source': 'fresh_scrape'
+                })
+        
+        return jsonify({
+            'success': False,
+            'error': 'Vehicle not found in DVLA records or invalid registration number'
+        }), 404
             
     except Exception as e:
         return jsonify({
