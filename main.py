@@ -4,8 +4,9 @@ Main Flask application for Vehicle Data Scraper
 Provides web interface for scraping vehicle data from checkcardetails.co.uk
 """
 
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
 from flask_cors import CORS
+from functools import wraps
 import json
 import csv
 import io
@@ -49,7 +50,38 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Password protection configuration
+FRONTEND_PASSWORD = os.environ.get("FRONTEND_PASSWORD", "admin123")
+
+def require_auth(f):
+    """Decorator to require authentication for frontend routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('authenticated'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page for frontend access"""
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == FRONTEND_PASSWORD:
+            session['authenticated'] = True
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', error='Invalid password')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    """Logout and clear session"""
+    session.pop('authenticated', None)
+    return redirect(url_for('login'))
+
 @app.route('/')
+@require_auth
 def index():
     """Main page with vehicle lookup form"""
     return render_template('index.html')
@@ -442,6 +474,7 @@ def api_docs():
     return f"<pre>{docs}</pre>"
 
 @app.route('/admin')
+@require_auth
 def admin():
     """Database administration page"""
     return render_template('admin.html')
