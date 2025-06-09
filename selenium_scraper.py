@@ -11,6 +11,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 from selenium.webdriver.common.keys import Keys
+from webdriver_manager.firefox import GeckoDriverManager
 import time
 import logging
 import os
