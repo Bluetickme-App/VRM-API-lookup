@@ -215,14 +215,21 @@ class SeleniumVehicleScraper:
         
         return False
     
-    def scrape_vehicle_data(self, registration: str) -> Optional[Dict[str, Any]]:
-        """Main method to scrape vehicle data"""
-        try:
-            if not self._setup_driver():
-                return None
-            
-            # Navigate to the website with natural timing
-            self.driver.get("https://www.checkcardetails.co.uk/")
+    def scrape_vehicle_data(self, registration: str, max_retries: int = 3) -> Optional[Dict[str, Any]]:
+        """Main method to scrape vehicle data with automatic retry"""
+        logger.info(f"Starting scrape for registration: {registration}")
+        
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Scraping attempt {attempt + 1}/{max_retries}")
+                
+                if not self._setup_driver():
+                    if attempt == max_retries - 1:
+                        return None
+                    continue
+                
+                # Navigate to the website with natural timing
+                self.driver.get("https://www.checkcardetails.co.uk/")
             logger.info("Navigated to checkcardetails.co.uk")
             
             # Natural delay to mimic human behavior
@@ -343,20 +350,28 @@ class SeleniumVehicleScraper:
                     self._cleanup()
                     return vehicle_data
                 else:
-                    logger.warning(f"No data found for {registration}")
-                    return None
+                    logger.warning(f"No data found for {registration} on attempt {attempt + 1}")
+                    if attempt == max_retries - 1:
+                        return None
+                    self._cleanup()
+                    continue
                     
             except TimeoutException:
-                logger.error("Timeout waiting for search input")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error scraping vehicle data: {e}")
-            return None
-            
-        finally:
-            if self.driver:  # Only cleanup if not already done
+                logger.error(f"Timeout waiting for results on attempt {attempt + 1}")
+                if attempt == max_retries - 1:
+                    return None
                 self._cleanup()
+                continue
+                
+            except Exception as e:
+                logger.error(f"Error on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    return None
+                self._cleanup()
+                continue
+                
+        logger.error(f"Failed to scrape data for {registration} after {max_retries} attempts")
+        return None
     
     def _extract_vehicle_data_fast(self) -> Dict[str, Any]:
         """Fast extraction - return immediately after finding core data"""

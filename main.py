@@ -651,17 +651,18 @@ def scrape_vehicle_vnc():
             import signal
             
             def scrape_with_timeout():
-                selenium_scraper = SeleniumVehicleScraper(headless=False)
-                return selenium_scraper.scrape_vehicle_data(registration)
+                from optimized_scraper import OptimizedVehicleScraper
+                selenium_scraper = OptimizedVehicleScraper(headless=False)
+                return selenium_scraper.scrape_vehicle_data(registration, max_retries=3)
             
             # Execute scraping with timeout to prevent hanging
             with ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(scrape_with_timeout)
                 try:
-                    vehicle_data = future.result(timeout=45)  # 45 second timeout
+                    vehicle_data = future.result(timeout=30)  # 30 second timeout for faster response
                 except FuturesTimeoutError:
                     vehicle_data = None
-                    search_record.error_message = "Scraping timeout after 45 seconds"
+                    search_record.error_message = "Scraping timeout after 30 seconds"
             
             if vehicle_data:
                 # Check if vehicle already exists
