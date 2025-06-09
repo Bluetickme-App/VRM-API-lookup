@@ -13,6 +13,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException,
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.firefox import GeckoDriverManager
 import time
+import random
 import logging
 import os
 import re
@@ -29,6 +30,19 @@ class SeleniumVehicleScraper:
         self.driver = None
         self.wait = None
         self.headless = headless
+        # Natural timing configurations for consistent behavior
+        self.min_delay = 2.5  # Minimum delay between actions
+        self.max_delay = 4.5  # Maximum delay between actions
+        self.page_load_timeout = 30  # Page load timeout
+        self.element_wait_timeout = 20  # Element wait timeout
+    
+    def _natural_delay(self, min_time=None, max_time=None):
+        """Add natural human-like delay between actions"""
+        min_delay = min_time if min_time is not None else self.min_delay
+        max_delay = max_time if max_time is not None else self.max_delay
+        delay = random.uniform(min_delay, max_delay)
+        time.sleep(delay)
+        logger.info(f"Natural delay: {delay:.2f}s")
         
     def _setup_driver(self):
         """Initialize Firefox WebDriver with proper configuration"""
@@ -96,12 +110,17 @@ class SeleniumVehicleScraper:
             if not self._setup_driver():
                 return None
             
-            # Navigate to the website
+            # Navigate to the website with natural timing
             self.driver.get("https://www.checkcardetails.co.uk/")
             logger.info("Navigated to checkcardetails.co.uk")
             
-            # Wait for page to load and look for the input field
-            time.sleep(5)
+            # Natural delay to mimic human behavior
+            self._natural_delay(3.0, 6.0)
+            
+            # Wait for page to fully load
+            WebDriverWait(self.driver, self.page_load_timeout).until(
+                lambda driver: driver.execute_script("return document.readyState") == "complete"
+            )
             
             # Debug: Print page source to understand structure
             logger.info("Page loaded, looking for input field...")
@@ -162,11 +181,19 @@ class SeleniumVehicleScraper:
                 return None
             
             try:
-                # Clear and enter registration
+                # Clear and enter registration with natural human-like behavior
                 search_input.clear()
+                self._natural_delay(0.5, 1.5)  # Pause before typing
                 search_input.click()
-                search_input.send_keys(registration.upper())
+                self._natural_delay(0.3, 0.8)  # Brief pause after click
+                
+                # Type registration with slight delays between characters
+                for char in registration.upper():
+                    search_input.send_keys(char)
+                    time.sleep(random.uniform(0.05, 0.15))  # Natural typing speed
+                
                 logger.info(f"Entered registration: {registration}")
+                self._natural_delay(1.0, 2.0)  # Pause before submitting
                 
                 # Try to submit the form - look for submit button or press Enter
                 try:
@@ -177,8 +204,13 @@ class SeleniumVehicleScraper:
                     search_input.send_keys(Keys.RETURN)
                     logger.info("Pressed Enter to submit")
                 
-                # Wait for results page to load completely
-                time.sleep(10)
+                # Wait for results page with natural timing
+                self._natural_delay(5.0, 8.0)  # Natural wait for page load
+                
+                # Additional wait for complete page render
+                WebDriverWait(self.driver, self.element_wait_timeout).until(
+                    lambda driver: driver.execute_script("return document.readyState") == "complete"
+                )
                 
                 # Wait for vehicle data to appear
                 try:
