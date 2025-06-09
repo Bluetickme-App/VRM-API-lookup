@@ -11,20 +11,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeEventListeners() {
     // VNC search button
-    document.getElementById('vncSearchBtn').addEventListener('click', handleVncSearch);
+    const vncBtn = document.getElementById('vncSearchBtn');
+    if (vncBtn) {
+        vncBtn.addEventListener('click', handleVncSearch);
+    }
     
     // Demo button
-    document.getElementById('demoBtn').addEventListener('click', handleDemoData);
+    const demoBtn = document.getElementById('demoBtn');
+    if (demoBtn) {
+        demoBtn.addEventListener('click', handleDemoData);
+    }
     
-    // Export buttons
-    document.getElementById('exportJsonBtn').addEventListener('click', () => exportData('json'));
-    document.getElementById('exportCsvBtn').addEventListener('click', () => exportData('csv'));
+    // Export buttons (these appear after search results)
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    if (exportJsonBtn) {
+        exportJsonBtn.addEventListener('click', () => exportData('json'));
+    }
     
-    // Raw data toggle
-    document.getElementById('toggleRawData').addEventListener('click', toggleRawData);
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => exportData('csv'));
+    }
+    
+    // Raw data toggle (appears after search results)
+    const toggleBtn = document.getElementById('toggleRawData');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleRawData);
+    }
     
     // Registration input formatting
-    document.getElementById('registration').addEventListener('input', handleRegistrationInput);
+    const regInput = document.getElementById('registration');
+    if (regInput) {
+        regInput.addEventListener('input', handleRegistrationInput);
+    }
 }
 
 function formatRegistrationInput() {
