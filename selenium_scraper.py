@@ -17,6 +17,8 @@ import random
 import logging
 import os
 import re
+import psutil
+import signal
 from typing import Dict, Any, Optional
 
 # Configure logging
@@ -36,6 +38,28 @@ class SeleniumVehicleScraper:
         self.page_load_timeout = 30  # Page load timeout
         self.element_wait_timeout = 20  # Element wait timeout
     
+    def _kill_firefox_processes(self):
+        """Kill any remaining Firefox/GeckoDriver processes"""
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                proc_name = proc.info['name'].lower()
+                cmdline = ' '.join(proc.info['cmdline'] or []).lower()
+                
+                if any(term in proc_name for term in ['firefox', 'geckodriver']):
+                    try:
+                        logger.info(f"Killing process: {proc.info['name']} (PID: {proc.info['pid']})")
+                        proc.terminate()
+                        proc.wait(timeout=3)
+                    except (psutil.NoSuchProcess, psutil.TimeoutExpired):
+                        try:
+                            proc.kill()
+                        except psutil.NoSuchProcess:
+                            pass
+                    except Exception as e:
+                        logger.warning(f"Could not kill process {proc.info['pid']}: {e}")
+        except Exception as e:
+            logger.warning(f"Error during process cleanup: {e}")
+    
     def _natural_delay(self, min_time=None, max_time=None):
         """Add natural human-like delay between actions"""
         min_delay = min_time if min_time is not None else self.min_delay
@@ -45,64 +69,151 @@ class SeleniumVehicleScraper:
         logger.info(f"Natural delay: {delay:.2f}s")
         
     def _setup_driver(self):
-        """Initialize Firefox WebDriver with proper configuration"""
-        try:
-            from webdriver_manager.firefox import GeckoDriverManager
-            
-            firefox_options = Options()
-            
-            if self.headless:
-                firefox_options.add_argument('--headless')
-            
-            # Enhanced privacy and stealth options
-            firefox_options.add_argument('--no-sandbox')
-            firefox_options.add_argument('--disable-dev-shm-usage')
-            firefox_options.add_argument('--window-size=1920,1080')
-            firefox_options.add_argument('--disable-blink-features=AutomationControlled')
-            firefox_options.add_argument('--disable-extensions')
-            firefox_options.add_argument('--disable-plugins')
-            firefox_options.add_argument('--disable-images')
-            firefox_options.add_argument('--disable-javascript')
-            firefox_options.add_argument('--disable-web-security')
-            firefox_options.add_argument('--allow-running-insecure-content')
-            
-            # Set custom user agent to mimic regular browser
-            firefox_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
-            
-            # Privacy preferences
-            firefox_options.set_preference('dom.webdriver.enabled', False)
-            firefox_options.set_preference('useAutomationExtension', False)
-            firefox_options.set_preference('network.http.referer.spoofSource', True)
-            firefox_options.set_preference('privacy.donottrackheader.enabled', True)
-            firefox_options.set_preference('privacy.trackingprotection.enabled', True)
-            firefox_options.set_preference('privacy.trackingprotection.socialtracking.enabled', True)
-            firefox_options.set_preference('privacy.partition.network_state', False)
-            firefox_options.set_preference('network.cookie.cookieBehavior', 1)
-            firefox_options.set_preference('network.http.sendRefererHeader', 0)
-            
-            # Use webdriver-manager to get compatible geckodriver
+        """Initialize Firefox WebDriver with robust error handling and fallbacks"""
+        max_attempts = 3
+        
+        for attempt in range(max_attempts):
             try:
-                service = Service(GeckoDriverManager().install())
-                self.driver = webdriver.Firefox(service=service, options=firefox_options)
-            except Exception as service_error:
-                logger.warning(f"WebDriver manager failed: {service_error}, trying system geckodriver")
-                # Fallback to system geckodriver
-                self.driver = webdriver.Firefox(options=firefox_options)
-            
-            self.wait = WebDriverWait(self.driver, 20)
-            
-            # Execute stealth scripts to hide automation
-            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            self.driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
-            self.driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})")
-            self.driver.execute_script("Object.defineProperty(screen, 'colorDepth', {get: () => 24})")
-            
-            logger.info("Firefox WebDriver initialized successfully")
-            return True
-            
-        except WebDriverException as e:
-            logger.error(f"Failed to initialize WebDriver: {e}")
-            return False
+                logger.info(f"WebDriver initialization attempt {attempt + 1}/{max_attempts}")
+                
+                # Clean up any existing driver first
+                if self.driver:
+                    try:
+                        self.driver.quit()
+                    except:
+                        pass
+                    self.driver = None
+                
+                # Kill any hanging Firefox processes before starting
+                if attempt > 0:
+                    self._kill_firefox_processes()
+                    time.sleep(2)  # Allow processes to fully terminate
+                
+                firefox_options = Options()
+                
+                if self.headless:
+                    firefox_options.add_argument('--headless')
+                
+                # Core stability options
+                firefox_options.add_argument('--no-sandbox')
+                firefox_options.add_argument('--disable-dev-shm-usage')
+                firefox_options.add_argument('--disable-gpu')
+                firefox_options.add_argument('--window-size=1920,1080')
+                firefox_options.add_argument('--disable-extensions')
+                firefox_options.add_argument('--disable-plugins')
+                firefox_options.add_argument('--disable-images')
+                firefox_options.add_argument('--disable-web-security')
+                firefox_options.add_argument('--disable-features=VizDisplayCompositor')
+                
+                # Memory and performance options
+                firefox_options.add_argument('--memory-pressure-off')
+                firefox_options.add_argument('--max_old_space_size=4096')
+                
+                # Set user agent
+                firefox_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0')
+                
+                # Essential privacy preferences
+                firefox_options.set_preference('dom.webdriver.enabled', False)
+                firefox_options.set_preference('useAutomationExtension', False)
+                firefox_options.set_preference('network.http.referer.spoofSource', True)
+                firefox_options.set_preference('privacy.donottrackheader.enabled', True)
+                firefox_options.set_preference('network.http.sendRefererHeader', 0)
+                firefox_options.set_preference('browser.startup.page', 0)
+                firefox_options.set_preference('browser.cache.disk.enable', False)
+                firefox_options.set_preference('browser.cache.memory.enable', False)
+                firefox_options.set_preference('browser.cache.offline.enable', False)
+                firefox_options.set_preference('network.cookie.cookieBehavior', 1)
+                
+                # Multiple fallback strategies for driver initialization
+                service = None
+                driver_initialized = False
+                
+                # Strategy 1: Try webdriver-manager
+                if not driver_initialized and attempt == 0:
+                    try:
+                        from webdriver_manager.firefox import GeckoDriverManager
+                        driver_path = GeckoDriverManager().install()
+                        service = Service(driver_path)
+                        self.driver = webdriver.Firefox(service=service, options=firefox_options)
+                        driver_initialized = True
+                        logger.info(f"WebDriver initialized with manager: {driver_path}")
+                    except Exception as e:
+                        logger.warning(f"WebDriver manager failed: {e}")
+                
+                # Strategy 2: Try system geckodriver
+                if not driver_initialized:
+                    try:
+                        self.driver = webdriver.Firefox(options=firefox_options)
+                        driver_initialized = True
+                        logger.info("WebDriver initialized with system geckodriver")
+                    except Exception as e:
+                        logger.warning(f"System geckodriver failed: {e}")
+                
+                # Strategy 3: Try with minimal options
+                if not driver_initialized and attempt >= 1:
+                    try:
+                        minimal_options = Options()
+                        if self.headless:
+                            minimal_options.add_argument('--headless')
+                        minimal_options.add_argument('--no-sandbox')
+                        minimal_options.add_argument('--disable-dev-shm-usage')
+                        
+                        self.driver = webdriver.Firefox(options=minimal_options)
+                        driver_initialized = True
+                        logger.info("WebDriver initialized with minimal options")
+                    except Exception as e:
+                        logger.warning(f"Minimal options failed: {e}")
+                
+                if not driver_initialized:
+                    raise WebDriverException("All WebDriver initialization strategies failed")
+                
+                # Set timeouts
+                self.driver.implicitly_wait(10)
+                self.driver.set_page_load_timeout(self.page_load_timeout)
+                
+                # Initialize wait object
+                self.wait = WebDriverWait(self.driver, self.element_wait_timeout)
+                
+                # Execute stealth scripts (with error handling)
+                try:
+                    self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                    self.driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
+                    self.driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})")
+                    logger.info("Stealth scripts executed successfully")
+                except Exception as e:
+                    logger.warning(f"Stealth scripts failed (non-critical): {e}")
+                
+                # Test driver with simple operation
+                try:
+                    self.driver.execute_script("return document.readyState")
+                    logger.info("WebDriver test successful")
+                except Exception as e:
+                    logger.warning(f"WebDriver test failed: {e}")
+                    raise
+                
+                logger.info("Firefox WebDriver initialized successfully")
+                return True
+                
+            except Exception as e:
+                logger.error(f"WebDriver initialization attempt {attempt + 1} failed: {e}")
+                
+                # Clean up failed driver
+                if self.driver:
+                    try:
+                        self.driver.quit()
+                    except:
+                        pass
+                    self.driver = None
+                
+                if attempt < max_attempts - 1:
+                    wait_time = (attempt + 1) * 2
+                    logger.info(f"Waiting {wait_time}s before retry...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error("All WebDriver initialization attempts failed")
+                    return False
+        
+        return False
     
     def scrape_vehicle_data(self, registration: str) -> Optional[Dict[str, Any]]:
         """Main method to scrape vehicle data"""
