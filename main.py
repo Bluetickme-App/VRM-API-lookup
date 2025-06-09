@@ -424,52 +424,21 @@ def get_vehicle(registration):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/docs')
+@require_auth
 def api_docs():
-    """API Documentation"""
+    """API Documentation - Protected"""
     docs = """
     # Vehicle Data API Documentation
     
-    ## Endpoint: /api/vehicle-data
-    **Methods:** GET, POST
+    ## Internal Use Only
+    This documentation is for authorized users only.
     
-    ### Request Examples:
+    ## Available Endpoints:
+    - Vehicle data extraction
+    - Database management
+    - Search history tracking
     
-    **GET Request:**
-    ```
-    GET /api/vehicle-data?registration=RE13CEO
-    ```
-    
-    **POST Request:**
-    ```json
-    {
-        "registration": "RE13CEO"
-    }
-    ```
-    
-    ### Response Format:
-    ```json
-    {
-        "success": true,
-        "registration": "RE13CEO",
-        "make": "FERRARI F12BERLINETTA AB S-A",
-        "model": "F12berlinetta Ab S-a",
-        "description": "F12 Berlinetta AB Semi-Auto",
-        "year": 2013,
-        "color": "Black",
-        "fuel_type": "PETROL",
-        "transmission": "Auto 7 Gears",
-        "engine_size": "6262 cc",
-        "source": "fresh_scrape"
-    }
-    ```
-    
-    ### Error Response:
-    ```json
-    {
-        "success": false,
-        "error": "Invalid registration number format"
-    }
-    ```
+    Contact administrator for API access details.
     """
     return f"<pre>{docs}</pre>"
 
