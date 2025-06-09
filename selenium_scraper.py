@@ -230,24 +230,23 @@ class SeleniumVehicleScraper:
                 
                 # Navigate to the website with natural timing
                 self.driver.get("https://www.checkcardetails.co.uk/")
-            logger.info("Navigated to checkcardetails.co.uk")
-            
-            # Natural delay to mimic human behavior
-            self._natural_delay(3.0, 6.0)
-            
-            # Wait for page to fully load
-            WebDriverWait(self.driver, self.page_load_timeout).until(
-                lambda driver: driver.execute_script("return document.readyState") == "complete"
-            )
-            
-            # Debug: Print page source to understand structure
-            logger.info("Page loaded, looking for input field...")
-            
-            # Find and fill the registration input - try multiple approaches
-            search_input = None
-            
-            # First, try to find any input fields on the page
-            try:
+                logger.info("Navigated to checkcardetails.co.uk")
+                
+                # Natural delay to mimic human behavior
+                self._natural_delay(3.0, 6.0)
+                
+                # Wait for page to fully load
+                WebDriverWait(self.driver, self.page_load_timeout).until(
+                    lambda driver: driver.execute_script("return document.readyState") == "complete"
+                )
+                
+                # Debug: Print page source to understand structure
+                logger.info("Page loaded, looking for input field...")
+                
+                # Find and fill the registration input - try multiple approaches
+                search_input = None
+                
+                # First, try to find any input fields on the page
                 all_inputs = self.driver.find_elements(By.TAG_NAME, "input")
                 logger.info(f"Found {len(all_inputs)} input elements on page")
                 
