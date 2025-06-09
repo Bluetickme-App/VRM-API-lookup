@@ -555,6 +555,7 @@ def get_vehicle_data_api():
                 'fuel_type': existing_vehicle.fuel_type,
                 'transmission': existing_vehicle.transmission,
                 'engine_size': existing_vehicle.engine_size,
+                'mot_expiry': existing_vehicle.mot_expiry.isoformat() if existing_vehicle.mot_expiry else None,
                 'total_keepers': existing_vehicle.total_keepers,
                 'source': 'cached_data'
             })
@@ -576,6 +577,7 @@ def get_vehicle_data_api():
             
             # Return simple API response
             additional_info = vehicle_data.get('additional', {})
+            tax_mot = vehicle_data.get('tax_mot', {})
             return jsonify({
                 'success': True,
                 'registration': registration,
@@ -587,6 +589,7 @@ def get_vehicle_data_api():
                 'fuel_type': basic_info.get('fuel_type'),
                 'transmission': vehicle_details.get('transmission'),
                 'engine_size': vehicle_details.get('engine_size'),
+                'mot_expiry': tax_mot.get('mot_expiry'),
                 'total_keepers': additional_info.get('total_keepers'),
                 'source': 'fresh_scrape'
             })
