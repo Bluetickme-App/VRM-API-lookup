@@ -133,7 +133,7 @@ async function handleVncSearch() {
         hideError();
         hideResults();
         
-        const response = await fetch('/api/scrape-vnc', {
+        const response = await fetch('/api/vehicle-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -144,12 +144,35 @@ async function handleVncSearch() {
         const result = await response.json();
         
         if (result.success) {
-            currentVehicleData = result.data;
+            // Convert flat API response to expected nested format
+            const vehicleData = {
+                basic_info: {
+                    make: result.make || 'N/A',
+                    model: result.model || 'N/A',
+                    description: result.description || 'N/A',
+                    color: result.color || 'N/A',
+                    fuel_type: result.fuel_type || 'N/A',
+                    year: result.year || 'N/A'
+                },
+                tax_mot: {
+                    mot_expiry: result.mot_expiry || 'N/A'
+                },
+                vehicle_details: {
+                    transmission: result.transmission || 'N/A',
+                    engine_size: result.engine_size || 'N/A'
+                },
+                additional: {
+                    total_keepers: result.total_keepers || 'N/A'
+                },
+                raw_data: result
+            };
+            
+            currentVehicleData = vehicleData;
             currentRegistration = registration;
-            displayResults(result.data, registration);
-            showSuccess(`Vehicle data successfully retrieved via VNC browser for ${registration}`);
+            displayResults(vehicleData, registration);
+            showSuccess(`Vehicle data retrieved for ${registration} (${result.source || 'unknown source'})`);
         } else {
-            showError(result.error || 'VNC browser search failed');
+            showError(result.error || 'Vehicle lookup failed');
         }
         
     } catch (error) {
