@@ -332,12 +332,15 @@ class SeleniumVehicleScraper:
                 except TimeoutException:
                     logger.warning("Timeout waiting for results page")
                 
-                # Extract vehicle data from the results page
-                vehicle_data = self._extract_vehicle_data()
+                # Extract vehicle data from the results page - optimized for speed
+                vehicle_data = self._extract_vehicle_data_fast()
                 
-                if vehicle_data:
+                if vehicle_data and vehicle_data.get('basic_info'):
                     vehicle_data['registration'] = registration.upper()
                     logger.info(f"Successfully extracted data for {registration}")
+                    
+                    # Close driver immediately after successful extraction
+                    self._cleanup()
                     return vehicle_data
                 else:
                     logger.warning(f"No data found for {registration}")
@@ -352,7 +355,111 @@ class SeleniumVehicleScraper:
             return None
             
         finally:
-            self._cleanup()
+            if self.driver:  # Only cleanup if not already done
+                self._cleanup()
+    
+    def _extract_vehicle_data_fast(self) -> Dict[str, Any]:
+        """Fast extraction - return immediately after finding core data"""
+        vehicle_data = {
+            'basic_info': {},
+            'tax_mot': {},
+            'vehicle_details': {},
+            'mileage': {},
+            'performance': {},
+            'fuel_economy': {},
+            'safety': {},
+            'additional': {}
+        }
+        
+        try:
+            # Quick extraction using specific XPaths first
+            self._extract_core_data_fast(vehicle_data)
+            
+            # If we have basic info, return immediately
+            if vehicle_data['basic_info'].get('make') or vehicle_data['basic_info'].get('model'):
+                logger.info(f"Fast extraction successful: {vehicle_data['basic_info']}")
+                return vehicle_data
+            
+            # Fallback to text parsing if XPath fails
+            page_text = self.driver.find_element(By.TAG_NAME, "body").text
+            self._parse_essential_data_from_text(vehicle_data, page_text)
+            
+            return vehicle_data
+            
+        except Exception as e:
+            logger.error(f"Fast extraction failed: {e}")
+            return vehicle_data
+    
+    def _extract_core_data_fast(self, vehicle_data: dict):
+        """Extract only the most essential data using direct XPaths"""
+        try:
+            # Total keepers
+            try:
+                total_keepers_element = self.driver.find_element(By.XPATH, "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]")
+                vehicle_data['additional']['total_keepers'] = int(total_keepers_element.text.strip())
+                logger.info(f"Found total keepers: {vehicle_data['additional']['total_keepers']}")
+            except:
+                pass
+            
+            # Model variant
+            try:
+                model_element = self.driver.find_element(By.XPATH, "//*[@id='modelv']")
+                vehicle_data['basic_info']['model'] = model_element.text.strip()
+                logger.info(f"Found model: {vehicle_data['basic_info']['model']}")
+            except:
+                pass
+            
+            # Make
+            try:
+                make_element = self.driver.find_element(By.XPATH, "/html/body/section/div[2]/div/h5[1]")
+                vehicle_data['basic_info']['make'] = make_element.text.strip()
+                logger.info(f"Found make: {vehicle_data['basic_info']['make']}")
+            except:
+                pass
+                
+        except Exception as e:
+            logger.warning(f"XPath extraction failed: {e}")
+    
+    def _parse_essential_data_from_text(self, vehicle_data: dict, text: str):
+        """Parse essential data from page text quickly"""
+        try:
+            lines = [line.strip() for line in text.split('\n') if line.strip()]
+            
+            for i, line in enumerate(lines):
+                # Look for key patterns and extract immediately
+                if 'MOT' in line and 'Expires:' in line:
+                    mot_match = re.search(r'Expires:\s*(\d+\s+\w+\s+\d{4})', line)
+                    if mot_match:
+                        vehicle_data['tax_mot']['mot_expiry'] = mot_match.group(1)
+                
+                elif 'TAX' in line and 'Expired:' in line:
+                    tax_match = re.search(r'Expired:\s*(\d+\s+\w+\s+\d{4})', line)
+                    if tax_match:
+                        vehicle_data['tax_mot']['tax_expiry'] = tax_match.group(1)
+                
+                elif line in ['Description', 'Model Variant'] and i + 1 < len(lines):
+                    vehicle_data['basic_info']['description'] = lines[i + 1]
+                
+                elif line == 'Primary Colour' and i + 1 < len(lines):
+                    vehicle_data['basic_info']['color'] = lines[i + 1]
+                
+                elif line == 'Fuel Type' and i + 1 < len(lines):
+                    vehicle_data['basic_info']['fuel_type'] = lines[i + 1]
+                
+                elif line == 'Transmission' and i + 1 < len(lines):
+                    vehicle_data['vehicle_details']['transmission'] = lines[i + 1]
+                
+                elif 'cc' in line and not vehicle_data['vehicle_details'].get('engine_size'):
+                    vehicle_data['vehicle_details']['engine_size'] = line
+            
+            # Extract year from make/model if available
+            if vehicle_data['basic_info'].get('make'):
+                year_match = re.search(r'\b(19|20)\d{2}\b', vehicle_data['basic_info']['make'])
+                if year_match:
+                    vehicle_data['basic_info']['year'] = year_match.group(0)
+                    
+        except Exception as e:
+            logger.warning(f"Text parsing failed: {e}")
     
     def _extract_vehicle_data(self) -> Dict[str, Any]:
         """Extract all vehicle data from the current page"""
