@@ -151,10 +151,16 @@ def scrape_vehicle():
                         'scraped_at': existing_vehicle.updated_at.isoformat()
                     })
             
-            # Use optimized scraper for complete data extraction
-            from optimized_scraper import OptimizedVehicleScraper
-            scraper = OptimizedVehicleScraper(headless=True)
-            vehicle_data = scraper.scrape_vehicle_data(registration, max_retries=3)
+            # Try fast API scraper first for speed
+            from fast_api_scraper import FastApiScraper
+            fast_scraper = FastApiScraper()
+            vehicle_data = fast_scraper.scrape_vehicle_data(registration, timeout=8)
+            
+            # If fast scraper fails, fallback to browser automation
+            if not vehicle_data or not vehicle_data.get('basic_info', {}).get('make'):
+                from optimized_scraper import OptimizedVehicleScraper
+                scraper = OptimizedVehicleScraper(headless=True)
+                vehicle_data = scraper.scrape_vehicle_data(registration, max_retries=2)
             
             if vehicle_data:
                 # Store or update vehicle data in database
@@ -584,10 +590,16 @@ def get_vehicle_data_api():
                 'cached_at': existing_vehicle.updated_at.isoformat()
             })
         
-        # If no cached data, scrape fresh using optimized scraper
-        from optimized_scraper import OptimizedVehicleScraper
-        selenium_scraper = OptimizedVehicleScraper(headless=True)  # Headless for API
-        vehicle_data = selenium_scraper.scrape_vehicle_data(registration, max_retries=3)
+        # If no cached data, use fast API scraper for speed
+        from fast_api_scraper import FastApiScraper
+        fast_scraper = FastApiScraper()
+        vehicle_data = fast_scraper.scrape_vehicle_data(registration, timeout=10)
+        
+        # If fast scraper fails, fallback to browser automation  
+        if not vehicle_data or not vehicle_data.get('basic_info', {}).get('make'):
+            from optimized_scraper import OptimizedVehicleScraper
+            selenium_scraper = OptimizedVehicleScraper(headless=True)
+            vehicle_data = selenium_scraper.scrape_vehicle_data(registration, max_retries=2)
         
         if vehicle_data and vehicle_data.get('basic_info'):
             basic_info = vehicle_data.get('basic_info', {})
