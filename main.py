@@ -120,11 +120,12 @@ def scrape_vehicle():
                 'error': 'Invalid registration number format'
             }), 400
         
-        # Log search attempt
+        # Log search attempt - mark as web interface request
         search_record = SearchHistory(
             registration=registration,
             ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent', '')
+            user_agent=request.headers.get('User-Agent', ''),
+            request_source='web'
         )
         
         try:
@@ -561,10 +562,23 @@ def get_vehicle_data_api():
                 'error': 'Invalid registration number format'
             }), 400
         
+        # Log API request
+        search_record = SearchHistory(
+            registration=registration,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', ''),
+            request_source='api'
+        )
+        
         # Check if we have cached data first
         existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
         
         if existing_vehicle and existing_vehicle.make:
+            # Log successful API cache hit
+            search_record.success = True
+            db.session.add(search_record)
+            db.session.commit()
+            
             # Return cached data using unified formatter
             cached_data = format_database_vehicle_response(existing_vehicle)
             
@@ -644,6 +658,11 @@ def get_vehicle_data_api():
                 }
             }
             
+            # Log successful API scrape
+            search_record.success = True
+            db.session.add(search_record)
+            db.session.commit()
+            
             return jsonify({
                 'success': True,
                 'data': complete_data,
@@ -652,6 +671,12 @@ def get_vehicle_data_api():
                 'scraped_at': datetime.utcnow().isoformat()
             })
         else:
+            # Log failed API request
+            search_record.success = False
+            search_record.error_message = 'Vehicle data not found'
+            db.session.add(search_record)
+            db.session.commit()
+            
             return jsonify({
                 'success': False,
                 'error': 'Vehicle data not found or scraping failed'
@@ -676,11 +701,13 @@ def scrape_vehicle_vnc():
                 'error': 'Invalid registration number format'
             }), 400
         
-        # Log search attempt
-        search_record = SearchHistory()
-        search_record.registration = registration
-        search_record.ip_address = request.remote_addr
-        search_record.user_agent = request.headers.get('User-Agent', '')
+        # Log VNC search attempt
+        search_record = SearchHistory(
+            registration=registration,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', ''),
+            request_source='vnc'
+        )
         
         try:
             # Use Selenium with visible browser (VNC) - optimized for speed

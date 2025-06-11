@@ -141,6 +141,7 @@ class SearchHistory(db.Model):
     user_agent = db.Column(db.Text)
     success = db.Column(db.Boolean, default=False)
     error_message = db.Column(db.Text)
+    request_source = db.Column(db.String(50), default='web')  # 'web', 'api', 'vnc'
     
     def __repr__(self):
         return f'<SearchHistory {self.registration} at {self.search_timestamp}>'
