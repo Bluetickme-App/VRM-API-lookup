@@ -17,6 +17,7 @@ from selenium_scraper import SeleniumVehicleScraper
 from test_data_service import get_sample_vehicle_data
 from utils import validate_registration, sanitize_filename
 from models import db, VehicleData, SearchHistory
+from api_response_formatter import format_database_vehicle_response
 from sqlalchemy.orm import DeclarativeBase
 import logging
 
@@ -564,54 +565,8 @@ def get_vehicle_data_api():
         existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
         
         if existing_vehicle and existing_vehicle.make:
-            # Return cached data in complete format matching VNC endpoint
-            cached_data = {
-                'basic_info': {
-                    'make': existing_vehicle.make,
-                    'model': existing_vehicle.model,
-                    'description': existing_vehicle.description,
-                    'color': existing_vehicle.color,
-                    'fuel_type': existing_vehicle.fuel_type,
-                    'year': str(existing_vehicle.year) if existing_vehicle.year else None
-                },
-                'tax_mot': {
-                    'tax_expiry': existing_vehicle.tax_expiry.strftime('%d %b %Y') if existing_vehicle.tax_expiry else None,
-                    'tax_days_left': existing_vehicle.tax_days_left,
-                    'mot_expiry': existing_vehicle.mot_expiry.strftime('%d %b %Y') if existing_vehicle.mot_expiry else None,
-                    'mot_days_left': existing_vehicle.mot_days_left
-                },
-                'vehicle_details': {
-                    'transmission': existing_vehicle.transmission,
-                    'engine_size': existing_vehicle.engine_size,
-                    'body_style': existing_vehicle.body_style
-                },
-                'performance': {
-                    'power': existing_vehicle.power_bhp,
-                    'max_speed': existing_vehicle.max_speed_mph,
-                    'torque': existing_vehicle.torque_ftlb
-                },
-                'fuel_economy': {
-                    'urban': existing_vehicle.urban_mpg,
-                    'extra_urban': existing_vehicle.extra_urban_mpg,
-                    'combined': existing_vehicle.combined_mpg
-                },
-                'safety': {
-                    'child': existing_vehicle.child_safety_rating,
-                    'adult': existing_vehicle.adult_safety_rating,
-                    'pedestrian': existing_vehicle.pedestrian_safety_rating
-                },
-                'additional': {
-                    'co2_emissions': existing_vehicle.co2_emissions,
-                    'tax_12_months': existing_vehicle.tax_12_months,
-                    'tax_6_months': existing_vehicle.tax_6_months,
-                    'total_keepers': existing_vehicle.total_keepers
-                },
-                'mileage': {
-                    'last_mot_mileage': existing_vehicle.last_mot_mileage,
-                    'average': existing_vehicle.average_mileage,
-                    'status': existing_vehicle.mileage_status
-                }
-            }
+            # Return cached data using unified formatter
+            cached_data = format_database_vehicle_response(existing_vehicle)
             
             return jsonify({
                 'success': True,
