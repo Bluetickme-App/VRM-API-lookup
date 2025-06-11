@@ -12,19 +12,25 @@ quick_api = Blueprint('quick_api', __name__)
 
 logger = logging.getLogger(__name__)
 
-@quick_api.route('/api/quick-vehicle', methods=['POST'])
+@quick_api.route('/api/quick-vehicle', methods=['GET', 'POST'])
 def quick_vehicle_lookup():
     """
     Fast vehicle lookup that returns data immediately without complex database operations
+    Supports both GET (?registration=ABC123) and POST ({"registration": "ABC123"}) requests
     """
     try:
-        data = request.get_json()
-        registration = data.get('registration', '').upper().replace(' ', '')
+        # Handle both GET and POST requests
+        if request.method == 'GET':
+            registration = request.args.get('registration', '').upper().replace(' ', '')
+        else:
+            data = request.get_json()
+            registration = data.get('registration', '').upper().replace(' ', '') if data else ''
         
         if not registration:
             return jsonify({
                 'success': False,
-                'error': 'Registration number required'
+                'error': 'Registration number required',
+                'usage': 'GET: /api/quick-vehicle?registration=ABC123 or POST: {"registration": "ABC123"}'
             }), 400
         
         # Handle specific known registrations based on extraction logs
