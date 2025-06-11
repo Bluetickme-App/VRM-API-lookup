@@ -234,7 +234,16 @@ class OptimizedVehicleScraper:
             # Log page content for debugging failures
             logger.info(f"Page contains {len(lines)} text lines")
             if len(lines) > 0:
-                logger.info(f"First 10 lines: {lines[:10]}")
+                logger.info(f"First 20 lines: {lines[:20]}")
+            
+            # Look for specific field indicators
+            field_indicators = []
+            for i, line in enumerate(lines):
+                if any(field in line.lower() for field in ['colour', 'fuel', 'transmission', 'description', 'mot', 'tax']):
+                    field_indicators.append(f"Line {i}: '{line}' -> Next: '{lines[i+1] if i+1 < len(lines) else 'N/A'}'")
+            
+            if field_indicators:
+                logger.info(f"Found field indicators: {field_indicators[:10]}")
             
             # Check for error pages or blocking
             if any(phrase in page_text.lower() for phrase in ['blocked', 'captcha', 'forbidden', 'access denied', 'robot']):
@@ -268,33 +277,60 @@ class OptimizedVehicleScraper:
         """Parse vehicle information from text lines"""
         try:
             for i, line in enumerate(lines):
-                # MOT information
-                if 'MOT' in line and 'Expires:' in line:
-                    mot_match = re.search(r'Expires:\s*(\d+\s+\w+\s+\d{4})', line)
-                    if mot_match:
-                        vehicle_data['tax_mot']['mot_expiry'] = mot_match.group(1)
+                # MOT information - check current line and next lines
+                if line.strip() == 'MOT':
+                    # Check next few lines for MOT expiry
+                    for j in range(1, min(4, len(lines) - i)):
+                        next_line = lines[i + j]
+                        if 'Expires:' in next_line or 'Expired:' in next_line:
+                            mot_match = re.search(r'(?:Expires|Expired):\s*(\d+\s+\w+\s+\d{4})', next_line)
+                            if mot_match:
+                                vehicle_data['tax_mot']['mot_expiry'] = mot_match.group(1)
+                                logger.info(f"Found MOT expiry: {mot_match.group(1)}")
+                                break
                 
-                # TAX information  
-                elif 'TAX' in line and ('Expires:' in line or 'Expired:' in line):
-                    tax_match = re.search(r'(?:Expires|Expired):\s*(\d+\s+\w+\s+\d{4})', line)
-                    if tax_match:
-                        vehicle_data['tax_mot']['tax_expiry'] = tax_match.group(1)
+                # TAX information - check current line and next lines  
+                elif line.strip() == 'TAX':
+                    # Check next few lines for TAX expiry
+                    for j in range(1, min(4, len(lines) - i)):
+                        next_line = lines[i + j]
+                        if 'Expires:' in next_line or 'Expired:' in next_line:
+                            tax_match = re.search(r'(?:Expires|Expired):\s*(\d+\s+\w+\s+\d{4})', next_line)
+                            if tax_match:
+                                vehicle_data['tax_mot']['tax_expiry'] = tax_match.group(1)
+                                logger.info(f"Found TAX expiry: {tax_match.group(1)}")
+                                break
                 
                 # Vehicle details
-                elif line == 'Description' and i + 1 < len(lines):
+                elif 'Description' in line and i + 1 < len(lines):
                     vehicle_data['basic_info']['description'] = lines[i + 1]
+                    logger.info(f"Found description: {lines[i + 1]}")
                 
-                elif line == 'Primary Colour' and i + 1 < len(lines):
+                elif 'Primary Colour' in line and i + 1 < len(lines):
                     vehicle_data['basic_info']['color'] = lines[i + 1]
+                    logger.info(f"Found color: {lines[i + 1]}")
                 
-                elif line == 'Fuel Type' and i + 1 < len(lines):
+                elif 'Colour' in line and i + 1 < len(lines) and not vehicle_data['basic_info'].get('color'):
+                    vehicle_data['basic_info']['color'] = lines[i + 1]
+                    logger.info(f"Found color (alt): {lines[i + 1]}")
+                
+                elif 'Fuel Type' in line and i + 1 < len(lines):
                     vehicle_data['basic_info']['fuel_type'] = lines[i + 1]
+                    logger.info(f"Found fuel type: {lines[i + 1]}")
                 
-                elif line == 'Transmission' and i + 1 < len(lines):
+                elif 'Fuel' in line and i + 1 < len(lines) and not vehicle_data['basic_info'].get('fuel_type'):
+                    # Check if next line looks like a fuel type
+                    next_line = lines[i + 1]
+                    if any(fuel in next_line.upper() for fuel in ['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID', 'LPG', 'CNG']):
+                        vehicle_data['basic_info']['fuel_type'] = next_line
+                        logger.info(f"Found fuel type (alt): {next_line}")
+                
+                elif 'Transmission' in line and i + 1 < len(lines):
                     vehicle_data['vehicle_details']['transmission'] = lines[i + 1]
+                    logger.info(f"Found transmission: {lines[i + 1]}")
                 
                 # Enhanced make/model extraction
-                elif any(brand in line.upper() for brand in ['AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD']):
+                elif any(brand in line.upper() for brand in ['AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD', 'KIA', 'HYUNDAI']):
                     if not vehicle_data['basic_info'].get('make'):
                         vehicle_data['basic_info']['make'] = line
                 
