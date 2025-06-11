@@ -796,6 +796,11 @@ def scrape_vehicle_vnc():
                     }
                 }
                 
+                # Log successful VNC scrape
+                search_record.success = True
+                db.session.add(search_record)
+                db.session.commit()
+                
                 return jsonify({
                     'success': True,
                     'data': frontend_data,
