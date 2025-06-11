@@ -253,6 +253,27 @@ class OptimizedVehicleScraper:
             # Extract key information
             self._parse_vehicle_info_fast(vehicle_data, lines)
             
+            # Scroll down to load any additional content
+            try:
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                self._natural_delay(1, 2)
+                
+                # Scroll back up to capture any missed content
+                self.driver.execute_script("window.scrollTo(0, 0);")
+                self._natural_delay(1, 2)
+                
+                # Get updated page content after scrolling
+                updated_text = self.driver.find_element(By.TAG_NAME, "body").text
+                updated_lines = [line.strip() for line in updated_text.split('\n') if line.strip()]
+                
+                # Parse any additional fields found after scrolling
+                if len(updated_lines) > len(lines):
+                    logger.info(f"Found additional content after scrolling: {len(updated_lines) - len(lines)} more lines")
+                    self._parse_vehicle_info_fast(vehicle_data, updated_lines)
+                    
+            except Exception as e:
+                logger.warning(f"Error during scrolling: {e}")
+            
             # Try specific XPaths for precise data
             self._extract_xpath_data(vehicle_data)
             
@@ -274,7 +295,7 @@ class OptimizedVehicleScraper:
             return {}
     
     def _parse_vehicle_info_fast(self, vehicle_data, lines):
-        """Parse vehicle information from text lines"""
+        """Parse vehicle information from text lines with proper field alignment"""
         try:
             for i, line in enumerate(lines):
                 # MOT information - check current line and next lines
@@ -333,23 +354,6 @@ class OptimizedVehicleScraper:
                         vehicle_data['basic_info']['year'] = year_match.group(0)
                         logger.info(f"Found manufacture year: {vehicle_data['basic_info']['year']}")
                 
-                # Alternative parsing patterns for field names found on separate lines
-                elif line == 'Description' and i + 1 < len(lines) and not vehicle_data['basic_info'].get('description'):
-                    vehicle_data['basic_info']['description'] = lines[i + 1]
-                    logger.info(f"Found description (next line): {lines[i + 1]}")
-                
-                elif line == 'Primary Colour' and i + 1 < len(lines) and not vehicle_data['basic_info'].get('color'):
-                    vehicle_data['basic_info']['color'] = lines[i + 1]
-                    logger.info(f"Found color (next line): {lines[i + 1]}")
-                
-                elif line == 'Fuel Type' and i + 1 < len(lines) and not vehicle_data['basic_info'].get('fuel_type'):
-                    vehicle_data['basic_info']['fuel_type'] = lines[i + 1]
-                    logger.info(f"Found fuel type (next line): {lines[i + 1]}")
-                
-                elif line == 'Transmission' and i + 1 < len(lines) and not vehicle_data['vehicle_details'].get('transmission'):
-                    vehicle_data['vehicle_details']['transmission'] = lines[i + 1]
-                    logger.info(f"Found transmission (next line): {lines[i + 1]}")
-                
                 # Enhanced make/model extraction
                 elif any(brand in line.upper() for brand in ['AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD', 'KIA', 'HYUNDAI']):
                     if not vehicle_data['basic_info'].get('make'):
@@ -366,11 +370,13 @@ class OptimizedVehicleScraper:
                     if year_match:
                         vehicle_data['basic_info']['year'] = year_match.group(0)
                 
-                # Extract engine size
-                elif 'cc' in line and 'Engine Size' in lines[max(0, i-2):i+1]:
-                    engine_match = re.search(r'(\d+)\s*cc', line)
-                    if engine_match:
-                        vehicle_data['vehicle_details']['engine_size'] = f"{engine_match.group(1)} cc"
+                # Extract total keepers
+                elif 'Total Keepers' in line and i + 1 < len(lines):
+                    keepers_text = lines[i + 1]
+                    keepers_match = re.search(r'(\d+)', keepers_text)
+                    if keepers_match:
+                        vehicle_data['additional']['total_keepers'] = int(keepers_match.group(1))
+                        logger.info(f"Found total keepers: {keepers_match.group(1)}")
                 
         except Exception as e:
             logger.warning(f"Error parsing text: {e}")
