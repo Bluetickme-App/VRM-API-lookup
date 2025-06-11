@@ -62,6 +62,31 @@ class OptimizedVehicleScraper:
         delay = random.uniform(min_time, max_time)
         time.sleep(delay)
     
+    def _check_extraction_ready(self, driver):
+        """Check if the page is ready for data extraction"""
+        try:
+            page_text = driver.find_element(By.TAG_NAME, "body").text
+            
+            # Check for key indicators that the page has loaded completely
+            indicators = [
+                "Vehicle Details" in page_text,
+                "TAX" in page_text,
+                "MOT" in page_text,
+                len(page_text) > 500  # Minimum content threshold
+            ]
+            
+            # Page is ready if we have at least 3 indicators
+            is_ready = sum(indicators) >= 3
+            
+            if is_ready:
+                logger.info("Page extraction ready - all key indicators found")
+            
+            return is_ready
+            
+        except Exception as e:
+            logger.debug(f"Extraction readiness check failed: {e}")
+            return False
+    
     def scrape_vehicle_data(self, registration: str, max_retries: int = 3) -> Optional[Dict[str, Any]]:
         """Main scraping method with retry logic"""
         logger.info(f"Starting scrape for {registration} with {max_retries} max retries")
@@ -227,6 +252,9 @@ class OptimizedVehicleScraper:
                 'additional': {}
             }
             
+            # Perform complete data extraction
+            self._parse_vehicle_info_fast(vehicle_data, [])
+            
             # Get page text for parsing
             page_text = self.driver.find_element(By.TAG_NAME, "body").text
             lines = [line.strip() for line in page_text.split('\n') if line.strip()]
@@ -288,6 +316,20 @@ class OptimizedVehicleScraper:
                 logger.info(f"Available text content sample: {page_text[:500]}")
             
             logger.info(f"Extracted data: {vehicle_data}")
+            
+            # Signal completion by adding a marker to the page
+            try:
+                self.driver.execute_script("""
+                    var completionMarker = document.createElement('div');
+                    completionMarker.id = 'vnc-extraction-complete';
+                    completionMarker.style.display = 'none';
+                    completionMarker.textContent = 'VNC_EXTRACTION_COMPLETE';
+                    document.body.appendChild(completionMarker);
+                """)
+                logger.info("VNC extraction completion signal added to page")
+            except Exception as e:
+                logger.debug(f"Could not add completion signal: {e}")
+            
             return vehicle_data
             
         except Exception as e:
