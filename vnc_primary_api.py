@@ -95,24 +95,23 @@ def vnc_primary_lookup():
                 scraper = OptimizedVehicleScraper(headless=True)
                 return scraper.scrape_vehicle_data(registration, max_retries=3)
             
-            # Execute with extended timeout for thorough extraction
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(reliable_vnc_scrape)
-                try:
-                    vehicle_data = future.result(timeout=40)  # Optimized for reliable VNC extraction
-                except FuturesTimeoutError:
-                    search_record.success = False
-                    search_record.error_message = 'VNC timeout after 40 seconds'
-                    db.session.add(search_record)
-                    db.session.commit()
-                    
-                    return jsonify({
-                        'success': False,
-                        'error': 'VNC automation timeout - extraction taking longer than expected',
-                        'error_type': 'vnc_timeout',
-                        'retry_after': 180,
-                        'method': 'vnc_automation'
-                    }), 408
+            # Execute VNC automation without timeout - let it complete naturally
+            try:
+                vehicle_data = reliable_vnc_scrape()
+                if not vehicle_data:
+                    raise Exception("No data extracted")
+            except Exception as vnc_error:
+                search_record.success = False
+                search_record.error_message = f'VNC extraction failed: {str(vnc_error)}'
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': 'VNC extraction failed',
+                    'error_type': 'vnc_extraction_error',
+                    'method': 'vnc_automation'
+                }), 503
         
         except Exception as vnc_error:
             search_record.success = False

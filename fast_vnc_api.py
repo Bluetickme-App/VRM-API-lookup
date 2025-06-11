@@ -96,24 +96,24 @@ def fast_vnc_lookup():
                 # Single retry for speed
                 return scraper.scrape_vehicle_data(registration, max_retries=1)
             
-            # Execute with strict 20-second timeout for 3rd party compatibility
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(fast_vnc_scrape)
-                try:
-                    vehicle_data = future.result(timeout=35)  # Adjusted based on actual extraction times
-                except FuturesTimeoutError:
-                    search_record.success = False
-                    search_record.error_message = 'Fast VNC timeout after 35 seconds'
-                    db.session.add(search_record)
-                    db.session.commit()
-                    
-                    return jsonify({
-                        'success': False,
-                        'error': 'Fast VNC timeout - try standard VNC endpoint',
-                        'error_type': 'fast_vnc_timeout',
-                        'alternative_endpoint': '/api/vnc-vehicle',
-                        'method': 'fast_vnc_automation'
-                    }), 408
+            # Execute fast VNC automation without timeout - let it complete naturally
+            try:
+                vehicle_data = fast_vnc_scrape()
+                if not vehicle_data:
+                    raise Exception("No data extracted")
+            except Exception as vnc_error:
+                search_record.success = False
+                search_record.error_message = f'Fast VNC extraction failed: {str(vnc_error)}'
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': 'Fast VNC extraction failed',
+                    'error_type': 'fast_vnc_extraction_error',
+                    'alternative_endpoint': '/api/vnc-vehicle',
+                    'method': 'fast_vnc_automation'
+                }), 503
         
         except Exception as vnc_error:
             search_record.success = False
