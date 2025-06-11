@@ -100,10 +100,10 @@ def fast_vnc_lookup():
             with ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(fast_vnc_scrape)
                 try:
-                    vehicle_data = future.result(timeout=28)  # Optimized for 30-second window
+                    vehicle_data = future.result(timeout=35)  # Adjusted based on actual extraction times
                 except FuturesTimeoutError:
                     search_record.success = False
-                    search_record.error_message = 'Fast VNC timeout after 28 seconds'
+                    search_record.error_message = 'Fast VNC timeout after 35 seconds'
                     db.session.add(search_record)
                     db.session.commit()
                     
