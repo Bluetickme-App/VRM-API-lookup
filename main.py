@@ -21,6 +21,7 @@ from api_response_formatter import format_database_vehicle_response
 from sqlalchemy.orm import DeclarativeBase
 from quick_response_api import quick_api
 from vnc_primary_api import vnc_primary
+from fast_vnc_api import fast_vnc
 import logging
 
 # Configure logging
@@ -39,6 +40,7 @@ CORS(app)
 # Register API blueprints
 app.register_blueprint(quick_api)
 app.register_blueprint(vnc_primary)
+app.register_blueprint(fast_vnc)
 
 # Database configuration
 database_url = os.environ.get("DATABASE_URL")

@@ -1,6 +1,6 @@
 """
-VNC-Primary API endpoint for maximum reliability
-Uses browser automation as the primary method, bypassing unreliable direct scraping
+Fast VNC API endpoint optimized for 3rd party integrations
+Returns responses within 25 seconds to avoid external timeout issues
 """
 
 from flask import Blueprint, request, jsonify
@@ -9,16 +9,16 @@ from models import db, VehicleData, SearchHistory
 from utils import validate_registration
 import logging
 
-# Create blueprint for VNC-primary API
-vnc_primary = Blueprint('vnc_primary', __name__)
+# Create blueprint for fast VNC API
+fast_vnc = Blueprint('fast_vnc', __name__)
 
 logger = logging.getLogger(__name__)
 
-@vnc_primary.route('/api/vnc-vehicle', methods=['GET', 'POST'])
-def vnc_primary_lookup():
+@fast_vnc.route('/api/fast-vnc', methods=['GET', 'POST'])
+def fast_vnc_lookup():
     """
-    VNC-primary vehicle lookup - uses browser automation for maximum reliability
-    Bypasses unreliable direct scraping methods
+    Fast VNC vehicle lookup - optimized for 3rd party API integrations
+    Returns within 25 seconds to prevent external timeouts
     """
     try:
         # Handle both GET and POST requests
@@ -32,7 +32,7 @@ def vnc_primary_lookup():
             return jsonify({
                 'success': False,
                 'error': 'Registration number required',
-                'usage': 'GET: /api/vnc-vehicle?registration=ABC123 or POST: {"registration": "ABC123"}'
+                'usage': 'GET: /api/fast-vnc?registration=ABC123 or POST: {"registration": "ABC123"}'
             }), 400
         
         # Validate registration format
@@ -43,24 +43,24 @@ def vnc_primary_lookup():
                 'error_type': 'invalid_format'
             }), 400
         
-        # Log VNC request
+        # Log fast VNC request
         search_record = SearchHistory(
             registration=registration,
             ip_address=request.remote_addr,
             user_agent=request.headers.get('User-Agent', ''),
-            request_source='vnc_primary'
+            request_source='fast_vnc'
         )
         
-        # Check cache first for performance
+        # Check cache first (shorter cache for fast responses)
         existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
         
         if existing_vehicle and existing_vehicle.make and existing_vehicle.updated_at:
             cache_age = datetime.now() - existing_vehicle.updated_at
             
-            # Return fresh cache (< 6 hours for VNC-primary)
-            if cache_age < timedelta(hours=6):
+            # Return cache if less than 2 hours old for fast VNC
+            if cache_age < timedelta(hours=2):
                 search_record.success = True
-                search_record.error_message = 'VNC cache hit'
+                search_record.error_message = 'Fast VNC cache hit'
                 db.session.add(search_record)
                 db.session.commit()
                 
@@ -81,70 +81,73 @@ def vnc_primary_lookup():
                         'mot_expiry': existing_vehicle.mot_expiry.isoformat() if existing_vehicle.mot_expiry else None,
                         'total_keepers': existing_vehicle.total_keepers
                     },
-                    'source': 'vnc_cache',
+                    'source': 'fast_vnc_cache',
                     'cache_age_hours': round(cache_age.total_seconds() / 3600, 1),
-                    'method': 'cached_vnc_data'
+                    'method': 'cached_fast_vnc'
                 })
         
-        # Execute VNC automation with maximum reliability
+        # Execute fast VNC automation with strict timeout
         try:
             from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
             
-            def reliable_vnc_scrape():
+            def fast_vnc_scrape():
                 from optimized_scraper import OptimizedVehicleScraper
                 scraper = OptimizedVehicleScraper(headless=True)
-                return scraper.scrape_vehicle_data(registration, max_retries=3)
+                # Single retry for speed
+                return scraper.scrape_vehicle_data(registration, max_retries=1)
             
-            # Execute with extended timeout for thorough extraction
+            # Execute with strict 20-second timeout for 3rd party compatibility
             with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(reliable_vnc_scrape)
+                future = executor.submit(fast_vnc_scrape)
                 try:
-                    vehicle_data = future.result(timeout=25)  # Reduced from 60 to 25 seconds for 3rd party compatibility
+                    vehicle_data = future.result(timeout=20)
                 except FuturesTimeoutError:
                     search_record.success = False
-                    search_record.error_message = 'VNC timeout after 25 seconds'
+                    search_record.error_message = 'Fast VNC timeout after 20 seconds'
                     db.session.add(search_record)
                     db.session.commit()
                     
                     return jsonify({
                         'success': False,
-                        'error': 'VNC automation timeout - extraction taking longer than expected',
-                        'error_type': 'vnc_timeout',
-                        'retry_after': 180,
-                        'method': 'vnc_automation'
+                        'error': 'Fast VNC timeout - try standard VNC endpoint',
+                        'error_type': 'fast_vnc_timeout',
+                        'alternative_endpoint': '/api/vnc-vehicle',
+                        'method': 'fast_vnc_automation'
                     }), 408
         
         except Exception as vnc_error:
             search_record.success = False
-            search_record.error_message = f'VNC error: {str(vnc_error)}'
+            search_record.error_message = f'Fast VNC error: {str(vnc_error)}'
             db.session.add(search_record)
             db.session.commit()
             
             return jsonify({
                 'success': False,
-                'error': 'VNC automation service error',
-                'error_type': 'vnc_service_error',
-                'method': 'vnc_automation'
+                'error': 'Fast VNC service error',
+                'error_type': 'fast_vnc_service_error',
+                'alternative_endpoint': '/api/vnc-vehicle',
+                'method': 'fast_vnc_automation'
             }), 503
         
-        # Process VNC extraction results
+        # Process fast VNC extraction results
         if vehicle_data and vehicle_data.get('basic_info'):
             basic_info = vehicle_data.get('basic_info', {})
             tax_mot = vehicle_data.get('tax_mot', {})
             vehicle_details = vehicle_data.get('vehicle_details', {})
             additional = vehicle_data.get('additional', {})
             
-            # Store in database for caching
+            # Store in database for caching (with length validation)
             try:
                 if existing_vehicle:
                     vehicle_record = existing_vehicle
                 else:
                     vehicle_record = VehicleData(registration=registration)
                 
-                # Update vehicle record with VNC data (with length validation)
+                # Update with length validation
                 make_text = basic_info.get('make') or 'Unknown'
                 if len(make_text) > 100:
                     make_text = make_text[:97] + '...'
+                
                 vehicle_record.make = make_text
                 vehicle_record.model = basic_info.get('model')
                 vehicle_record.description = basic_info.get('description')
@@ -173,13 +176,12 @@ def vnc_primary_lookup():
                     db.session.add(vehicle_record)
                 
                 search_record.success = True
-                search_record.error_message = 'VNC extraction successful'
+                search_record.error_message = 'Fast VNC extraction successful'
                 db.session.add(search_record)
                 db.session.commit()
                 
             except Exception as db_error:
                 logger.error(f"Database save error: {str(db_error)}")
-                # Continue with response even if database save fails
             
             return jsonify({
                 'success': True,
@@ -198,16 +200,16 @@ def vnc_primary_lookup():
                     'mot_expiry': tax_mot.get('mot_expiry'),
                     'total_keepers': additional.get('total_keepers')
                 },
-                'source': 'vnc_automation',
-                'method': 'browser_automation',
+                'source': 'fast_vnc_automation',
+                'method': 'fast_browser_automation',
                 'extraction_time': datetime.now().isoformat(),
-                'reliability': 'maximum'
+                'timeout_optimized': True
             })
         
         else:
             # No vehicle data found
             search_record.success = False
-            search_record.error_message = 'No vehicle found via VNC'
+            search_record.error_message = 'No vehicle found via Fast VNC'
             db.session.add(search_record)
             db.session.commit()
             
@@ -215,13 +217,13 @@ def vnc_primary_lookup():
                 'success': False,
                 'error': f'No vehicle found for registration {registration}',
                 'error_type': 'vehicle_not_found',
-                'method': 'vnc_automation'
+                'method': 'fast_vnc_automation'
             }), 404
             
     except Exception as e:
-        logger.error(f"VNC primary API error: {str(e)}")
+        logger.error(f"Fast VNC API error: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'VNC primary service error',
+            'error': 'Fast VNC service error',
             'error_type': 'service_error'
         }), 500
