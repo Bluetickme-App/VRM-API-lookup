@@ -73,13 +73,16 @@ def require_auth(f):
 @app.after_request
 def add_security_headers(response):
     """Add security headers to prevent crawling and indexing"""
-    response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive, nosnippet, noimageindex'
+    # Allow API documentation to be publicly accessible
+    if not request.path.startswith('/api/docs'):
+        response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive, nosnippet, noimageindex'
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Referrer-Policy'] = 'no-referrer'
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
     return response
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -457,10 +460,10 @@ def get_vehicle(registration):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/docs')
+@app.route('/api/docs-internal')
 @require_auth
-def api_docs():
-    """API Documentation - Protected"""
+def api_docs_internal():
+    """Internal API Documentation - Protected"""
     docs = """
     # Vehicle Data API Documentation
     
@@ -898,6 +901,161 @@ def scrape_vehicle_vnc():
         return jsonify({
             'success': False,
             'error': f'VNC scraping failed: {str(e)}'
+        }), 500
+
+# Third-Party Developer API Endpoints
+
+@app.route('/api/documentation')
+def api_documentation():
+    """Public API Documentation for third-party developers"""
+    try:
+        with open('API_DOCUMENTATION.md', 'r') as f:
+            docs_content = f.read()
+        
+        # Return formatted HTML documentation
+        return f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Data API Documentation</title>
+    <meta charset="utf-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }}
+        pre {{ background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }}
+        code {{ background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }}
+        table {{ border-collapse: collapse; width: 100%; }}
+        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+        th {{ background-color: #f2f2f2; }}
+        h1, h2, h3 {{ color: #333; }}
+        .endpoint {{ background: #e8f4f8; padding: 10px; border-left: 4px solid #007acc; margin: 10px 0; }}
+    </style>
+</head>
+<body>
+    <div id="content">
+        <h1>Vehicle Data API Documentation</h1>
+        <p><strong>Base URL:</strong> https://vrnapi.replit.app</p>
+        
+        <h2>Quick Start for Third-Party Developers</h2>
+        
+        <div class="endpoint">
+            <h3>1. Cache-First Lookup (Instant Response)</h3>
+            <p><strong>GET</strong> /api/v1/cache/{{registration}}</p>
+            <p>Returns cached data in &lt;1 second if available</p>
+        </div>
+        
+        <div class="endpoint">
+            <h3>2. Full Vehicle Lookup (With VNC Fallback)</h3>
+            <p><strong>POST</strong> /api/v1/vehicle</p>
+            <p>Comprehensive lookup with automatic VNC automation fallback</p>
+            <pre>{{
+  "registration": "WV08XVZ"
+}}</pre>
+        </div>
+        
+        <h2>Integration Strategy</h2>
+        <ol>
+            <li><strong>Always try cache first</strong> for fastest response</li>
+            <li><strong>Use full lookup</strong> for live data if cache miss</li>
+            <li><strong>VNC automation runs automatically</strong> if needed</li>
+        </ol>
+        
+        <h2>Example Response (WV08XVZ - ALFA ROMEO 159)</h2>
+        <pre>{{
+  "success": true,
+  "data": {{
+    "registration": "WV08XVZ",
+    "make": "ALFA ROMEO",
+    "model": "159",
+    "description": "159 Lusso JTDM 20v Auto",
+    "color": "Black",
+    "fuel_type": "DIESEL",
+    "transmission": "Auto 6 Gears",
+    "engine_size": "2387 cc",
+    "tax_expiry": "2025-05-28",
+    "mot_expiry": "2025-10-16",
+    "total_keepers": 8
+  }},
+  "source": "cache",
+  "cache_age_hours": 2.1
+}}</pre>
+        
+        <h2>Error Handling</h2>
+        <ul>
+            <li><strong>404:</strong> Vehicle not found</li>
+            <li><strong>408:</strong> Timeout (retry after 5 minutes)</li>
+            <li><strong>503:</strong> Service unavailable (retry after 10 minutes)</li>
+        </ul>
+        
+        <h2>Rate Limits</h2>
+        <ul>
+            <li>Cache endpoints: 1000/minute</li>
+            <li>Live scraping: 30/minute</li>
+            <li>VNC automation: 10/minute</li>
+        </ul>
+    </div>
+</body>
+</html>"""
+    except Exception as e:
+        return f"<h1>API Documentation</h1><p>Error: {str(e)}</p>"
+
+@app.route('/api/v1/cache/<registration>')
+def api_v1_cache_lookup(registration):
+    """
+    Fast cache-only lookup for third-party developers
+    Returns sub-second response times for cached data
+    """
+    try:
+        registration = registration.upper().replace(' ', '')
+        
+        # Validate registration format
+        from utils import validate_registration
+        if not validate_registration(registration):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid UK registration number format',
+                'error_type': 'invalid_format'
+            }), 400
+        
+        vehicle = VehicleData.query.filter_by(registration=registration).first()
+        
+        if vehicle and vehicle.make:
+            from datetime import datetime, timedelta
+            cache_age = datetime.utcnow() - vehicle.updated_at if vehicle.updated_at else timedelta(days=999)
+            
+            return jsonify({
+                'success': True,
+                'data': {
+                    'registration': vehicle.registration,
+                    'make': vehicle.make,
+                    'model': vehicle.model,
+                    'description': vehicle.description,
+                    'color': vehicle.color,
+                    'fuel_type': vehicle.fuel_type,
+                    'transmission': vehicle.transmission,
+                    'engine_size': vehicle.engine_size,
+                    'body_style': vehicle.body_style,
+                    'year': vehicle.year,
+                    'tax_expiry': vehicle.tax_expiry.isoformat() if vehicle.tax_expiry else None,
+                    'mot_expiry': vehicle.mot_expiry.isoformat() if vehicle.mot_expiry else None,
+                    'total_keepers': vehicle.total_keepers
+                },
+                'source': 'cache',
+                'cache_age_hours': round(cache_age.total_seconds() / 3600, 1),
+                'cache_fresh': cache_age < timedelta(hours=24),
+                'cached_at': vehicle.updated_at.isoformat() if vehicle.updated_at else None
+            })
+        
+        return jsonify({
+            'success': False,
+            'error': 'Vehicle not found in cache. Use /api/vehicle-data for live lookup.',
+            'error_type': 'not_cached',
+            'registration': registration
+        }), 404
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Cache lookup error: {str(e)}',
+            'error_type': 'server_error'
         }), 500
 
 if __name__ == '__main__':
