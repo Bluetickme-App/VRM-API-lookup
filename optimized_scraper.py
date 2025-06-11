@@ -210,15 +210,15 @@ class OptimizedVehicleScraper:
             return False
     
     def _extract_results_fast(self):
-        """Fast extraction of vehicle data"""
+        """Fast extraction of vehicle data with completion detection"""
         try:
-            # Wait for results page with dynamic content loading
-            WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            # Wait for results page with specific content indicators
+            WebDriverWait(self.driver, 20).until(
+                lambda driver: self._check_extraction_ready(driver)
             )
             
-            # Additional wait for dynamic content to load
-            time.sleep(3)
+            # Signal extraction is ready
+            logger.info("Extraction ready - content fully loaded")
             
             vehicle_data = {
                 'basic_info': {},
