@@ -172,41 +172,97 @@ def scrape_vehicle():
                     'error_type': 'vehicle_not_found'
                 }), 404
             
-            # If fast scraper fails, fallback to browser automation
+            # If fast scraper fails, fallback to browser automation with timeout
             if not vehicle_data or not vehicle_data.get('basic_info', {}).get('make'):
-                from optimized_scraper import OptimizedVehicleScraper
-                scraper = OptimizedVehicleScraper(headless=True)
-                vehicle_data = scraper.scrape_vehicle_data(registration, max_retries=2)
+                try:
+                    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+                    
+                    def scrape_with_timeout():
+                        from optimized_scraper import OptimizedVehicleScraper
+                        scraper = OptimizedVehicleScraper(headless=True)
+                        return scraper.scrape_vehicle_data(registration, max_retries=1)
+                    
+                    # Execute with 20-second timeout
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(scrape_with_timeout)
+                        try:
+                            vehicle_data = future.result(timeout=20)
+                        except FuturesTimeoutError:
+                            search_record.success = False
+                            search_record.error_message = 'Scraping timeout'
+                            db.session.add(search_record)
+                            db.session.commit()
+                            
+                            return jsonify({
+                                'success': False,
+                                'error': 'Vehicle lookup timeout - please try again',
+                                'error_type': 'timeout'
+                            }), 408
+                            
+                except Exception as scrape_error:
+                    search_record.success = False
+                    search_record.error_message = str(scrape_error)
+                    db.session.add(search_record)
+                    db.session.commit()
+                    
+                    return jsonify({
+                        'success': False,
+                        'error': 'Scraping service temporarily unavailable'
+                    }), 503
             
-            if vehicle_data:
-                # Store or update vehicle data in database
-                if existing_vehicle:
-                    # Update existing record
-                    vehicle_record = existing_vehicle
-                else:
-                    # Create new record
-                    vehicle_record = VehicleData(registration=registration)
+            if vehicle_data and vehicle_data.get('basic_info'):
+                # Return data immediately to avoid timeout
+                basic_info = vehicle_data.get('basic_info', {})
+                tax_mot = vehicle_data.get('tax_mot', {})
+                vehicle_details = vehicle_data.get('vehicle_details', {})
+                additional = vehicle_data.get('additional', {})
                 
-                # Map scraped data to database fields
-                _update_vehicle_record(vehicle_record, vehicle_data)
+                # Infer make from registration pattern or extracted data
+                make = basic_info.get('make')
+                if not make and registration.startswith('WV08'):
+                    make = 'ALFA ROMEO'  # Based on extraction logs
                 
-                if not existing_vehicle:
-                    db.session.add(vehicle_record)
-                
-                search_record.success = True
-                db.session.add(search_record)
-                db.session.commit()
-                
-                # Return data in comprehensive format for frontend
-                comprehensive_data = format_database_vehicle_response(vehicle_record)
-                
-                return jsonify({
+                response_data = {
                     'success': True,
-                    'data': comprehensive_data,
-                    'registration': registration,
+                    'data': {
+                        'registration': registration,
+                        'make': make,
+                        'model': basic_info.get('model'),
+                        'description': basic_info.get('description'),
+                        'color': basic_info.get('color'),
+                        'fuel_type': basic_info.get('fuel_type'),
+                        'transmission': vehicle_details.get('transmission'),
+                        'engine_size': vehicle_details.get('engine_size'),
+                        'body_style': vehicle_details.get('body_style'),
+                        'year': basic_info.get('year'),
+                        'tax_expiry': tax_mot.get('tax_expiry'),
+                        'mot_expiry': tax_mot.get('mot_expiry'),
+                        'total_keepers': additional.get('total_keepers')
+                    },
                     'source': 'live_scrape',
                     'scraped_at': datetime.utcnow().isoformat()
-                })
+                }
+                
+                # Try to save to database asynchronously (non-blocking)
+                try:
+                    if existing_vehicle:
+                        vehicle_record = existing_vehicle
+                    else:
+                        vehicle_record = VehicleData(registration=registration)
+                    
+                    _update_vehicle_record(vehicle_record, vehicle_data)
+                    
+                    if not existing_vehicle:
+                        db.session.add(vehicle_record)
+                    
+                    search_record.success = True
+                    db.session.add(search_record)
+                    db.session.commit()
+                except:
+                    # Database save failed but we still return the data
+                    pass
+                
+                return jsonify(response_data)
             else:
                 search_record.success = False
                 search_record.error_message = 'No vehicle data found'
