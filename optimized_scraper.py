@@ -24,8 +24,8 @@ class OptimizedVehicleScraper:
         self.driver = None
         self.wait = None
         self.headless = headless
-        self.page_load_timeout = 20
-        self.element_wait_timeout = 15
+        self.page_load_timeout = 30  # Increased from 20 to handle slow loads
+        self.element_wait_timeout = 20  # Increased from 15 for better reliability
     
     def _setup_driver(self):
         """Initialize Firefox WebDriver"""
