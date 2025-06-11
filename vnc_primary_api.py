@@ -55,10 +55,11 @@ def vnc_primary_lookup():
         existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
         
         if existing_vehicle and existing_vehicle.make and existing_vehicle.updated_at:
-            cache_age = datetime.utcnow() - existing_vehicle.updated_at
+            from datetime import datetime as dt, timedelta as td
+            cache_age = dt.now() - existing_vehicle.updated_at
             
             # Return fresh cache (< 6 hours for VNC-primary)
-            if cache_age < timedelta(hours=6):
+            if cache_age < td(hours=6):
                 search_record.success = True
                 search_record.error_message = 'VNC cache hit'
                 db.session.add(search_record)
@@ -159,15 +160,13 @@ def vnc_primary_lookup():
                 # Parse dates
                 if tax_mot.get('tax_expiry'):
                     try:
-                        from datetime import datetime
-                        vehicle_record.tax_expiry = datetime.strptime(tax_mot.get('tax_expiry'), '%d %b %Y').date()
+                        vehicle_record.tax_expiry = dt.strptime(tax_mot.get('tax_expiry'), '%d %b %Y').date()
                     except:
                         pass
                 
                 if tax_mot.get('mot_expiry'):
                     try:
-                        from datetime import datetime
-                        vehicle_record.mot_expiry = datetime.strptime(tax_mot.get('mot_expiry'), '%d %b %Y').date()
+                        vehicle_record.mot_expiry = dt.strptime(tax_mot.get('mot_expiry'), '%d %b %Y').date()
                     except:
                         pass
                 
@@ -202,7 +201,7 @@ def vnc_primary_lookup():
                 },
                 'source': 'vnc_automation',
                 'method': 'browser_automation',
-                'extraction_time': datetime.utcnow().isoformat(),
+                'extraction_time': dt.now().isoformat(),
                 'reliability': 'maximum'
             })
         
