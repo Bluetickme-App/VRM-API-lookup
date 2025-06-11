@@ -156,6 +156,19 @@ def scrape_vehicle():
             fast_scraper = FastApiScraper()
             vehicle_data = fast_scraper.scrape_vehicle_data(registration, timeout=8)
             
+            # Check for vehicle not found error
+            if vehicle_data and vehicle_data.get('error') == 'vehicle_not_found':
+                search_record.success = False
+                search_record.error_message = vehicle_data.get('message', 'Vehicle not found')
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': vehicle_data.get('message', 'No vehicle found for this registration'),
+                    'error_type': 'vehicle_not_found'
+                }), 404
+            
             # If fast scraper fails, fallback to browser automation
             if not vehicle_data or not vehicle_data.get('basic_info', {}).get('make'):
                 from optimized_scraper import OptimizedVehicleScraper
@@ -595,19 +608,67 @@ def get_vehicle_data_api():
         fast_scraper = FastApiScraper()
         vehicle_data = fast_scraper.scrape_vehicle_data(registration, timeout=10)
         
-        # If fast scraper fails, fallback to browser automation  
+        # Check for vehicle not found error
+        if vehicle_data and vehicle_data.get('error') == 'vehicle_not_found':
+            # Log failed API request
+            search_record.success = False
+            search_record.error_message = vehicle_data.get('message', 'Vehicle not found')
+            db.session.add(search_record)
+            db.session.commit()
+            
+            return jsonify({
+                'success': False,
+                'error': vehicle_data.get('message', 'No vehicle found for this registration'),
+                'error_type': 'vehicle_not_found'
+            }), 404
+        
+        # If fast scraper fails, try limited browser automation with timeout
         if not vehicle_data or not vehicle_data.get('basic_info', {}).get('make'):
-            from optimized_scraper import OptimizedVehicleScraper
-            selenium_scraper = OptimizedVehicleScraper(headless=True)
-            vehicle_data = selenium_scraper.scrape_vehicle_data(registration, max_retries=2)
+            try:
+                from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+                
+                def limited_scrape():
+                    from optimized_scraper import OptimizedVehicleScraper
+                    selenium_scraper = OptimizedVehicleScraper(headless=True)
+                    return selenium_scraper.scrape_vehicle_data(registration, max_retries=1)
+                
+                # Execute with 15-second timeout
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(limited_scrape)
+                    try:
+                        vehicle_data = future.result(timeout=15)
+                    except FuturesTimeoutError:
+                        # Log timeout error
+                        search_record.success = False
+                        search_record.error_message = 'Scraping timeout - request took too long'
+                        db.session.add(search_record)
+                        db.session.commit()
+                        
+                        return jsonify({
+                            'success': False,
+                            'error': 'Request timeout - scraping took too long. Please try again later.',
+                            'error_type': 'timeout'
+                        }), 408
+                        
+            except Exception as fallback_error:
+                # Log fallback error  
+                search_record.success = False
+                search_record.error_message = f'Fallback scraping failed: {str(fallback_error)}'
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': 'Scraping service temporarily unavailable',
+                    'error_type': 'service_error'
+                }), 503
         
         if vehicle_data and vehicle_data.get('basic_info'):
             basic_info = vehicle_data.get('basic_info', {})
             vehicle_details = vehicle_data.get('vehicle_details', {})
             
             # Store in database for caching
-            vehicle_record = VehicleData()
-            vehicle_record.registration = registration
+            vehicle_record = VehicleData(registration=registration)
             _update_vehicle_record(vehicle_record, vehicle_data)
             db.session.add(vehicle_record)
             db.session.commit()
