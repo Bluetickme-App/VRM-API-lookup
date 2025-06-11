@@ -20,6 +20,7 @@ from models import db, VehicleData, SearchHistory
 from api_response_formatter import format_database_vehicle_response
 from sqlalchemy.orm import DeclarativeBase
 from quick_response_api import quick_api
+from vnc_primary_api import vnc_primary
 import logging
 
 # Configure logging
@@ -35,8 +36,9 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 # Enable CORS for API access
 CORS(app)
 
-# Register quick response API blueprint
+# Register API blueprints
 app.register_blueprint(quick_api)
+app.register_blueprint(vnc_primary)
 
 # Database configuration
 database_url = os.environ.get("DATABASE_URL")
@@ -158,61 +160,44 @@ def scrape_vehicle():
                         'scraped_at': existing_vehicle.updated_at.isoformat()
                     })
             
-            # Try fast API scraper first for speed
-            from fast_api_scraper import FastApiScraper
-            fast_scraper = FastApiScraper()
-            vehicle_data = fast_scraper.scrape_vehicle_data(registration, timeout=8)
-            
-            # Check for vehicle not found error
-            if vehicle_data and vehicle_data.get('error') == 'vehicle_not_found':
+            # Use VNC browser automation as primary method for maximum reliability
+            try:
+                from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+                
+                def vnc_scrape_reliable():
+                    from optimized_scraper import OptimizedVehicleScraper
+                    scraper = OptimizedVehicleScraper(headless=True)
+                    return scraper.scrape_vehicle_data(registration, max_retries=3)
+                
+                # Execute VNC automation with extended timeout for reliability
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(vnc_scrape_reliable)
+                    try:
+                        vehicle_data = future.result(timeout=45)
+                    except FuturesTimeoutError:
+                        search_record.success = False
+                        search_record.error_message = 'VNC automation timeout'
+                        db.session.add(search_record)
+                        db.session.commit()
+                        
+                        return jsonify({
+                            'success': False,
+                            'error': 'Vehicle lookup timeout - VNC automation taking longer than expected',
+                            'error_type': 'vnc_timeout',
+                            'retry_suggestion': 'Please try again in 2-3 minutes'
+                        }), 408
+                        
+            except Exception as vnc_error:
                 search_record.success = False
-                search_record.error_message = vehicle_data.get('message', 'Vehicle not found')
+                search_record.error_message = f'VNC automation failed: {str(vnc_error)}'
                 db.session.add(search_record)
                 db.session.commit()
                 
                 return jsonify({
                     'success': False,
-                    'error': vehicle_data.get('message', 'No vehicle found for this registration'),
-                    'error_type': 'vehicle_not_found'
-                }), 404
-            
-            # If fast scraper fails, fallback to browser automation with timeout
-            if not vehicle_data or not vehicle_data.get('basic_info', {}).get('make'):
-                try:
-                    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
-                    
-                    def scrape_with_timeout():
-                        from optimized_scraper import OptimizedVehicleScraper
-                        scraper = OptimizedVehicleScraper(headless=True)
-                        return scraper.scrape_vehicle_data(registration, max_retries=1)
-                    
-                    # Execute with 20-second timeout
-                    with ThreadPoolExecutor(max_workers=1) as executor:
-                        future = executor.submit(scrape_with_timeout)
-                        try:
-                            vehicle_data = future.result(timeout=20)
-                        except FuturesTimeoutError:
-                            search_record.success = False
-                            search_record.error_message = 'Scraping timeout'
-                            db.session.add(search_record)
-                            db.session.commit()
-                            
-                            return jsonify({
-                                'success': False,
-                                'error': 'Vehicle lookup timeout - please try again',
-                                'error_type': 'timeout'
-                            }), 408
-                            
-                except Exception as scrape_error:
-                    search_record.success = False
-                    search_record.error_message = str(scrape_error)
-                    db.session.add(search_record)
-                    db.session.commit()
-                    
-                    return jsonify({
-                        'success': False,
-                        'error': 'Scraping service temporarily unavailable'
-                    }), 503
+                    'error': 'VNC automation service temporarily unavailable',
+                    'error_type': 'vnc_service_error'
+                }), 503
             
             if vehicle_data and vehicle_data.get('basic_info'):
                 # Return data immediately to avoid timeout
