@@ -212,10 +212,13 @@ class OptimizedVehicleScraper:
     def _extract_results_fast(self):
         """Fast extraction of vehicle data"""
         try:
-            # Wait for results page with shorter timeout for faster response
-            WebDriverWait(self.driver, 8).until(
+            # Wait for results page with dynamic content loading
+            WebDriverWait(self.driver, 15).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
+            
+            # Additional wait for dynamic content to load
+            time.sleep(3)
             
             vehicle_data = {
                 'basic_info': {},
@@ -228,11 +231,31 @@ class OptimizedVehicleScraper:
             page_text = self.driver.find_element(By.TAG_NAME, "body").text
             lines = [line.strip() for line in page_text.split('\n') if line.strip()]
             
+            # Log page content for debugging failures
+            logger.info(f"Page contains {len(lines)} text lines")
+            if len(lines) > 0:
+                logger.info(f"First 10 lines: {lines[:10]}")
+            
+            # Check for error pages or blocking
+            if any(phrase in page_text.lower() for phrase in ['blocked', 'captcha', 'forbidden', 'access denied', 'robot']):
+                logger.warning("Potential blocking or captcha detected")
+                return {}
+            
             # Extract key information
             self._parse_vehicle_info_fast(vehicle_data, lines)
             
             # Try specific XPaths for precise data
             self._extract_xpath_data(vehicle_data)
+            
+            # Validate that we found essential data
+            has_data = (vehicle_data['basic_info'].get('make') or 
+                       vehicle_data['basic_info'].get('model') or
+                       vehicle_data['tax_mot'].get('mot_expiry') or
+                       vehicle_data['additional'].get('total_keepers'))
+            
+            if not has_data:
+                logger.warning("No essential vehicle data found in page content")
+                logger.info(f"Available text content sample: {page_text[:500]}")
             
             logger.info(f"Extracted data: {vehicle_data}")
             return vehicle_data
@@ -251,7 +274,7 @@ class OptimizedVehicleScraper:
                     if mot_match:
                         vehicle_data['tax_mot']['mot_expiry'] = mot_match.group(1)
                 
-                # TAX information
+                # TAX information  
                 elif 'TAX' in line and ('Expires:' in line or 'Expired:' in line):
                     tax_match = re.search(r'(?:Expires|Expired):\s*(\d+\s+\w+\s+\d{4})', line)
                     if tax_match:
@@ -270,10 +293,27 @@ class OptimizedVehicleScraper:
                 elif line == 'Transmission' and i + 1 < len(lines):
                     vehicle_data['vehicle_details']['transmission'] = lines[i + 1]
                 
-                # Extract make/model from header
-                elif any(brand in line.upper() for brand in ['AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES']):
+                # Enhanced make/model extraction
+                elif any(brand in line.upper() for brand in ['AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD']):
                     if not vehicle_data['basic_info'].get('make'):
                         vehicle_data['basic_info']['make'] = line
+                
+                # Extract model from variant line
+                elif line == 'Model Variant' and i + 1 < len(lines):
+                    vehicle_data['basic_info']['model'] = lines[i + 1]
+                
+                # Extract year from registration date
+                elif 'Registration Date' in line and i + 1 < len(lines):
+                    date_line = lines[i + 1]
+                    year_match = re.search(r'\b(19|20)\d{2}\b', date_line)
+                    if year_match:
+                        vehicle_data['basic_info']['year'] = year_match.group(0)
+                
+                # Extract engine size
+                elif 'cc' in line and 'Engine Size' in lines[max(0, i-2):i+1]:
+                    engine_match = re.search(r'(\d+)\s*cc', line)
+                    if engine_match:
+                        vehicle_data['vehicle_details']['engine_size'] = f"{engine_match.group(1)} cc"
                 
         except Exception as e:
             logger.warning(f"Error parsing text: {e}")
