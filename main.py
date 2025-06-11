@@ -140,30 +140,21 @@ def scrape_vehicle():
                     db.session.add(search_record)
                     db.session.commit()
                     
+                    # Return cached data in comprehensive format for frontend
+                    cached_data = format_database_vehicle_response(existing_vehicle)
+                    
                     return jsonify({
                         'success': True,
-                        'data': existing_vehicle.to_dict(),
+                        'data': cached_data,
                         'registration': registration,
                         'source': 'database_cache',
                         'scraped_at': existing_vehicle.updated_at.isoformat()
                     })
             
-            # Try enhanced scraper first (direct HTTP)
-            scraper = EnhancedVehicleScraper()
-            vehicle_data = scraper.scrape_vehicle_data(registration)
-            
-            # If HTTP scraping fails due to 403 blocking, inform user about browser automation option
-            if not vehicle_data:
-                search_record.success = False
-                search_record.error_message = 'Website blocking detected - requires browser automation'
-                db.session.add(search_record)
-                db.session.commit()
-                
-                return jsonify({
-                    'success': False,
-                    'error': 'The website is blocking automated requests. Please use the "VNC Browser Search" button below for interactive scraping, or contact the website administrator for API access.',
-                    'suggestion': 'vnc_required'
-                }), 403
+            # Use optimized scraper for complete data extraction
+            from optimized_scraper import OptimizedVehicleScraper
+            scraper = OptimizedVehicleScraper(headless=True)
+            vehicle_data = scraper.scrape_vehicle_data(registration, max_retries=3)
             
             if vehicle_data:
                 # Store or update vehicle data in database
@@ -184,9 +175,12 @@ def scrape_vehicle():
                 db.session.add(search_record)
                 db.session.commit()
                 
+                # Return data in comprehensive format for frontend
+                comprehensive_data = format_database_vehicle_response(vehicle_record)
+                
                 return jsonify({
                     'success': True,
-                    'data': vehicle_record.to_dict(),
+                    'data': comprehensive_data,
                     'registration': registration,
                     'source': 'live_scrape',
                     'scraped_at': datetime.utcnow().isoformat()
