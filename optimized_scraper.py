@@ -355,9 +355,18 @@ class OptimizedVehicleScraper:
                         logger.info(f"Found manufacture year: {vehicle_data['basic_info']['year']}")
                 
                 # Enhanced make/model extraction
-                elif any(brand in line.upper() for brand in ['AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD', 'KIA', 'HYUNDAI']):
+                elif any(brand in line.upper() for brand in ['ALFA ROMEO', 'AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD', 'KIA', 'HYUNDAI', 'FIAT', 'FERRARI', 'LAMBORGHINI', 'MASERATI', 'PORSCHE', 'SUBARU', 'MITSUBISHI', 'SUZUKI', 'MAZDA', 'LEXUS', 'INFINITI', 'ACURA', 'CADILLAC', 'CHEVROLET', 'BUICK', 'GMC', 'LINCOLN', 'CHRYSLER', 'DODGE', 'JEEP', 'RAM']):
                     if not vehicle_data['basic_info'].get('make'):
-                        vehicle_data['basic_info']['make'] = line
+                        # Extract just the make from the line (e.g., "ALFA ROMEO" from "ALFA ROMEO 159")
+                        for brand in ['ALFA ROMEO', 'AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD', 'KIA', 'HYUNDAI', 'FIAT', 'FERRARI', 'LAMBORGHINI', 'MASERATI', 'PORSCHE', 'SUBARU', 'MITSUBISHI', 'SUZUKI', 'MAZDA', 'LEXUS', 'INFINITI', 'ACURA', 'CADILLAC', 'CHEVROLET', 'BUICK', 'GMC', 'LINCOLN', 'CHRYSLER', 'DODGE', 'JEEP', 'RAM']:
+                            if brand in line.upper():
+                                vehicle_data['basic_info']['make'] = brand
+                                # Extract model from the same line (everything after the make)
+                                model_part = line.replace(brand, '').strip()
+                                if model_part and not vehicle_data['basic_info'].get('model'):
+                                    vehicle_data['basic_info']['model'] = model_part
+                                logger.info(f"Found make: {brand}, model: {model_part}")
+                                break
                 
                 # Extract model from variant line
                 elif line == 'Model Variant' and i + 1 < len(lines):
