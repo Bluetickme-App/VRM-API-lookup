@@ -19,6 +19,7 @@ from utils import validate_registration, sanitize_filename
 from models import db, VehicleData, SearchHistory
 from api_response_formatter import format_database_vehicle_response
 from sqlalchemy.orm import DeclarativeBase
+from quick_response_api import quick_api
 import logging
 
 # Configure logging
@@ -33,6 +34,9 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 
 # Enable CORS for API access
 CORS(app)
+
+# Register quick response API blueprint
+app.register_blueprint(quick_api)
 
 # Database configuration
 database_url = os.environ.get("DATABASE_URL")
