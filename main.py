@@ -590,9 +590,10 @@ def get_vehicle_data_api():
                 'cached_at': existing_vehicle.updated_at.isoformat()
             })
         
-        # If no cached data, scrape fresh
-        selenium_scraper = SeleniumVehicleScraper(headless=True)  # Headless for API
-        vehicle_data = selenium_scraper.scrape_vehicle_data(registration)
+        # If no cached data, scrape fresh using optimized scraper
+        from optimized_scraper import OptimizedVehicleScraper
+        selenium_scraper = OptimizedVehicleScraper(headless=True)  # Headless for API
+        vehicle_data = selenium_scraper.scrape_vehicle_data(registration, max_retries=3)
         
         if vehicle_data and vehicle_data.get('basic_info'):
             basic_info = vehicle_data.get('basic_info', {})
