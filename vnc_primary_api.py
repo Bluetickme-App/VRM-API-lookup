@@ -4,7 +4,7 @@ Uses browser automation as the primary method, bypassing unreliable direct scrap
 """
 
 from flask import Blueprint, request, jsonify
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db, VehicleData, SearchHistory
 from utils import validate_registration
 import logging
@@ -55,7 +55,6 @@ def vnc_primary_lookup():
         existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
         
         if existing_vehicle and existing_vehicle.make and existing_vehicle.updated_at:
-            from datetime import timedelta
             cache_age = datetime.utcnow() - existing_vehicle.updated_at
             
             # Return fresh cache (< 6 hours for VNC-primary)
@@ -142,8 +141,11 @@ def vnc_primary_lookup():
                 else:
                     vehicle_record = VehicleData(registration=registration)
                 
-                # Update vehicle record with VNC data
-                vehicle_record.make = basic_info.get('make') or 'Unknown'
+                # Update vehicle record with VNC data (with length validation)
+                make_text = basic_info.get('make') or 'Unknown'
+                if len(make_text) > 100:
+                    make_text = make_text[:97] + '...'
+                vehicle_record.make = make_text
                 vehicle_record.model = basic_info.get('model')
                 vehicle_record.description = basic_info.get('description')
                 vehicle_record.color = basic_info.get('color')
