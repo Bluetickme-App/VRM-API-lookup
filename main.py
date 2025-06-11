@@ -564,21 +564,61 @@ def get_vehicle_data_api():
         existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
         
         if existing_vehicle and existing_vehicle.make:
-            # Return cached data in simple format
+            # Return cached data in complete format matching VNC endpoint
+            cached_data = {
+                'basic_info': {
+                    'make': existing_vehicle.make,
+                    'model': existing_vehicle.model,
+                    'description': existing_vehicle.description,
+                    'color': existing_vehicle.color,
+                    'fuel_type': existing_vehicle.fuel_type,
+                    'year': str(existing_vehicle.year) if existing_vehicle.year else None
+                },
+                'tax_mot': {
+                    'tax_expiry': existing_vehicle.tax_expiry.strftime('%d %b %Y') if existing_vehicle.tax_expiry else None,
+                    'tax_days_left': existing_vehicle.tax_days_left,
+                    'mot_expiry': existing_vehicle.mot_expiry.strftime('%d %b %Y') if existing_vehicle.mot_expiry else None,
+                    'mot_days_left': existing_vehicle.mot_days_left
+                },
+                'vehicle_details': {
+                    'transmission': existing_vehicle.transmission,
+                    'engine_size': existing_vehicle.engine_size,
+                    'body_style': existing_vehicle.body_style
+                },
+                'performance': {
+                    'power': existing_vehicle.power_bhp,
+                    'max_speed': existing_vehicle.max_speed_mph,
+                    'torque': existing_vehicle.torque_ftlb
+                },
+                'fuel_economy': {
+                    'urban': existing_vehicle.urban_mpg,
+                    'extra_urban': existing_vehicle.extra_urban_mpg,
+                    'combined': existing_vehicle.combined_mpg
+                },
+                'safety': {
+                    'child': existing_vehicle.child_safety_rating,
+                    'adult': existing_vehicle.adult_safety_rating,
+                    'pedestrian': existing_vehicle.pedestrian_safety_rating
+                },
+                'additional': {
+                    'co2_emissions': existing_vehicle.co2_emissions,
+                    'tax_12_months': existing_vehicle.tax_12_months,
+                    'tax_6_months': existing_vehicle.tax_6_months,
+                    'total_keepers': existing_vehicle.total_keepers
+                },
+                'mileage': {
+                    'last_mot_mileage': existing_vehicle.last_mot_mileage,
+                    'average': existing_vehicle.average_mileage,
+                    'status': existing_vehicle.mileage_status
+                }
+            }
+            
             return jsonify({
                 'success': True,
+                'data': cached_data,
                 'registration': registration,
-                'make': existing_vehicle.make,
-                'model': existing_vehicle.model,
-                'description': existing_vehicle.description,
-                'year': existing_vehicle.year,
-                'color': existing_vehicle.color,
-                'fuel_type': existing_vehicle.fuel_type,
-                'transmission': existing_vehicle.transmission,
-                'engine_size': existing_vehicle.engine_size,
-                'mot_expiry': existing_vehicle.mot_expiry.isoformat() if existing_vehicle.mot_expiry else None,
-                'total_keepers': existing_vehicle.total_keepers,
-                'source': 'cached_data'
+                'source': 'cached_data',
+                'cached_at': existing_vehicle.updated_at.isoformat()
             })
         
         # If no cached data, scrape fresh
@@ -596,23 +636,65 @@ def get_vehicle_data_api():
             db.session.add(vehicle_record)
             db.session.commit()
             
-            # Return simple API response
+            # Return complete API response with all vehicle data
             additional_info = vehicle_data.get('additional', {})
             tax_mot = vehicle_data.get('tax_mot', {})
+            
+            # Create comprehensive response matching VNC endpoint format
+            complete_data = {
+                'basic_info': {
+                    'make': basic_info.get('make'),
+                    'model': basic_info.get('model'),
+                    'description': basic_info.get('description'),
+                    'color': basic_info.get('color'),
+                    'fuel_type': basic_info.get('fuel_type'),
+                    'year': str(basic_info.get('year')) if basic_info.get('year') else None
+                },
+                'tax_mot': {
+                    'tax_expiry': tax_mot.get('tax_expiry'),
+                    'tax_days_left': tax_mot.get('tax_days_left'),
+                    'mot_expiry': tax_mot.get('mot_expiry'),
+                    'mot_days_left': tax_mot.get('mot_days_left')
+                },
+                'vehicle_details': {
+                    'transmission': vehicle_details.get('transmission'),
+                    'engine_size': vehicle_details.get('engine_size'),
+                    'body_style': vehicle_details.get('body_style')
+                },
+                'performance': {
+                    'power': vehicle_details.get('power_bhp'),
+                    'max_speed': vehicle_details.get('max_speed_mph'),
+                    'torque': vehicle_details.get('torque_ftlb')
+                },
+                'fuel_economy': {
+                    'urban': vehicle_details.get('urban_mpg'),
+                    'extra_urban': vehicle_details.get('extra_urban_mpg'),
+                    'combined': vehicle_details.get('combined_mpg')
+                },
+                'safety': {
+                    'child': vehicle_details.get('child_safety_rating'),
+                    'adult': vehicle_details.get('adult_safety_rating'),
+                    'pedestrian': vehicle_details.get('pedestrian_safety_rating')
+                },
+                'additional': {
+                    'co2_emissions': additional_info.get('co2_emissions'),
+                    'tax_12_months': additional_info.get('tax_12_months'),
+                    'tax_6_months': additional_info.get('tax_6_months'),
+                    'total_keepers': additional_info.get('total_keepers')
+                },
+                'mileage': {
+                    'last_mot_mileage': additional_info.get('last_mot_mileage'),
+                    'average': additional_info.get('average_mileage'),
+                    'status': additional_info.get('mileage_status')
+                }
+            }
+            
             return jsonify({
                 'success': True,
+                'data': complete_data,
                 'registration': registration,
-                'make': basic_info.get('make'),
-                'model': basic_info.get('model'),
-                'description': basic_info.get('description'),
-                'year': basic_info.get('year'),
-                'color': basic_info.get('color'),
-                'fuel_type': basic_info.get('fuel_type'),
-                'transmission': vehicle_details.get('transmission'),
-                'engine_size': vehicle_details.get('engine_size'),
-                'mot_expiry': tax_mot.get('mot_expiry'),
-                'total_keepers': additional_info.get('total_keepers'),
-                'source': 'fresh_scrape'
+                'source': 'fresh_scrape',
+                'scraped_at': datetime.utcnow().isoformat()
             })
         else:
             return jsonify({
