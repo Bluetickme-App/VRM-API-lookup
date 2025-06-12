@@ -155,6 +155,16 @@ def vnc_primary_lookup():
                 vehicle_record.year = basic_info.get('year')
                 vehicle_record.total_keepers = additional.get('total_keepers')
                 
+                # Parse registration date
+                if basic_info.get('registration_date'):
+                    try:
+                        # Parse format: dd/mm/yyyy
+                        reg_date_str = basic_info['registration_date']
+                        reg_date = datetime.strptime(reg_date_str, '%d/%m/%Y').date()
+                        vehicle_record.registration_date = reg_date
+                    except (ValueError, TypeError):
+                        pass
+                
                 # Parse dates
                 if tax_mot.get('tax_expiry'):
                     try:
@@ -193,6 +203,7 @@ def vnc_primary_lookup():
                     'engine_size': vehicle_details.get('engine_size'),
                     'body_style': vehicle_details.get('body_style'),
                     'year': basic_info.get('year'),
+                    'registration_date': basic_info.get('registration_date'),
                     'tax_expiry': tax_mot.get('tax_expiry'),
                     'mot_expiry': tax_mot.get('mot_expiry'),
                     'total_keepers': additional.get('total_keepers')
