@@ -394,7 +394,7 @@ class OptimizedVehicleScraper:
                     year_match = re.search(r'\d{4}', year_text)
                     if year_match:
                         vehicle_data['basic_info']['year'] = year_match.group(0)
-                        logger.info(f"Found manufacture year: {vehicle_data['basic_info']['year']}")
+                        logger.info(f"Found manufacture year: {year_match.group(0)}")
                 
                 # Enhanced make/model extraction
                 elif any(brand in line.upper() for brand in ['ALFA ROMEO', 'AUDI', 'BMW', 'FORD', 'SMART', 'MERCEDES', 'VOLKSWAGEN', 'TOYOTA', 'HONDA', 'NISSAN', 'PEUGEOT', 'CITROEN', 'RENAULT', 'VAUXHALL', 'VOLVO', 'SKODA', 'SEAT', 'MINI', 'JAGUAR', 'LAND ROVER', 'BENTLEY', 'ROLLS-ROYCE', 'ASTON MARTIN', 'MCLAREN', 'LOTUS', 'MORGAN', 'TVR', 'CATERHAM', 'ARIEL', 'BAC', 'NOBLE', 'GINETTA', 'WESTFIELD', 'KIA', 'HYUNDAI', 'FIAT', 'FERRARI', 'LAMBORGHINI', 'MASERATI', 'PORSCHE', 'SUBARU', 'MITSUBISHI', 'SUZUKI', 'MAZDA', 'LEXUS', 'INFINITI', 'ACURA', 'CADILLAC', 'CHEVROLET', 'BUICK', 'GMC', 'LINCOLN', 'CHRYSLER', 'DODGE', 'JEEP', 'RAM']):
@@ -414,12 +414,18 @@ class OptimizedVehicleScraper:
                 elif line == 'Model Variant' and i + 1 < len(lines):
                     vehicle_data['basic_info']['model'] = lines[i + 1]
                 
-                # Extract year from registration date
-                elif 'Registration Date' in line and i + 1 < len(lines):
+                # Extract year from registration date (NOT from Last V5C Issue Date)
+                elif line.strip() == 'Registration Date' and i + 1 < len(lines):
                     date_line = lines[i + 1]
                     year_match = re.search(r'\b(19|20)\d{2}\b', date_line)
                     if year_match:
                         vehicle_data['basic_info']['year'] = year_match.group(0)
+                        logger.info(f"Found registration year from date: {year_match.group(0)}")
+                
+                # Skip Last V5C Issue Date to avoid confusion
+                elif line.strip() == 'Last V5C Issue Date':
+                    # This is NOT the registration date - skip it
+                    continue
                 
                 # Extract total keepers
                 elif 'Total Keepers' in line and i + 1 < len(lines):
