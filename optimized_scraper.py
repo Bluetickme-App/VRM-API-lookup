@@ -441,6 +441,25 @@ class OptimizedVehicleScraper:
     def _extract_xpath_data(self, vehicle_data):
         """Extract data using specific XPaths"""
         try:
+            # Registration Date using exact XPath provided by user
+            try:
+                reg_date_xpath = "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[1]/div[2]/table/tbody/tr[13]/td[2]"
+                reg_date_element = self.driver.find_element(By.XPATH, reg_date_xpath)
+                reg_date_text = reg_date_element.text.strip()
+                logger.info(f"Found registration date via XPath: {reg_date_text}")
+                
+                # Extract year from registration date (format: dd/mm/yyyy)
+                if reg_date_text and '/' in reg_date_text:
+                    date_parts = reg_date_text.split('/')
+                    if len(date_parts) == 3 and len(date_parts[2]) == 4:
+                        year = int(date_parts[2])
+                        vehicle_data['basic_info']['year'] = str(year)
+                        logger.info(f"Extracted year from registration date XPath: {year}")
+                        # Override any previously found year to ensure we use registration date
+                        vehicle_data['basic_info']['registration_year_source'] = 'registration_date_xpath'
+            except Exception as e:
+                logger.debug(f"Could not extract registration date via XPath: {e}")
+            
             # Total keepers
             try:
                 keepers_xpath = "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]"
