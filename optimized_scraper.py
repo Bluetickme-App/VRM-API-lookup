@@ -448,13 +448,15 @@ class OptimizedVehicleScraper:
                 reg_date_text = reg_date_element.text.strip()
                 logger.info(f"Found registration date via XPath: {reg_date_text}")
                 
-                # Extract year from registration date (format: dd/mm/yyyy)
+                # Store the full registration date and extract year (format: dd/mm/yyyy)
                 if reg_date_text and '/' in reg_date_text:
                     date_parts = reg_date_text.split('/')
                     if len(date_parts) == 3 and len(date_parts[2]) == 4:
                         year = int(date_parts[2])
                         vehicle_data['basic_info']['year'] = str(year)
+                        vehicle_data['basic_info']['registration_date'] = reg_date_text
                         logger.info(f"Extracted year from registration date XPath: {year}")
+                        logger.info(f"Stored registration date: {reg_date_text}")
                         # Override any previously found year to ensure we use registration date
                         vehicle_data['basic_info']['registration_year_source'] = 'registration_date_xpath'
             except Exception as e:

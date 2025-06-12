@@ -27,7 +27,8 @@ def format_complete_vehicle_response(vehicle_data, source='api', scraped_at=None
             'description': basic_info.get('description'),
             'color': basic_info.get('color'),
             'fuel_type': basic_info.get('fuel_type'),
-            'year': str(basic_info.get('year')) if basic_info.get('year') else None
+            'year': str(basic_info.get('year')) if basic_info.get('year') else None,
+            'registration_date': basic_info.get('registration_date')
         },
         'tax_mot': {
             'tax_expiry': tax_mot.get('tax_expiry'),
@@ -81,7 +82,8 @@ def format_database_vehicle_response(vehicle_record):
             'description': vehicle_record.description,
             'color': vehicle_record.color,
             'fuel_type': vehicle_record.fuel_type,
-            'year': str(vehicle_record.year) if vehicle_record.year else None
+            'year': str(vehicle_record.year) if vehicle_record.year else None,
+            'registration_date': vehicle_record.registration_date.strftime('%d/%m/%Y') if vehicle_record.registration_date else None
         },
         'tax_mot': {
             'tax_expiry': vehicle_record.tax_expiry.strftime('%d %b %Y') if vehicle_record.tax_expiry else None,

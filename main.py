@@ -377,6 +377,16 @@ def _update_vehicle_record(vehicle_record, vehicle_data):
         except (ValueError, TypeError):
             pass
     
+    # Parse and store registration date
+    if basic_info.get('registration_date'):
+        try:
+            # Parse format: dd/mm/yyyy
+            reg_date_str = basic_info['registration_date']
+            reg_date = datetime.strptime(reg_date_str, '%d/%m/%Y').date()
+            vehicle_record.registration_date = reg_date
+        except (ValueError, TypeError):
+            pass
+    
     # Map vehicle details
     vehicle_record.transmission = vehicle_details.get('transmission')
     vehicle_record.engine_size = vehicle_details.get('engine_size')
