@@ -77,6 +77,7 @@ def vnc_primary_lookup():
                         'engine_size': existing_vehicle.engine_size,
                         'body_style': existing_vehicle.body_style,
                         'year': existing_vehicle.year,
+                        'registration_date': existing_vehicle.registration_date.strftime('%d/%m/%Y') if existing_vehicle.registration_date else None,
                         'tax_expiry': existing_vehicle.tax_expiry.isoformat() if existing_vehicle.tax_expiry else None,
                         'mot_expiry': existing_vehicle.mot_expiry.isoformat() if existing_vehicle.mot_expiry else None,
                         'total_keepers': existing_vehicle.total_keepers
