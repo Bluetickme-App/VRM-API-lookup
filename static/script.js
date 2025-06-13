@@ -136,12 +136,11 @@ async function handleVncSearch() {
         hideError();
         hideResults();
         
-        const response = await fetch('/api/scrape-vnc', {
-            method: 'POST',
+        const response = await fetch(`/api/vnc-vehicle?registration=${registration}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ registration: registration })
+            }
         });
         
         const result = await response.json();

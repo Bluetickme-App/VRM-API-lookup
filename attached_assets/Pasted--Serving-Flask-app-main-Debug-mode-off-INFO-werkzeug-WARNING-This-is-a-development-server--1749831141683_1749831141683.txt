@@ -1,0 +1,87 @@
+ * Serving Flask app 'main'
+ * Debug mode: off
+INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.31.128.13:5000
+INFO:werkzeug:Press CTRL+C to quit
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 15:44:22] "GET / HTTP/1.1" 302 -
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 15:44:22] "GET /login HTTP/1.1" 200 -
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 16:09:35] "POST /login HTTP/1.1" 302 -
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 16:09:36] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 16:09:36] "GET /static/style.css HTTP/1.1" 200 -
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 16:09:36] "GET /static/script.js HTTP/1.1" 200 -
+INFO:optimized_scraper:Starting scrape for K5WBR with 3 max retries
+INFO:optimized_scraper:Attempt 1/3
+INFO:WDM:====== WebDriver manager ======
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:There is no [linux64] geckodriver "v0.36.0" for browser firefox "127.0" in cache
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Getting latest mozilla release info for v0.36.0
+INFO:WDM:About to download new driver from https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz
+INFO:WDM:Driver downloading response is 200
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Driver has been saved in cache [/home/runner/.wdm/drivers/geckodriver/linux64/v0.36.0]
+INFO:optimized_scraper:WebDriver initialized successfully
+INFO:optimized_scraper:Navigated to website
+INFO:optimized_scraper:Found input using selector: #reg_num
+INFO:optimized_scraper:Entered registration: K5WBR
+INFO:optimized_scraper:Clicked submit using: input[type='submit']
+INFO:optimized_scraper:Page extraction ready - all key indicators found
+INFO:optimized_scraper:Extraction ready - content fully loaded
+INFO:optimized_scraper:Page contains 162 text lines
+INFO:optimized_scraper:First 20 lines: ['MERCEDES-BENZ CLA', 'Not The Right Vehicle? Check Again', 'TAX', 'Expired: 01 Jan 2024', '(1 year and 5 months ago)', 'MOT', 'Expired: 07 Jun 2024', '370 days ago', 'Book MOT or Service', 'Vehicle Details', 'Model Variant Cla', 'Description CLA 220 Sport CDi Auto', 'Primary Colour White', 'Fuel Type DIESEL', 'Transmission Auto 7 Gears', 'Engine 2143 cc', 'Body Style Coupe', 'Year Manufacture 2015', 'Euro Status 6b', 'Vehicle Age 10 years 2 months']
+INFO:optimized_scraper:Found field indicators: ["Line 2: 'TAX' -> Next: 'Expired: 01 Jan 2024'", "Line 5: 'MOT' -> Next: 'Expired: 07 Jun 2024'", "Line 8: 'Book MOT or Service' -> Next: 'Vehicle Details'", "Line 11: 'Description CLA 220 Sport CDi Auto' -> Next: 'Primary Colour White'", "Line 12: 'Primary Colour White' -> Next: 'Fuel Type DIESEL'", "Line 13: 'Fuel Type DIESEL' -> Next: 'Transmission Auto 7 Gears'", "Line 14: 'Transmission Auto 7 Gears' -> Next: 'Engine 2143 cc'", "Line 27: 'MOT History Summary' -> Next: 'Total Tests'", "Line 34: 'View Full MOT History' -> Next: 'Performance'", "Line 62: 'Compare instant Repair, Service, MOT Deals from local garages.' -> Next: 'Repair, MOT or Service price comparison for K5WBR'"]
+INFO:optimized_scraper:Found make: MERCEDES, model: -BENZ CLA
+INFO:optimized_scraper:Found TAX expiry: 01 Jan 2024
+INFO:optimized_scraper:Found MOT expiry: 07 Jun 2024
+INFO:optimized_scraper:Found description: CLA 220 Sport CDi Auto
+INFO:optimized_scraper:Found color: White
+INFO:optimized_scraper:Found fuel type: DIESEL
+INFO:optimized_scraper:Found transmission: Auto 7 Gears
+INFO:optimized_scraper:Found engine size: 2143 cc
+INFO:optimized_scraper:Found body style: Coupe
+INFO:optimized_scraper:Found manufacture year: 2015
+INFO:optimized_scraper:Found total keepers: 2
+INFO:optimized_scraper:Found registration date via XPath: 23/04/2015
+INFO:optimized_scraper:Extracted year from registration date XPath: 2015
+INFO:optimized_scraper:Stored registration date: 23/04/2015
+INFO:optimized_scraper:Extracted data: {'basic_info': {'make': 'MERCEDES', 'model': 'Cla', 'description': 'CLA 220 Sport CDi Auto', 'color': 'White', 'fuel_type': 'DIESEL', 'year': '2015', 'registration_date': '23/04/2015', 'registration_year_source': 'registration_date_xpath'}, 'tax_mot': {'tax_expiry': '01 Jan 2024', 'mot_expiry': '07 Jun 2024'}, 'vehicle_details': {'transmission': 'Auto 7 Gears', 'engine_size': '2143 cc', 'body_style': 'Coupe'}, 'additional': {'total_keepers': 2}}
+INFO:optimized_scraper:VNC extraction completion signal added to page
+INFO:optimized_scraper:Successfully extracted data on attempt 1
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 16:10:15] "POST /api/scrape-vnc HTTP/1.1" 404 -
+INFO:optimized_scraper:Starting scrape for K5WBR with 3 max retries
+INFO:optimized_scraper:Attempt 1/3
+INFO:WDM:====== WebDriver manager ======
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Driver [/home/runner/.wdm/drivers/geckodriver/linux64/v0.36.0/geckodriver] found in cache
+INFO:optimized_scraper:WebDriver initialized successfully
+INFO:optimized_scraper:Navigated to website
+INFO:optimized_scraper:Found input using selector: #reg_num
+INFO:optimized_scraper:Entered registration: K5WBR
+INFO:optimized_scraper:Clicked submit using: input[type='submit']
+INFO:optimized_scraper:Page extraction ready - all key indicators found
+INFO:optimized_scraper:Extraction ready - content fully loaded
+INFO:optimized_scraper:Page contains 162 text lines
+INFO:optimized_scraper:First 20 lines: ['MERCEDES-BENZ CLA', 'Not The Right Vehicle? Check Again', 'TAX', 'Expired: 01 Jan 2024', '(1 year and 5 months ago)', 'MOT', 'Expired: 07 Jun 2024', '370 days ago', 'Book MOT or Service', 'Vehicle Details', 'Model Variant Cla', 'Description CLA 220 Sport CDi Auto', 'Primary Colour White', 'Fuel Type DIESEL', 'Transmission Auto 7 Gears', 'Engine 2143 cc', 'Body Style Coupe', 'Year Manufacture 2015', 'Euro Status 6b', 'Vehicle Age 10 years 2 months']
+INFO:optimized_scraper:Found field indicators: ["Line 2: 'TAX' -> Next: 'Expired: 01 Jan 2024'", "Line 5: 'MOT' -> Next: 'Expired: 07 Jun 2024'", "Line 8: 'Book MOT or Service' -> Next: 'Vehicle Details'", "Line 11: 'Description CLA 220 Sport CDi Auto' -> Next: 'Primary Colour White'", "Line 12: 'Primary Colour White' -> Next: 'Fuel Type DIESEL'", "Line 13: 'Fuel Type DIESEL' -> Next: 'Transmission Auto 7 Gears'", "Line 14: 'Transmission Auto 7 Gears' -> Next: 'Engine 2143 cc'", "Line 27: 'MOT History Summary' -> Next: 'Total Tests'", "Line 34: 'View Full MOT History' -> Next: 'Performance'", "Line 62: 'Compare instant Repair, Service, MOT Deals from local garages.' -> Next: 'Repair, MOT or Service price comparison for K5WBR'"]
+INFO:optimized_scraper:Found make: MERCEDES, model: -BENZ CLA
+INFO:optimized_scraper:Found TAX expiry: 01 Jan 2024
+INFO:optimized_scraper:Found MOT expiry: 07 Jun 2024
+INFO:optimized_scraper:Found description: CLA 220 Sport CDi Auto
+INFO:optimized_scraper:Found color: White
+INFO:optimized_scraper:Found fuel type: DIESEL
+INFO:optimized_scraper:Found transmission: Auto 7 Gears
+INFO:optimized_scraper:Found engine size: 2143 cc
+INFO:optimized_scraper:Found body style: Coupe
+INFO:optimized_scraper:Found manufacture year: 2015
+INFO:optimized_scraper:Found total keepers: 2
+INFO:optimized_scraper:Found registration date via XPath: 23/04/2015
+INFO:optimized_scraper:Extracted year from registration date XPath: 2015
+INFO:optimized_scraper:Stored registration date: 23/04/2015
+INFO:optimized_scraper:Extracted data: {'basic_info': {'make': 'MERCEDES', 'model': 'Cla', 'description': 'CLA 220 Sport CDi Auto', 'color': 'White', 'fuel_type': 'DIESEL', 'year': '2015', 'registration_date': '23/04/2015', 'registration_year_source': 'registration_date_xpath'}, 'tax_mot': {'tax_expiry': '01 Jan 2024', 'mot_expiry': '07 Jun 2024'}, 'vehicle_details': {'transmission': 'Auto 7 Gears', 'engine_size': '2143 cc', 'body_style': 'Coupe'}, 'additional': {'total_keepers': 2}}
+INFO:optimized_scraper:VNC extraction completion signal added to page
+INFO:optimized_scraper:Successfully extracted data on attempt 1
+INFO:werkzeug:172.31.128.13 - - [13/Jun/2025 16:10:56] "POST /api/scrape HTTP/1.1" 200 -
