@@ -19,4 +19,6 @@ dependencies = [
     "oauthlib>=3.2.2",
     "pyjwt>=2.10.1",
     "psutil>=7.0.0",
+    "email-validator>=2.2.0",
+    "gunicorn>=23.0.0",
 ]

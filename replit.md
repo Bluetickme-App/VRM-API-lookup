@@ -1,0 +1,114 @@
+# Vehicle Data Scraper - VRN API
+
+## Overview
+This is a comprehensive UK vehicle data extraction API that provides real-time vehicle information from DVLA sources. The application combines multiple scraping strategies with intelligent caching and VNC browser automation for maximum reliability.
+
+## User Preferences
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+The system uses a **multi-layered scraping approach** with automatic fallback mechanisms:
+1. **Fast API Scraping** - Primary lightweight scraping for quick responses
+2. **Enhanced Scraping** - BeautifulSoup-based extraction for better reliability  
+3. **VNC Browser Automation** - Selenium WebDriver fallback for maximum success rates
+4. **Intelligent Caching** - PostgreSQL database with 24-hour cache expiration
+
+The architecture is designed to handle high-volume API requests while maintaining data accuracy and avoiding rate limiting.
+
+## Key Components
+
+### Backend Framework
+- **Flask** - Main web application framework
+- **SQLAlchemy/Drizzle** - Database ORM for PostgreSQL
+- **Flask-CORS** - Cross-origin resource sharing for API access
+- **Blueprint routing** - Modular API endpoint organization
+
+### Web Scraping Stack
+- **Selenium WebDriver** - Browser automation with Firefox
+- **BeautifulSoup** - HTML parsing and data extraction
+- **Requests** - HTTP client for direct web requests
+- **WebDriver Manager** - Automatic browser driver management
+
+### Database Schema
+- **VehicleData** - Main table storing comprehensive vehicle information
+- **SearchHistory** - Request logging and analytics
+- **JSON field support** - Flexible data storage for complex structures
+
+### API Endpoints
+- `/api/vehicle-data` - Primary vehicle lookup with caching
+- `/api/quick-vehicle` - Fast response endpoint
+- `/api/vnc-vehicle` - VNC browser automation endpoint
+- `/api/fast-vnc` - Optimized VNC for external integrations
+
+## Data Flow
+
+1. **Request Processing**
+   - API request received with vehicle registration
+   - Registration format validation
+   - Search history logging
+
+2. **Cache Check**
+   - Database lookup for existing data (< 24 hours)
+   - Return cached data if available
+   - Proceed to scraping if cache miss
+
+3. **Scraping Strategy**
+   - **Level 1**: Fast API scraper (requests + BeautifulSoup)
+   - **Level 2**: Enhanced scraper with retry logic
+   - **Level 3**: VNC browser automation (Selenium)
+
+4. **Data Processing**
+   - Extract comprehensive vehicle information
+   - Format response using unified API formatter
+   - Store results in database for future caching
+
+5. **Response Delivery**
+   - Return formatted JSON response
+   - Include metadata (source, timestamp, cache status)
+
+## External Dependencies
+
+### Core Libraries
+- **Flask** - Web framework
+- **SQLAlchemy** - Database ORM
+- **Selenium** - Browser automation
+- **BeautifulSoup4** - HTML parsing
+- **Requests** - HTTP client
+- **psutil** - Process management
+
+### Browser Infrastructure
+- **Firefox** - Primary browser for automation
+- **GeckoDriver** - Firefox WebDriver
+- **WebDriver Manager** - Automatic driver updates
+- **VNC Display** - Remote desktop for browser automation
+
+### Data Source
+- **checkcardetails.co.uk** - Primary vehicle data source
+- **DVLA integration** - Government vehicle database access
+
+## Deployment Strategy
+
+### Development Environment
+- **Local Flask server** - `python main.py`
+- **Development database** - Local PostgreSQL instance
+- **Debug mode** - Detailed logging and error handling
+
+### Production Environment
+- **Replit deployment** - Cloud hosting platform
+- **Production WSGI** - `run.py` entry point
+- **Environment variables** - Database URLs and secrets
+- **Process management** - Keep-alive scripts for reliability
+
+### Key Configuration
+- **Timeout handling** - 25-second response limits for external APIs
+- **Rate limiting** - Request delays to avoid blocking
+- **Error handling** - Graceful fallbacks and retry logic
+- **Security** - No-index meta tags, robots.txt blocking
+
+### Monitoring & Maintenance
+- **Search history logging** - Track API usage patterns
+- **Performance metrics** - Response times and success rates
+- **Database cleanup** - Automatic cache expiration
+- **Process monitoring** - Automatic restart on failures
+
+The system is designed to be resilient and scalable, with multiple fallback mechanisms ensuring high availability and data accuracy for vehicle information requests.

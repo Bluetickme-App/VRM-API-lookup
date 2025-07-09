@@ -2,11 +2,9 @@
 Database models for vehicle data storage
 """
 
-from flask_sqlalchemy import SQLAlchemy
+from app import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSON
-
-db = SQLAlchemy()
 
 class VehicleData(db.Model):
     """Main vehicle data table"""
