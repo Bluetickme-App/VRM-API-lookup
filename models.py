@@ -70,11 +70,21 @@ class VehicleData(db.Model):
     
     # Raw data storage for future reference
     raw_data = db.Column(JSON)
+    mot_history = db.Column(JSON)
+    mileage_history = db.Column(JSON)
+    
+    # Analysis data
+    last_analyzed = db.Column(db.DateTime)
     
     # Metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     data_source = db.Column(db.String(100), default='checkcardetails.co.uk')
+    
+    # Status fields
+    tax_status = db.Column(db.String(50))
+    mot_status = db.Column(db.String(50))
+    date_first_registered = db.Column(db.String(50))
     
     def __repr__(self):
         return f'<VehicleData {self.registration}>'

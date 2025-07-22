@@ -1,0 +1,81 @@
+{
+  "vehicle_summary": {
+    "registration": "K5WBR",
+    "age_years": 1,
+    "total_mot_tests": 7,
+    "last_mot_result": "PASSED_WITH_ADVISORY"
+  },
+  "mileage_analysis": {
+    "current_mileage": 116639,
+    "annual_average": 14569,
+    "mileage_anomalies": [],
+    "mileage_risk": "Low"
+  },
+  "mot_pattern_analysis": {
+    "repeated_advisories": [
+      "Tyre tread depth low",
+      "Brake disc worn"
+    ],
+    "failure_patterns": [
+      "Tyre issues"
+    ],
+    "wear_indicators": [
+      "Tyre tread depth low",
+      "Brake disc worn",
+      "Suspension component worn",
+      "Oil leak"
+    ],
+    "compliance_status": "Current"
+  },
+  "risk_assessment": {
+    "overall_risk": "Moderate",
+    "mechanical_grade": "C",
+    "risk_factors": [
+      "Repeated tyre and brake issues",
+      "Oil leak advisory"
+    ],
+    "positive_indicators": [
+      "Current MOT and tax compliance"
+    ]
+  },
+  "mot_predictions": {
+    "next_test_date": "2024-06-07",
+    "failure_probability": 60,
+    "likely_failure_areas": [
+      "Tyres",
+      "Brakes",
+      "Suspension"
+    ],
+    "recommended_pre_mot_work": [
+      "Inspect and replace tyres if necessary",
+      "Check and service brakes",
+      "Inspect suspension components",
+      "Address any oil leaks"
+    ]
+  },
+  "cost_estimates": {
+    "immediate_repairs": 300,
+    "pre_mot_work": 500,
+    "annual_maintenance": 800,
+    "total_first_year": 1600
+  },
+  "trade_recommendation": {
+    "purchase_advice": "Caution",
+    "cap_pricing_tier": "CAP Average",
+    "trade_value_factors": [
+      "Moderate mechanical risk",
+      "Recent MOT pass with advisories"
+    ],
+    "profit_potential": "Medium"
+  },
+  "ownership_analysis": {
+    "v5_changes_detected": false,
+    "trading_indicators": [],
+    "auction_risk_factors": []
+  },
+  "analysis_metadata": {
+    "analyzed_at": "2025-07-22T15:25:33.325738",
+    "model_used": "gpt-4o",
+    "analysis_version": "1.0"
+  }
+}
