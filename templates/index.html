@@ -514,24 +514,30 @@
                 return;
             }
             
-            // Display summary statistics
-            const summary = motHistory.summary || {};
+            // Calculate summary statistics from tests data
+            const tests = motHistory.tests || [];
+            const totalTests = tests.length;
+            const passedTests = tests.filter(test => test.result && test.result.toLowerCase().includes('pass')).length;
+            const failedTests = tests.filter(test => test.result && test.result.toLowerCase().includes('fail')).length;
+            const advisoryTests = tests.filter(test => test.comments && test.comments.some(comment => 
+                comment.toLowerCase().includes('advisory'))).length;
+            
             const summaryHtml = `
                 <div class="summary-stats">
                     <div class="stat-card">
-                        <div class="stat-number">${summary.total_tests || motHistory.total_tests || 0}</div>
+                        <div class="stat-number">${totalTests}</div>
                         <div class="stat-label">Total Tests</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${summary.total_passed || 0}</div>
+                        <div class="stat-number">${passedTests}</div>
                         <div class="stat-label">Passed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${summary.total_failed || 0}</div>
+                        <div class="stat-number">${failedTests}</div>
                         <div class="stat-label">Failed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${summary.total_advisory || 0}</div>
+                        <div class="stat-number">${advisoryTests}</div>
                         <div class="stat-label">Advisories</div>
                     </div>
                 </div>
