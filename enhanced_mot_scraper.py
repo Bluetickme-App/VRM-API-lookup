@@ -30,7 +30,7 @@ class EnhancedMOTScraper:
             
             service = Service(GeckoDriverManager().install())
             self.driver = webdriver.Firefox(service=service, options=options)
-            self.driver.set_page_load_timeout(30)
+            self.driver.set_page_load_timeout(20)  # Reduced for efficiency
             logger.info("Enhanced MOT Scraper WebDriver initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize WebDriver: {e}")
@@ -52,7 +52,7 @@ class EnhancedMOTScraper:
             # Submit search
             submit_button = self.driver.find_element(By.CSS_SELECTOR, 'input[type="submit"]')
             submit_button.click()
-            time.sleep(5)
+            time.sleep(3)  # Reduced for efficiency
             
             logger.info(f"Successfully navigated to vehicle page: {self.driver.current_url}")
             
@@ -150,7 +150,7 @@ class EnhancedMOTScraper:
                         # Fallback: JavaScript click
                         self.driver.execute_script("arguments[0].click();", element)
                     
-                    time.sleep(5)
+                    time.sleep(3)  # Reduced for efficiency
                     
                     # Update metadata for history page
                     mot_data['page_title'] = self.driver.title
@@ -264,11 +264,11 @@ class EnhancedMOTScraper:
             return all_tests if all_tests else []
     
     def _try_expand_and_extract(self) -> List[Dict[str, Any]]:
-        """Try to expand all content and extract additional tests"""
+        """Try to expand all content and extract additional tests using full page text"""
         additional_tests = []
         
         try:
-            # Look for show all buttons with more specific selectors
+            # Method 1: Try expand buttons first
             expand_selectors = [
                 "//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'show all')]",
                 "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'show all')]",
@@ -299,12 +299,169 @@ class EnhancedMOTScraper:
                     logger.debug(f"Error with expand selector {selector}: {e}")
                     continue
             
+            # Method 2: Use full page text extraction (equivalent to Ctrl+A)
+            if len(additional_tests) < 5:  # If expand didn't work well
+                logger.info("Trying full page text extraction for complete MOT history")
+                full_page_tests = self._extract_from_full_page_text()
+                additional_tests.extend(full_page_tests)
+            
             logger.info(f"Expand and extract found {len(additional_tests)} additional tests")
             
         except Exception as e:
             logger.debug(f"Error in expand and extract: {e}")
         
         return additional_tests
+    
+    def _extract_from_full_page_text(self) -> List[Dict[str, Any]]:
+        """Extract MOT tests from full page text (Ctrl+A equivalent)"""
+        full_page_tests = []
+        
+        try:
+            # Get all visible text from the page
+            body = self.driver.find_element(By.TAG_NAME, "body")
+            page_text = body.text
+            
+            # Also get page source for backup
+            page_source = self.driver.page_source
+            
+            logger.info(f"Full page text: {len(page_text)} chars, source: {len(page_source)} chars")
+            
+            # Extract tests from visible text
+            text_tests = self._extract_tests_from_content(page_text)
+            
+            # Extract tests from page source if needed
+            if len(text_tests) < 10:
+                source_tests = self._extract_tests_from_content(page_source)
+                text_tests = self._merge_test_lists(text_tests, source_tests)
+            
+            full_page_tests = text_tests
+            logger.info(f"Full page extraction found {len(full_page_tests)} tests")
+            
+        except Exception as e:
+            logger.debug(f"Error in full page text extraction: {e}")
+        
+        return full_page_tests
+    
+    def _extract_tests_from_content(self, content: str) -> List[Dict[str, Any]]:
+        """Extract MOT tests from any text content"""
+        tests = []
+        
+        try:
+            # Clean content
+            content = content.replace('\n', ' ').replace('\t', ' ')
+            
+            # Comprehensive date patterns for MOT tests
+            date_patterns = [
+                r'(\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4})',
+                r'(\d{4}-\d{2}-\d{2})',
+                r'(\d{2}/\d{2}/\d{4})',
+                r'(\d{2}-\d{2}-\d{4})',
+                r'(\d{2}\.\d{2}\.\d{4})'
+            ]
+            
+            # Find all potential test dates
+            all_dates = set()
+            for pattern in date_patterns:
+                matches = re.findall(pattern, content, re.IGNORECASE)
+                for match in matches:
+                    # Filter for MOT test years (2007-2024)
+                    if any(year in match for year in ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']):
+                        all_dates.add(match)
+            
+            # For each date, extract test details
+            for date in sorted(all_dates, reverse=True):
+                test_details = self._extract_test_details_from_context(content, date)
+                if test_details:
+                    tests.append(test_details)
+            
+            # Sort by date and limit to 16
+            tests = sorted(tests, key=lambda x: x.get('test_date', ''), reverse=True)[:16]
+            
+        except Exception as e:
+            logger.debug(f"Error extracting tests from content: {e}")
+        
+        return tests
+    
+    def _extract_test_details_from_context(self, content: str, date: str) -> Dict[str, Any]:
+        """Extract test details around a specific date in content"""
+        try:
+            # Find date position and extract surrounding context
+            date_index = content.lower().find(date.lower())
+            if date_index == -1:
+                return None
+            
+            # Extract 800 characters around the date for context
+            start = max(0, date_index - 400)
+            end = min(len(content), date_index + 400)
+            context = content[start:end]
+            
+            # Extract result
+            result = 'UNKNOWN'
+            context_lower = context.lower()
+            if 'passed' in context_lower or 'pass' in context_lower:
+                result = 'PASSED'
+            elif 'failed' in context_lower or 'fail' in context_lower:
+                result = 'FAILED'
+            
+            # Extract mileage
+            mileage = None
+            mileage_patterns = [
+                r'(\d{1,3}(?:,\d{3})*)\s*(?:miles|mi)',
+                r'mileage[:\s]*(\d{1,3}(?:,\d{3})*)',
+                r'odometer[:\s]*(\d{1,3}(?:,\d{3})*)',
+                r'(\d{4,7})'  # Just numbers that look like mileage
+            ]
+            
+            for pattern in mileage_patterns:
+                match = re.search(pattern, context, re.IGNORECASE)
+                if match:
+                    potential_mileage = match.group(1).replace(',', '')
+                    # Validate mileage range (reasonable for a car)
+                    if potential_mileage.isdigit() and 1000 <= int(potential_mileage) <= 300000:
+                        mileage = potential_mileage
+                        break
+            
+            # Extract comments/defects
+            comments = []
+            defect_patterns = [
+                r'(?:advisory|defect|attention|fault)[:\s]*([^.]{10,100})',
+                r'(?:worn|damaged|corroded|loose)[^.]{5,80}',
+                r'(?:brake|tyre|light|suspension)[^.]{5,80}'
+            ]
+            
+            for pattern in defect_patterns:
+                matches = re.findall(pattern, context, re.IGNORECASE)
+                for match in matches[:3]:  # Limit to 3 comments
+                    if isinstance(match, str) and len(match.strip()) > 8:
+                        comments.append({
+                            'text': match.strip(),
+                            'type': 'ADVISORY'
+                        })
+            
+            return {
+                'test_date': date,
+                'result': result,
+                'mileage': mileage,
+                'comments': comments,
+                'source': 'full_page_text_extraction'
+            }
+            
+        except Exception as e:
+            logger.debug(f"Error extracting details for date {date}: {e}")
+            return None
+    
+    def _merge_test_lists(self, list1: List[Dict[str, Any]], list2: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Merge two test lists removing duplicates"""
+        merged = list1.copy()
+        seen_dates = {test.get('test_date', '') for test in list1}
+        
+        for test in list2:
+            test_date = test.get('test_date', '')
+            if test_date and test_date not in seen_dates:
+                merged.append(test)
+                seen_dates.add(test_date)
+        
+        return merged
     
     def _scroll_and_extract(self) -> List[Dict[str, Any]]:
         """Scroll page and extract dynamically loaded tests"""
