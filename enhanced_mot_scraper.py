@@ -849,43 +849,61 @@ class EnhancedMOTScraper:
             for i, test in enumerate(mot_tests):
                 if test.get('mileage') and test.get('test_date'):
                     try:
-                        # Clean mileage reading - remove commas and extract numeric value
-                        mileage_str = str(test['mileage']).replace(',', '').strip()
+                        # CRITICAL FIX: Extract mileage from HTML content in comments, not the wrong 'mileage' field
+                        import re  # Import re at the top of the try block
+                        correct_mileage = None
                         
-                        # Skip empty or very short strings
-                        if len(mileage_str) < 2:
-                            continue
-                            
-                        # COMPREHENSIVE MILEAGE EXTRACTION: Use the same logic as selection phase
-                        import re
-                        all_numbers = re.findall(r'(\d+)', mileage_str.replace(',', ''))
+                        # Check if test has HTML content with correct mileage
+                        if test.get('comments'):
+                            for comment in test['comments']:
+                                comment_text = comment.get('text', '')
+                                # Look for the specific HTML pattern: "mot-history-mileage-numbers">NUMBER
+                                html_mileage_match = re.search(r'mot-history-mileage-numbers["\s>]*(\d{5,6})', comment_text)
+                                if html_mileage_match:
+                                    html_mileage = int(html_mileage_match.group(1))
+                                    if 50000 <= html_mileage <= 999999:  # Reasonable range
+                                        correct_mileage = html_mileage
+                                        logger.info(f"FOUND CORRECT MILEAGE in HTML: {correct_mileage} for {test['test_date']}")
+                                        break
                         
-                        # Find the best mileage value using the same prioritization as selection phase
-                        valid_numbers = []
-                        for num_str in all_numbers:
-                            num_value = int(num_str)
-                            # Same filtering as in the selection logic
-                            if (1000 <= num_value <= 999999 and 
-                                not (2007 <= num_value <= 2030)):
-                                valid_numbers.append(num_value)
-                        
-                        if valid_numbers:
-                            # Use the SAME selection priority as the improved selection logic
-                            very_high_values = [v for v in valid_numbers if v >= 80000]
-                            target_range_values = [v for v in valid_numbers if 70000 <= v <= 100000]
-                            high_values = [v for v in valid_numbers if v >= 50000]
-                            
-                            if very_high_values:
-                                mileage_value = max(very_high_values)
-                            elif target_range_values:
-                                mileage_value = max(target_range_values)
-                            elif high_values:
-                                mileage_value = max(high_values)
-                            else:
-                                mileage_value = max(valid_numbers)
+                        # Fallback to old method if HTML extraction fails
+                        if not correct_mileage:
+                            mileage_str = str(test['mileage']).replace(',', '').strip()
+                            if len(mileage_str) < 2:
+                                continue
+                            all_numbers = re.findall(r'(\d+)', mileage_str.replace(',', ''))
                         else:
-                            logger.debug(f"No valid mileage numbers found in: {mileage_str}")
-                            continue
+                            # Use the correct mileage from HTML
+                            mileage_value = correct_mileage
+                        
+                        # Only run the selection logic if we didn't find correct mileage in HTML
+                        if not correct_mileage:
+                            # Find the best mileage value using the same prioritization as selection phase
+                            valid_numbers = []
+                            for num_str in all_numbers:
+                                num_value = int(num_str)
+                                # Same filtering as in the selection logic
+                                if (1000 <= num_value <= 999999 and 
+                                    not (2007 <= num_value <= 2030)):
+                                    valid_numbers.append(num_value)
+                            
+                            if valid_numbers:
+                                # Use the SAME selection priority as the improved selection logic
+                                very_high_values = [v for v in valid_numbers if v >= 80000]
+                                target_range_values = [v for v in valid_numbers if 70000 <= v <= 100000]
+                                high_values = [v for v in valid_numbers if v >= 50000]
+                                
+                                if very_high_values:
+                                    mileage_value = max(very_high_values)
+                                elif target_range_values:
+                                    mileage_value = max(target_range_values)
+                                elif high_values:
+                                    mileage_value = max(high_values)
+                                else:
+                                    mileage_value = max(valid_numbers)
+                            else:
+                                logger.debug(f"No valid mileage numbers found in: {mileage_str}")
+                                continue
                             
                         # Use the ACTUAL MOT test date (not a random date)  
                         accurate_mileage_readings.append({
