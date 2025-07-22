@@ -193,6 +193,17 @@ def scrape_vehicle():
                                     continue
                         except:
                             pass
+                            
+                    # Add missing fields storage
+                    variant = basic_info.get('variant') or basic_data.get('variant')
+                    vehicle_record.variant = variant[:200] if variant else None
+                    
+                    # Tax costs
+                    tax_6 = basic_info.get('tax_6_months') or basic_data.get('tax_6_months') 
+                    vehicle_record.tax_6_months = tax_6[:20] if tax_6 else None
+                    
+                    tax_12 = basic_info.get('tax_12_months') or basic_data.get('tax_12_months')
+                    vehicle_record.tax_12_months = tax_12[:20] if tax_12 else None
                     
                     logger.info(f"FIXED: Comprehensive fields mapped - transmission: {bool(vehicle_record.transmission)}, engine: {bool(vehicle_record.engine_size)}, body: {bool(vehicle_record.body_style)}")
                     
@@ -228,6 +239,7 @@ def scrape_vehicle():
                             'registration': registration,
                             'make': vehicle_record.make,
                             'model': vehicle_record.model,
+                            'variant': vehicle_record.variant,
                             'description': vehicle_record.description,
                             'color': vehicle_record.color,
                             'fuel_type': vehicle_record.fuel_type,
@@ -241,8 +253,9 @@ def scrape_vehicle():
                             'registration_place': vehicle_record.registration_place,
                             'registration_date': vehicle_record.registration_date.isoformat() if vehicle_record.registration_date else None,
                             'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
-                            'last_v5_issue_date': basic_data.get('last_v5_issue_date') or basic_data.get('v5_issue_date'),
-                            'v5_issue_date': basic_data.get('v5_issue_date') or basic_data.get('last_v5_issue_date'),
+                            'tax_6_months': vehicle_record.tax_6_months,
+                            'tax_12_months': vehicle_record.tax_12_months,
+                            'mot_expiry_date': basic_info.get('mot_expiry_date'),
                             'mot_history': basic_data.get('mot_history'),
                             'mileage_history': basic_data.get('mileage_history')
                         },
