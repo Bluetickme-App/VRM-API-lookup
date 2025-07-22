@@ -301,6 +301,72 @@ class VehicleScraper:
                                 logger.debug(f"Error processing table row: {e}")
                                 continue
                 
+                # First extract MOT summary statistics from user's HTML structure
+                try:
+                    total_tests_elem = self.driver.find_element(By.CSS_SELECTOR, ".total-tests .mot-history-summary-two")
+                    if total_tests_elem:
+                        total_tests = int(total_tests_elem.text.strip())
+                        logger.info(f"Found MOT summary: {total_tests} total tests")
+                except:
+                    total_tests = 0
+                
+                # Extract from MOT wrapper elements (based on user's authentic HTML structure)
+                mot_wrapper_elements = self.driver.find_elements(By.CSS_SELECTOR, ".mot-history-wrapper")
+                if mot_wrapper_elements:
+                    logger.info(f"Found {len(mot_wrapper_elements)} mot-history-wrapper elements from authentic DVLA data")
+                    
+                    for wrapper in mot_wrapper_elements:
+                        try:
+                            # Extract test result (PASSED/FAILED) from user's HTML structure
+                            result_elem = wrapper.find_element(By.CSS_SELECTOR, ".mot-history-result p")
+                            result = result_elem.text.strip() if result_elem else "Unknown"
+                            
+                            # Extract test date using dvla-date class from user's structure
+                            date_elem = wrapper.find_element(By.CSS_SELECTOR, ".mot-test-date.dvla-date")
+                            test_date = date_elem.text.strip() if date_elem else "Unknown"
+                            
+                            # Extract mileage using mot-history-mileage-numbers class
+                            mileage_elem = wrapper.find_element(By.CSS_SELECTOR, ".mot-history-mileage-numbers")
+                            mileage_text = mileage_elem.text.strip() if mileage_elem else ""
+                            mileage = None
+                            if mileage_text and mileage_text.isdigit():
+                                mileage = int(mileage_text)
+                            
+                            # Extract expiry date from dvla-date in expiry section
+                            expiry_date = None
+                            try:
+                                expiry_elems = wrapper.find_elements(By.CSS_SELECTOR, ".mot-history-expiry-date .mot-history-mileage-numbers.dvla-date")
+                                if expiry_elems:
+                                    expiry_date = expiry_elems[0].text.strip()
+                            except:
+                                pass
+                            
+                            # Extract advisory/failure comments from MOT history
+                            comments = []
+                            try:
+                                comment_items = wrapper.find_elements(By.CSS_SELECTOR, ".mot-history-ul li")
+                                for item in comment_items:
+                                    comment_text = item.text.strip()
+                                    if comment_text:
+                                        comments.append(comment_text)
+                            except:
+                                pass
+                            
+                            if test_date != "Unknown" and result != "Unknown":
+                                mot_tests.append({
+                                    'date': test_date,
+                                    'result': result,
+                                    'mileage': mileage,
+                                    'expiry_date': expiry_date,
+                                    'comments': comments,
+                                    'source': 'DVLA_wrapper_authentic'
+                                })
+                                logger.info(f"Extracted authentic DVLA MOT: {test_date} - {result} - {mileage} miles")
+                            
+                        except Exception as e:
+                            logger.debug(f"Error extracting MOT wrapper data: {e}")
+                            continue
+
                 elif mot_timeline_elements:
                     logger.info(f"Found {len(mot_timeline_elements)} mot-history-timeline elements")
                     

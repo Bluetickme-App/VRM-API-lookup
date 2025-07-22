@@ -1,0 +1,1073 @@
+<div class="container">
+        <div class="row">
+            <div class="columns twelve">
+                <div class="inner-wrapper-sign text-center">
+                    <div class="input-wrapper">
+                        <input type="text" class="reg_num reg_num_price" id="reg_num" name="reg_num" placeholder="ENTER REG" autocomplete="off" aria-label="Enter Vehicle Registration" readonly="readonly" value="SJ57PGV">
+                        <div class="euro-sign euro-sign-price"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <h5 class="car_make_model text-center">
+                VAUXHALL CORSA
+            </h5>
+        </div>
+
+        <section class="car-details">
+            <div class="row">
+                <div class="columns twelve text-center check-again">
+                    <p>Not the right vehicle?
+                        <a href="/mot-check">Check Again</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+        <a href="javascript: history.go(-1)" id="goback">
+            <div class="goback">
+                <i class="fa-solid fa-left-long fa-2x"></i>
+                <p>Go Back</p>
+            </div>
+        </a>
+        <!-- mot history tab -->
+                <div class="mot-history-summary">
+            <div class="total-tests">
+                <p class="mot-history-summary-first margin-0-mot-history center">Total Tests</p>
+                <p class="mot-history-summary-two center">23</p>
+            </div>
+            <div class="total-tests">
+                <p class="mot-history-summary-first  margin-0-mot-history center">Pass</p>
+                <p class="mot-history-summary-two center">
+                                                                                                    16
+                </p>
+            </div>
+            <div class="total-tests">
+                <p class="mot-history-summary-first  margin-0-mot-history center">Fail</p>
+                <p class="mot-history-summary-two center">
+                                                                                  7
+                </p>
+            </div>
+        </div>
+                 <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">11/07/2025</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">91622</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">18/07/2026</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+8100 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">19/07/2024</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">83522</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">18/07/2025</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Suspension arm corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Suspension arm corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Tyre worn close to legal limit/worn on edge (5.2.3 (e))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">17/07/2024</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">83522</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+4203 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Stop lamp(s) not working (4.3.1 (a) (ii))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Shock absorbers has a serious fluid leak  (5.3.2 (b))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Shock absorbers has light misting of oil (5.3.2 (b))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Coil spring fractured or broken (5.3.1 (b) (i))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Suspension arm corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Suspension arm corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Tyre worn close to legal limit/worn on edge (5.2.3 (e))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">02/09/2023</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">79319</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2024</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+4 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Bumper mountings corroded but not likely to become detached insecure (6.1.4 (a) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Upper top shock mount play
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Upper top shock mount play
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Coil spring corroded  (5.3.1 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Coil spring corroded  (5.3.1 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Coil spring corroded  (5.3.1 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Shock absorbers has light misting of oil (5.3.2 (b))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Shock absorbers has light misting of oil (5.3.2 (b))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Front Lower Subframe mounting prescribed area is corroded but not considered excessive (5.3.6 (a) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">23/08/2023</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">79315</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+6214 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Offside Front Driver's door cannot be opened from inside the vehicle (6.2.3 (a))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Bumper mountings corroded but not likely to become detached insecure (6.1.4 (a) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Upper top shock mount play
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Upper top shock mount play
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Coil spring corroded  (5.3.1 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Coil spring corroded  (5.3.1 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Coil spring corroded  (5.3.1 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Shock absorbers has light misting of oil (5.3.2 (b))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Shock absorbers has light misting of oil (5.3.2 (b))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Front Lower Subframe mounting prescribed area is corroded but not considered excessive (5.3.6 (a) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">23/08/2022</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">73101</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2023</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Front Sub-frame corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">23/08/2022</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">73101</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+4807 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Tyre tread depth below requirements of 1.6mm (5.2.3 (e))
+                                                                 <span class="mot_type_fail">DANGEROUS</span>
+                                                            </li>
+                                                        <li>
+                                Front Sub-frame corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Rear Tyre slightly damaged/cracking or perishing (5.2.3 (d) (ii))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">24/08/2021</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">68294</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2022</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">24/08/2021</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">68294</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+2593 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Offside Front Outer Drive shaft joint constant velocity boot split or insecure, no longer prevents the ingress of dirt (6.1.7 (g) (ii))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Anti-roll bar linkage ball joint excessively worn (5.3.4 (a) (i))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">18/08/2020</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">65701</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2021</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">17/08/2020</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">65701</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+1808 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Front Sub-frame corroded and seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Sub-frame likely to become detached suspension arm  mounting (5.3.3 (a) (ii))
+                                                                 <span class="mot_type_fail">DANGEROUS</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">21/08/2019</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">63893</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2020</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">21/08/2019</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">63893</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+2625 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Rear Coil spring fractured or broken (5.3.1 (b) (i))
+                                                                 <span class="mot_type_fail">MAJOR</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">24/08/2018</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">61268</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2019</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+2322 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Upper Anti-roll bar ball joint dust cover severely deteriorated (5.3.4 (b) (i))
+                                                                 <span class="mot_type_minor">MINOR</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Upper Anti-roll bar ball joint dust cover severely deteriorated (5.3.4 (b) (i))
+                                                                 <span class="mot_type_minor">MINOR</span>
+                                                            </li>
+                                                        <li>
+                                Front Sub-frame corroded but not seriously weakened (5.3.3 (b) (i))
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">25/08/2017</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">58946</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2018</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+1500 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">17/08/2016</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">57446</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2017</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                         <div class="mot-history-wrapper mot-history-wrapper-fail">
+                                <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result fail">
+                            <i class="fas fa-4x fa-times-circle uleznotcompliant" id="tax-fas-icon"></i>
+                            <p>FAILED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">17/08/2016</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">57446</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+940 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Rear Shock absorber has a serious fluid leak (2.7.3)
+                                                                 <span class="mot_type_fail">FAIL</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front coil spring broken (2.4.C.1a)
+                                                                 <span class="mot_type_fail">FAIL</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front coil spring corroded (2.4.C.1b)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">13/08/2015</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">56506</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2016</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+3934 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Upper Coil spring mounting damaged but not seriously weakened (2.4.C.3c)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Upper Coil spring mounting damaged but not seriously weakened (2.4.C.3c)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">19/08/2014</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">52572</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2015</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+4336 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Macpherson strut has slight movement at the upper attachment (2.5.A.1c)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Macpherson strut has slight movement at the upper attachment (2.5.A.1c)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">20/08/2013</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">48236</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2014</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+4747 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Tyre worn close to the legal limit (4.1.E.1)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Tyre worn close to the legal limit (4.1.E.1)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Front Brake pad(s) wearing thin (3.5.1g)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Front brake disc worn, pitted or scored, but not seriously weakened (3.5.1i)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Nearside Front Macpherson strut has slight movement at the upper attachment (2.5.A.1c)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Macpherson strut has slight movement at the upper attachment (2.5.A.1c)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">08/08/2012</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">43489</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2013</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+5299 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                                                        <li>
+                                Nearside Front Tyre worn close to the legal limit (4.1.E.1)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Offside Front Tyre worn close to the legal limit (4.1.E.1)
+                                                                 <span class="type_advisery">ADVISORY</span>
+                                                            </li>
+                                                        <li>
+                                Oil leak
+                                                                 <span class="mot_type_minor">USER ENTERED</span>
+                                                            </li>
+                                                    </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">17/08/2011</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">38190</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2012</p>
+                        </div>
+                                            </div>
+
+
+                                             <p class="travelled-history">+8924 miles travelled since last MOT.</p>
+                                                  <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+                     <div class="mot-history-wrapper mot-history-wrapper-pass">
+                            <div class="mot-history-left">
+                    <div class="mot-history-left-content">
+                                                <div class="mot-history-result mot-history-pass pass">
+                            <i class="fas fa-4x fa-check-circle ulezcompliant" id="tax-fas-icon"></i>
+                            <p>PASSED</p>
+                        </div>
+                        
+                        <p class="date-tested">Test Date</p>
+                        <p class="mot-test-date dvla-date">19/08/2010</p>
+                    </div>
+
+                </div>
+                <div class="mot-history-right">
+                    <div class="mot-history-information">
+                        <div class="mot-history-millage-wrapper">
+                            <p class="mot-history-mileage">Mileage</p>
+                            <p class="mot-history-mileage-numbers">29266</p>
+                        </div>
+                                                <div class="mot-history-expiry-date">
+                            <p class="mot-history-mileage">Expiry Date</p>
+                            <p class="mot-history-mileage-numbers dvla-date">01/09/2011</p>
+                        </div>
+                                            </div>
+
+
+                                             <h5 class="mot-history-comments-h5">Comments</h5>
+                        <ul class="mot-history-ul">
+                            <li>Vehicle passed MOT with no advisory notices.</li>
+                            <li></li>
+                        </ul>
+                                        </div>
+            </div>
+
+            <div class="mot-history-timeline"></div>
+             
+        </div>
