@@ -132,11 +132,11 @@ def scrape_vehicle():
             
             # Always use enhanced scraper for comprehensive data extraction
             try:
-                from enhanced_selenium_scraper import EnhancedSeleniumScraper
+                from final_scraper import FinalVehicleScraper
                 
-                logger.info(f"Starting enhanced scrape for registration: {registration}")
-                scraper = EnhancedSeleniumScraper(headless=True)
-                basic_data = scraper.scrape_complete_vehicle_data(registration)
+                logger.info(f"Starting final scraper for registration: {registration}")
+                scraper = FinalVehicleScraper()
+                basic_data = scraper.scrape_vehicle_data(registration)
                 
                 if basic_data:
                     

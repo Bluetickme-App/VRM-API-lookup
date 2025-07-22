@@ -372,17 +372,91 @@ class EnhancedSeleniumScraper:
             logger.error(f"Error performing vehicle search: {e}")
     
     def _scrape_mot_history_page(self, registration: str) -> Optional[Dict[str, Any]]:
-        """Navigate to and scrape MOT history page"""
+        """Navigate directly to MOT history page using known URL pattern"""
         try:
-            # Check if we already have MOT links from basic data extraction
-            if hasattr(self, '_basic_vehicle_data') and self._basic_vehicle_data:
-                mot_links = self._basic_vehicle_data.get('available_mot_links', [])
-                if mot_links:
-                    logger.info(f"Using stored MOT links: {len(mot_links)} available")
-                    # Try to navigate using stored links
-                    for link_info in mot_links:
-                        try:
-                            if link_info['href'] and 'http' in link_info['href']:
+            # Try direct navigation to MOT history URL patterns
+            logger.info("Starting direct MOT history extraction")
+            
+            mot_urls = [
+                f"https://www.checkcardetails.co.uk/mot/mothistory/{registration.lower()}",
+                f"https://www.checkcardetails.co.uk/mot/{registration.lower()}",
+                f"https://www.checkcardetails.co.uk/mothistory/{registration.lower()}"
+            ]
+            
+            mot_data = {
+                'registration': registration.upper(),
+                'mot_tests': [],
+                'summary': {},
+                'scraped_from': 'enhanced_selenium_mot_history_page',
+                'page_title': '',
+                'page_url': ''
+            }
+            
+            # Try each MOT URL until we find data
+            for mot_url in mot_urls:
+                try:
+                    logger.info(f"Navigating to MOT URL: {mot_url}")
+                    self.driver.get(mot_url)
+                    self._natural_delay(5.0, 7.0)  # Allow time for page load
+                    
+                    # Update metadata
+                    mot_data['page_title'] = self.driver.title
+                    mot_data['page_url'] = self.driver.current_url
+                    
+                    logger.info(f"MOT page loaded - Title: {self.driver.title}")
+                    logger.info(f"Current URL: {self.driver.current_url}")
+                    
+                    # First try XPath extraction (your specific paths)
+                    logger.info("Trying XPath extraction for MOT data...")
+                    xpath_results = self._extract_via_xpath()
+                    if xpath_results:
+                        logger.info(f"XPath extraction successful: found {len(xpath_results)} records")
+                        mot_data['mot_tests'] = xpath_results
+                        mot_data['total_tests_found'] = len(xpath_results)
+                        mot_data['extraction_timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+                        return mot_data
+                    
+                    # Try CSS-based extraction
+                    logger.info("Trying CSS-based extraction for MOT data...")
+                    css_results = self._extract_mot_test_table()
+                    if css_results:
+                        logger.info(f"CSS extraction successful: found {len(css_results)} records")
+                        mot_data['mot_tests'] = css_results
+                        mot_data['total_tests_found'] = len(css_results)
+                        mot_data['extraction_timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+                        return mot_data
+                    
+                    # Check if page has any MOT-related content
+                    page_source = self.driver.page_source.lower()
+                    if any(keyword in page_source for keyword in ['mot', 'test history', 'ministry of transport']):
+                        logger.info("Page contains MOT content but no structured data found")
+                        break  # This is the right page, just no structured data
+                    else:
+                        logger.info("Page doesn't contain MOT content, trying next URL")
+                        
+                except Exception as e:
+                    logger.warning(f"Failed to access MOT URL {mot_url}: {e}")
+                    continue
+            
+            # If we reach here, no data was found
+            logger.warning(f"No MOT data found for {registration} across all URL patterns")
+            mot_data['total_tests_found'] = 0
+            mot_data['extraction_timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+            return mot_data
+            
+        except Exception as e:
+            logger.error(f"Error scraping MOT history: {e}")
+            # Return empty data structure on error
+            return {
+                'registration': registration.upper(),
+                'mot_tests': [],
+                'summary': {},
+                'scraped_from': 'enhanced_selenium_mot_history_page',
+                'page_title': 'Error',
+                'page_url': 'Error',
+                'total_tests_found': 0,
+                'extraction_timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+            }
                                 logger.info(f"Trying stored MOT link: {link_info['href']}")
                                 self.driver.get(link_info['href'])
                                 self._natural_delay(3.0, 4.0)
@@ -557,21 +631,101 @@ class EnhancedSeleniumScraper:
             return None
     
     def _scrape_mileage_history_page(self, registration: str) -> Optional[Dict[str, Any]]:
-        """Navigate to and scrape mileage history page"""
+        """Navigate directly to mileage history page using known URL pattern"""
         try:
-            # First navigate to main vehicle page to find mileage history link
-            main_url = f"https://www.checkcardetails.co.uk/carcheck/{registration.lower()}"
-            logger.info(f"First navigating to main page for mileage: {main_url}")
+            # Try direct navigation to mileage history URL patterns
+            logger.info("Starting direct mileage history extraction")
             
-            self.driver.get(main_url)
-            self._natural_delay(2.0, 3.0)
+            mileage_urls = [
+                f"https://www.checkcardetails.co.uk/mot/mileagehistory/{registration.lower()}",
+                f"https://www.checkcardetails.co.uk/mileage/{registration.lower()}",
+                f"https://www.checkcardetails.co.uk/mileagehistory/{registration.lower()}"
+            ]
             
-            # Wait for page to load and handle Cloudflare
-            WebDriverWait(self.driver, self.page_load_timeout).until(
-                lambda driver: driver.execute_script("return document.readyState") == "complete"
-            )
+            mileage_data = {
+                'registration': registration.upper(),
+                'mileage_records': [],
+                'analysis': {},
+                'scraped_from': 'enhanced_selenium_mileage_history_page',
+                'page_title': '',
+                'page_url': ''
+            }
             
-            # Look for mileage history link on the main page
+            # Try each mileage URL until we find data
+            for mileage_url in mileage_urls:
+                try:
+                    logger.info(f"Navigating to mileage URL: {mileage_url}")
+                    self.driver.get(mileage_url)
+                    self._natural_delay(5.0, 7.0)  # Allow time for page load
+                    
+                    # Update metadata
+                    mileage_data['page_title'] = self.driver.title
+                    mileage_data['page_url'] = self.driver.current_url
+                    
+                    logger.info(f"Mileage page loaded - Title: {self.driver.title}")
+                    logger.info(f"Current URL: {self.driver.current_url}")
+                    
+                    # First try XPath extraction (your specific paths)
+                    logger.info("Trying XPath extraction for mileage data...")
+                    xpath_results = self._extract_via_xpath()
+                    if xpath_results:
+                        # Convert XPath results to mileage format
+                        mileage_records = []
+                        for result in xpath_results:
+                            if result.get('mileage'):
+                                mileage_records.append({
+                                    'mileage': result['mileage'],
+                                    'date': result.get('test_date', ''),
+                                    'source': 'xpath_extraction'
+                                })
+                        if mileage_records:
+                            logger.info(f"XPath extraction successful: found {len(mileage_records)} mileage records")
+                            mileage_data['mileage_records'] = mileage_records
+                            mileage_data['total_records_found'] = len(mileage_records)
+                            mileage_data['extraction_timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+                            return mileage_data
+                    
+                    # Try table-based extraction
+                    logger.info("Trying table-based extraction for mileage data...")
+                    table_results = self._extract_mileage_table()
+                    if table_results:
+                        logger.info(f"Table extraction successful: found {len(table_results)} mileage records")
+                        mileage_data['mileage_records'] = table_results
+                        mileage_data['total_records_found'] = len(table_results)
+                        mileage_data['extraction_timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+                        return mileage_data
+                    
+                    # Check if page has any mileage-related content
+                    page_source = self.driver.page_source.lower()
+                    if any(keyword in page_source for keyword in ['mileage', 'odometer', 'miles']):
+                        logger.info("Page contains mileage content but no structured data found")
+                        break  # This is the right page, just no structured data
+                    else:
+                        logger.info("Page doesn't contain mileage content, trying next URL")
+                        
+                except Exception as e:
+                    logger.warning(f"Failed to access mileage URL {mileage_url}: {e}")
+                    continue
+            
+            # If we reach here, no data was found
+            logger.warning(f"No mileage data found for {registration} across all URL patterns")
+            mileage_data['total_records_found'] = 0
+            mileage_data['extraction_timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+            return mileage_data
+            
+        except Exception as e:
+            logger.error(f"Error scraping mileage history: {e}")
+            # Return empty data structure on error
+            return {
+                'registration': registration.upper(),
+                'mileage_records': [],
+                'analysis': {},
+                'scraped_from': 'enhanced_selenium_mileage_history_page',
+                'page_title': 'Error',
+                'page_url': 'Error',
+                'total_records_found': 0,
+                'extraction_timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+            }
             mileage_link_found = False
             try:
                 # Wait for page content to load
