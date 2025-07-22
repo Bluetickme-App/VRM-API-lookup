@@ -226,11 +226,18 @@ class EnhancedSeleniumScraper:
                         logger.info(f"Creating new record for {registration}")
                     
                     # Update all fields with scraped data
-                    vehicle_record.make = vehicle_data.get('make')
-                    vehicle_record.model = vehicle_data.get('model')
-                    vehicle_record.year = vehicle_data.get('year')
-                    vehicle_record.color = vehicle_data.get('color')
-                    vehicle_record.fuel_type = vehicle_data.get('fuel_type')
+                    basic_info = vehicle_data.get('basic_info', {})
+                    vehicle_record.make = basic_info.get('make') or vehicle_data.get('make')
+                    vehicle_record.model = basic_info.get('model') or vehicle_data.get('model')
+                    vehicle_record.year = basic_info.get('year') or vehicle_data.get('year')
+                    vehicle_record.color = basic_info.get('color') or vehicle_data.get('color')
+                    vehicle_record.fuel_type = basic_info.get('fuel_type') or vehicle_data.get('fuel_type')
+                    
+                    # Store V5 issue date in top-level vehicle_data for frontend access
+                    v5_date = basic_info.get('last_v5_issue_date') or basic_info.get('v5_issue_date')
+                    if v5_date:
+                        vehicle_data['last_v5_issue_date'] = v5_date
+                        vehicle_data['v5_issue_date'] = v5_date
                     vehicle_record.engine_size = vehicle_data.get('engine_size')
                     vehicle_record.co2_emissions = vehicle_data.get('co2_emissions')
                     vehicle_record.date_first_registered = vehicle_data.get('date_first_registered')
@@ -1027,6 +1034,25 @@ class EnhancedSeleniumScraper:
                             logger.info(f"Found fuel type via regex: {fuel}")
                             break
             
+            # V5 Issue Date patterns
+            if not vehicle_data['basic_info'].get('v5_issue_date') and not vehicle_data['basic_info'].get('last_v5_issue_date'):
+                v5_patterns = [
+                    r'Last V5C Issue Date[:\s]+([^\n\r]+)',
+                    r'V5C Issue Date[:\s]+([^\n\r]+)',
+                    r'<td[^>]*>Last V5C Issue Date</td>\s*<td[^>]*>([^<]+)</td>',
+                    r'V5 Issue Date:\s*([^\n\r]+)',
+                    r'Last V5[:\s]+([^\n\r]+)'
+                ]
+                
+                for pattern in v5_patterns:
+                    match = re.search(pattern, page_text, re.IGNORECASE)
+                    if match:
+                        v5_date = match.group(1).strip()
+                        if v5_date and len(v5_date) < 50 and v5_date.lower() not in ['unknown', 'not available', 'n/a', '-']:
+                            vehicle_data['basic_info']['last_v5_issue_date'] = v5_date
+                            logger.info(f"Found V5 issue date via regex: {v5_date}")
+                            break
+            
         except Exception as e:
             logger.error(f"Error extracting page data: {e}")
     
@@ -1070,6 +1096,9 @@ class EnhancedSeleniumScraper:
                     elif 'fuel' in label and not vehicle_data['basic_info'].get('fuel_type'):
                         vehicle_data['basic_info']['fuel_type'] = value
                         logger.info(f"Found fuel type via table: {value}")
+                    elif ('v5' in label or 'issue date' in label) and not vehicle_data['basic_info'].get('last_v5_issue_date'):
+                        vehicle_data['basic_info']['last_v5_issue_date'] = value
+                        logger.info(f"Found V5 issue date via table: {value}")
                         
                 except Exception as e:
                     continue
@@ -1109,6 +1138,9 @@ class EnhancedSeleniumScraper:
                             elif 'fuel' in label and not vehicle_data['basic_info'].get('fuel_type'):
                                 vehicle_data['basic_info']['fuel_type'] = value
                                 logger.info(f"Found fuel type via element: {value}")
+                            elif ('v5' in label or 'issue date' in label) and not vehicle_data['basic_info'].get('last_v5_issue_date'):
+                                vehicle_data['basic_info']['last_v5_issue_date'] = value
+                                logger.info(f"Found V5 issue date via element: {value}")
                                 
                 except Exception:
                     continue

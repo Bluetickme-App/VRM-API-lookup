@@ -345,6 +345,12 @@ function displayVehicleSummary(data) {
                         <div class="vehicle-info-value">${escapeHtml(engineSize)}</div>
                     </div>
                 </div>
+                <div class="col-6 col-md-3">
+                    <div class="vehicle-info-item">
+                        <div class="vehicle-info-label">Last V5C Issue Date</div>
+                        <div class="vehicle-info-value">${escapeHtml(data.v5_issue_date || data.last_v5_issue_date || 'Not Available')}</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-4 text-md-end">
