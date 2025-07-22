@@ -527,21 +527,23 @@ class EnhancedMOTScraper:
             elif 'failed' in context_lower or 'fail' in context_lower:
                 result = 'FAILED'
             
-            # Extract mileage
+            # Extract mileage with better pattern matching
             mileage = None
             mileage_patterns = [
                 r'(\d{1,3}(?:,\d{3})*)\s*(?:miles|mi)',
                 r'mileage[:\s]*(\d{1,3}(?:,\d{3})*)',
                 r'odometer[:\s]*(\d{1,3}(?:,\d{3})*)',
-                r'(\d{4,7})'  # Just numbers that look like mileage
+                r'(\d{3,7})(?!\d)'  # 3-7 digits not followed by another digit (avoid years)
             ]
             
             for pattern in mileage_patterns:
                 match = re.search(pattern, context, re.IGNORECASE)
                 if match:
                     potential_mileage = match.group(1).replace(',', '')
-                    # Validate mileage range (reasonable for a car)
-                    if potential_mileage.isdigit() and 1000 <= int(potential_mileage) <= 300000:
+                    # Validate mileage range and avoid years (2007-2024)
+                    if (potential_mileage.isdigit() and 
+                        10 <= int(potential_mileage) <= 999999 and 
+                        not (2007 <= int(potential_mileage) <= 2024)):
                         mileage = potential_mileage
                         break
             
@@ -665,12 +667,25 @@ class EnhancedMOTScraper:
                     try:
                         # Clean mileage reading - remove commas and extract numeric value
                         mileage_str = str(test['mileage']).replace(',', '').strip()
+                        
+                        # Skip empty or very short strings
+                        if len(mileage_str) < 2:
+                            continue
+                            
                         # Extract numbers from strings like "123456" or "123,456 miles"
                         import re
                         mileage_match = re.search(r'(\d+)', mileage_str.replace(',', ''))
                         
                         if mileage_match:
                             mileage_value = int(mileage_match.group(1))
+                            
+                            # CRITICAL FIX: Filter out invalid mileage values
+                            # Skip years (2007-2024), single/double digits, and unrealistic values
+                            if (mileage_value < 10 or 
+                                (2007 <= mileage_value <= 2024) or 
+                                mileage_value > 999999):
+                                logger.debug(f"Skipping invalid mileage: {mileage_value} (appears to be year or invalid)")
+                                continue
                             
                             # Use the ACTUAL MOT test date (not a random date)
                             accurate_mileage_readings.append({
@@ -681,7 +696,7 @@ class EnhancedMOTScraper:
                                 'test_index': i + 1
                             })
                             
-                            logger.info(f"Accurate mileage: {mileage_value} miles on {test['test_date']} (MOT {test.get('result', 'Unknown')})")
+                            logger.info(f"Valid mileage: {mileage_value} miles on {test['test_date']} (MOT {test.get('result', 'Unknown')})")
                     except (ValueError, TypeError) as e:
                         logger.warning(f"Could not parse mileage from MOT test {i}: {test.get('mileage')} - {e}")
                         continue
