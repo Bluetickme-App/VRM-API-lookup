@@ -135,6 +135,58 @@ def scrape_vehicle():
                     vehicle_record.color = (basic_info.get('color') or basic_data.get('color') or 'Unknown')[:50]
                     vehicle_record.fuel_type = (basic_info.get('fuel_type') or basic_data.get('fuel_type') or 'Unknown')[:50]
                     
+                    # CRITICAL FIX: Add comprehensive field mapping that was missing
+                    transmission = basic_info.get('transmission') or basic_data.get('transmission')
+                    vehicle_record.transmission = transmission[:100] if transmission else None
+                    
+                    engine_size = basic_info.get('engine_size') or basic_data.get('engine_size')  
+                    if engine_size and 'cc' in engine_size.lower():
+                        # Clean corrupted engine sizes
+                        import re
+                        numbers = re.findall(r'\d+', engine_size)
+                        if numbers and len(numbers[-1]) <= 4:
+                            vehicle_record.engine_size = f"{numbers[-1]} cc"
+                        else:
+                            vehicle_record.engine_size = engine_size[:20]
+                    elif engine_size:
+                        vehicle_record.engine_size = engine_size[:50]
+                    
+                    body_style = basic_info.get('body_style') or basic_data.get('body_style')
+                    vehicle_record.body_style = body_style[:50] if body_style else None
+                    
+                    euro_status = basic_info.get('euro_status') or basic_data.get('euro_status')
+                    vehicle_record.euro_status = euro_status[:20] if euro_status else None
+                    
+                    type_approval = basic_info.get('type_approval') or basic_data.get('type_approval')
+                    vehicle_record.type_approval = type_approval[:20] if type_approval else None
+                    
+                    registration_place = basic_info.get('registration_place') or basic_data.get('registration_place')
+                    vehicle_record.registration_place = registration_place[:200] if registration_place else None
+                    
+                    # Handle date fields
+                    registration_date_str = basic_info.get('registration_date') or basic_data.get('registration_date')
+                    if registration_date_str:
+                        try:
+                            from datetime import datetime
+                            vehicle_record.registration_date = datetime.strptime(registration_date_str, '%d/%m/%Y').date()
+                        except:
+                            pass
+                    
+                    v5_date_str = basic_info.get('last_v5_issue_date') or basic_data.get('v5_issue_date')
+                    if v5_date_str:
+                        try:
+                            from datetime import datetime
+                            for date_format in ['%d %B %Y', '%d/%m/%Y', '%Y-%m-%d']:
+                                try:
+                                    vehicle_record.last_v5c_issue_date = datetime.strptime(v5_date_str, date_format).date()
+                                    break
+                                except:
+                                    continue
+                        except:
+                            pass
+                    
+                    logger.info(f"FIXED: Comprehensive fields mapped - transmission: {bool(vehicle_record.transmission)}, engine: {bool(vehicle_record.engine_size)}, body: {bool(vehicle_record.body_style)}")
+                    
                     # Handle year conversion
                     year_value = basic_info.get('year') or basic_data.get('year')
                     if year_value:

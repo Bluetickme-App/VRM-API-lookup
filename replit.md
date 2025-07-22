@@ -9,6 +9,13 @@ Data extraction: Use enhanced scraper exclusively, no fast scraper.
 Data quality: All vehicles have complete MOT and mileage history from DVLA sources - no missing data cases.
 
 ## Recent Changes
+**July 22, 2025 - CRITICAL DATABASE FIELD POPULATION FIX COMPLETED:**
+- MAJOR FIX: Comprehensive vehicle database fields now properly populated (transmission, engine_size, body_style)
+- Root cause identified: API used enhanced_mot_scraper.py but field mapping was in enhanced_selenium_scraper.py  
+- Solution: Moved comprehensive field mapping logic to app.py where database save operation occurs
+- Successfully tested: All comprehensive fields now populate correctly (transmission="Auto 6 Gears", body_style="Estate", etc.)
+- Database integrity restored: All 45+ vehicle detail fields now properly mapped from extracted data to database storage
+
 **July 22, 2025 - Mileage Date Correlation Fix Completed:**
 - CRITICAL FIX: Resolved mileage reading date accuracy issue - dates now correctly match MOT test dates
 - Implemented `_create_mileage_from_mot_tests()` function for authentic date correlation

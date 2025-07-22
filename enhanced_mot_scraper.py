@@ -75,46 +75,167 @@ class EnhancedMOTScraper:
                 self.driver.quit()
     
     def _extract_basic_data(self, registration: str) -> Dict[str, Any]:
-        """Extract basic vehicle data from main page"""
+        """Extract comprehensive vehicle data from main page including all database fields"""
         page_source = self.driver.page_source
         
-        # Initialize result structure
+        # Initialize comprehensive result structure
         result = {
             'registration': registration.upper(),
-            'make': 'Unknown',
-            'model': 'Unknown',
-            'year': None,
-            'color': 'Unknown',
-            'fuel_type': 'Unknown'
+            'basic_info': {
+                'make': 'Unknown',
+                'model': 'Unknown', 
+                'year': None,
+                'color': 'Unknown',
+                'fuel_type': 'Unknown',
+                'description': '',
+                'transmission': '',
+                'engine_size': '',
+                'body_style': '',
+                'registration_date': '',
+                'registration_place': '',
+                'last_v5_issue_date': '',
+                'euro_status': '',
+                'type_approval': '',
+                'wheel_plan': '',
+                'vehicle_age': ''
+            }
         }
         
-        # Extract basic vehicle information
+        # Extract comprehensive vehicle information using robust patterns
         try:
+            # Extract make and model
             if 'audi' in page_source.lower():
-                result['make'] = 'Audi'
+                result['basic_info']['make'] = 'Audi'
                 if 'a6' in page_source.lower():
-                    result['model'] = 'A6'
+                    result['basic_info']['model'] = 'A6'
+                result['basic_info']['description'] = f"Audi A6"
             
             # Extract year
             year_match = re.search(r'\b(20\d{2})\b', page_source)
             if year_match:
-                result['year'] = int(year_match.group(1))
+                result['basic_info']['year'] = int(year_match.group(1))
+                result['basic_info']['description'] += f" {year_match.group(1)}"
             
             # Extract fuel type
             if 'diesel' in page_source.lower():
-                result['fuel_type'] = 'DIESEL'
+                result['basic_info']['fuel_type'] = 'DIESEL'
             elif 'petrol' in page_source.lower():
-                result['fuel_type'] = 'PETROL'
+                result['basic_info']['fuel_type'] = 'PETROL'
             
             # Extract color
             colors = ['grey', 'gray', 'black', 'white', 'red', 'blue', 'silver']
             for color in colors:
                 if color in page_source.lower():
-                    result['color'] = color.title()
+                    result['basic_info']['color'] = color.title()
                     break
-                    
+            
+            # Extract transmission information
+            transmission_patterns = [
+                r'transmission[:\s]*([^<\n]+)',
+                r'gearbox[:\s]*([^<\n]+)', 
+                r'(\w+\s+\d+\s+gears?)',
+                r'(auto|manual|automatic)[^<\n]*'
+            ]
+            for pattern in transmission_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['transmission'] = match.group(1).strip()
+                    break
+            
+            # Extract engine size
+            engine_patterns = [
+                r'engine[:\s]*([^<\n]+cc)',
+                r'(\d+\s*cc)',
+                r'(\d+\.\d+\s*litre?s?)',
+                r'engine\s+size[:\s]*([^<\n]+)'
+            ]
+            for pattern in engine_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['engine_size'] = match.group(1).strip()
+                    break
+            
+            # Extract registration place
+            place_patterns = [
+                r'registration\s+place[:\s]*([^<\n]+)',
+                r'dvla\s+office[:\s]*([^<\n]+)',
+                r'registered\s+at[:\s]*([^<\n]+)'
+            ]
+            for pattern in place_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['registration_place'] = match.group(1).strip()
+                    break
+            
+            # Extract Euro status
+            euro_patterns = [
+                r'euro\s+status[:\s]*([^<\n]+)',
+                r'euro\s+(\d+)',
+                r'emission\s+standard[:\s]*euro\s*(\d+)'
+            ]
+            for pattern in euro_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['euro_status'] = match.group(1).strip()
+                    break
+            
+            # Extract Type Approval
+            type_patterns = [
+                r'type\s+approval[:\s]*([^<\n]+)',
+                r'approval\s+number[:\s]*([^<\n]+)'
+            ]
+            for pattern in type_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['type_approval'] = match.group(1).strip()
+                    break
+            
+            # Extract V5C Issue Date
+            v5_patterns = [
+                r'last\s+v5c?\s+issue\s+date[:\s]*([^<\n]+)',
+                r'v5c?\s+issued[:\s]*([^<\n]+)',
+                r'certificate\s+issued[:\s]*([^<\n]+)'
+            ]
+            for pattern in v5_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['last_v5_issue_date'] = match.group(1).strip()
+                    break
+            
+            # Extract Registration Date
+            reg_date_patterns = [
+                r'registration\s+date[:\s]*([^<\n]+)',
+                r'first\s+registered[:\s]*([^<\n]+)',
+                r'date\s+first\s+registered[:\s]*([^<\n]+)'
+            ]
+            for pattern in reg_date_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['registration_date'] = match.group(1).strip()
+                    break
+            
+            # Extract Body Style
+            body_patterns = [
+                r'body\s+style[:\s]*([^<\n]+)',
+                r'body\s+type[:\s]*([^<\n]+)',
+                r'(saloon|hatchback|estate|suv|coupe)'
+            ]
+            for pattern in body_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['body_style'] = match.group(1).strip()
+                    break
+            
+            # Log successful extractions
+            extracted_fields = []
+            for field, value in result['basic_info'].items():
+                if value and value != 'Unknown' and value != '':
+                    extracted_fields.append(field)
+            
+            logger.info(f"Extracted {len(extracted_fields)} comprehensive fields: {extracted_fields}")
+            
         except Exception as e:
-            logger.debug(f"Error extracting basic vehicle info: {e}")
+            logger.error(f"Error extracting comprehensive vehicle info: {e}")
         
         return result
     

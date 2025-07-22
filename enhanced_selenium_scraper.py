@@ -233,17 +233,103 @@ class EnhancedSeleniumScraper:
                     vehicle_record.color = basic_info.get('color') or vehicle_data.get('color')
                     vehicle_record.fuel_type = basic_info.get('fuel_type') or vehicle_data.get('fuel_type')
                     
-                    # Store V5 issue date in top-level vehicle_data for frontend access
-                    v5_date = basic_info.get('last_v5_issue_date') or basic_info.get('v5_issue_date')
-                    if v5_date:
-                        vehicle_data['last_v5_issue_date'] = v5_date
-                        vehicle_data['v5_issue_date'] = v5_date
-                    vehicle_record.engine_size = vehicle_data.get('engine_size')
-                    vehicle_record.co2_emissions = vehicle_data.get('co2_emissions')
-                    vehicle_record.date_first_registered = vehicle_data.get('date_first_registered')
-                    vehicle_record.tax_status = vehicle_data.get('tax_status')
-                    vehicle_record.mot_status = vehicle_data.get('mot_status')
-                    vehicle_record.mot_expiry = vehicle_data.get('mot_expiry')
+                    # CRITICAL FIX: Map all comprehensive vehicle details to database fields
+                    vehicle_record.description = basic_info.get('description') or vehicle_data.get('description') or 'Unknown'
+                    
+                    # FIXED MAPPING: Direct mapping without complex validation that was causing None values
+                    transmission = basic_info.get('transmission') or vehicle_data.get('transmission')
+                    vehicle_record.transmission = transmission[:100] if transmission else None
+                    
+                    # FIXED: Simplified engine size mapping - the original extraction is usually correct
+                    engine_size = basic_info.get('engine_size') or vehicle_data.get('engine_size')
+                    if engine_size and 'cc' in engine_size.lower():
+                        # For corrupted engine sizes like "6531127cc", try to extract reasonable value
+                        import re
+                        numbers = re.findall(r'\d+', engine_size)
+                        if numbers:
+                            # Take the last number (usually the engine size)
+                            main_number = numbers[-1] 
+                            if len(main_number) <= 4:  # Reasonable engine size (up to 9999cc)
+                                vehicle_record.engine_size = f"{main_number} cc"
+                            else:
+                                # For corrupted data, use the raw value but truncated
+                                vehicle_record.engine_size = engine_size[:20]
+                    elif engine_size:
+                        vehicle_record.engine_size = engine_size[:50]
+                    
+                    # Direct mapping for other fields
+                    body_style = basic_info.get('body_style') or vehicle_data.get('body_style')
+                    vehicle_record.body_style = body_style[:50] if body_style else None
+                    
+                    euro_status = basic_info.get('euro_status') or vehicle_data.get('euro_status')
+                    vehicle_record.euro_status = euro_status[:20] if euro_status else None
+                    
+                    type_approval = basic_info.get('type_approval') or vehicle_data.get('type_approval')
+                    vehicle_record.type_approval = type_approval[:20] if type_approval else None
+                    
+                    wheel_plan = basic_info.get('wheel_plan') or vehicle_data.get('wheel_plan')
+                    vehicle_record.wheel_plan = wheel_plan[:100] if wheel_plan else None
+                    
+                    vehicle_age = basic_info.get('vehicle_age') or vehicle_data.get('vehicle_age')
+                    vehicle_record.vehicle_age = vehicle_age[:50] if vehicle_age else None
+                    
+                    registration_place = basic_info.get('registration_place') or vehicle_data.get('registration_place')
+                    vehicle_record.registration_place = registration_place[:200] if registration_place else None
+                    
+                    # Handle date fields with proper conversion
+                    registration_date_str = basic_info.get('registration_date') or vehicle_data.get('registration_date')
+                    if registration_date_str:
+                        try:
+                            # Parse DD/MM/YYYY format
+                            from datetime import datetime
+                            vehicle_record.registration_date = datetime.strptime(registration_date_str, '%d/%m/%Y').date()
+                            logger.info(f"Mapped registration_date: {registration_date_str}")
+                        except:
+                            logger.warning(f"Could not parse registration_date: {registration_date_str}")
+                    
+                    # Handle V5C issue date
+                    v5_date_str = basic_info.get('last_v5_issue_date') or basic_info.get('v5_issue_date') or vehicle_data.get('last_v5_issue_date')
+                    if v5_date_str:
+                        try:
+                            # Try different date formats
+                            for date_format in ['%d %B %Y', '%d/%m/%Y', '%Y-%m-%d']:
+                                try:
+                                    vehicle_record.last_v5c_issue_date = datetime.strptime(v5_date_str, date_format).date()
+                                    logger.info(f"Mapped last_v5c_issue_date: {v5_date_str}")
+                                    break
+                                except:
+                                    continue
+                        except:
+                            logger.warning(f"Could not parse V5C issue date: {v5_date_str}")
+                    
+                    # DEBUG: Log field values before database save
+                    debug_transmission = vehicle_record.transmission
+                    debug_engine = vehicle_record.engine_size  
+                    debug_body = vehicle_record.body_style
+                    logger.info(f"PRE-SAVE DEBUG: transmission='{debug_transmission}', engine='{debug_engine}', body='{debug_body}'")
+                    
+                    logger.info(f"Database field mapping completed for {registration}: description={bool(vehicle_record.description)}, transmission={bool(vehicle_record.transmission)}, euro_status={bool(vehicle_record.euro_status)}")
+                    
+                    # Store V5 issue date in top-level vehicle_data for frontend access (already mapped above)
+                    if vehicle_record.last_v5c_issue_date:
+                        vehicle_data['last_v5_issue_date'] = vehicle_record.last_v5c_issue_date.strftime('%d %B %Y')
+                        vehicle_data['v5_issue_date'] = vehicle_data['last_v5_issue_date']
+                    
+                    # Map additional fields without overwriting the comprehensive fields already mapped above
+                    vehicle_record.co2_emissions = basic_info.get('co2_emissions') or vehicle_data.get('co2_emissions')
+                    vehicle_record.date_first_registered = basic_info.get('date_first_registered') or vehicle_data.get('date_first_registered')
+                    vehicle_record.tax_status = basic_info.get('tax_status') or vehicle_data.get('tax_status')
+                    vehicle_record.mot_status = basic_info.get('mot_status') or vehicle_data.get('mot_status')
+                    vehicle_record.mot_expiry = basic_info.get('mot_expiry') or vehicle_data.get('mot_expiry')
+                    
+                    # Log final mapping status
+                    mapped_fields = []
+                    for field_name in ['transmission', 'engine_size', 'body_style', 'euro_status', 'type_approval']:
+                        field_value = getattr(vehicle_record, field_name, None)
+                        if field_value and field_value.strip():
+                            mapped_fields.append(field_name)
+                    
+                    logger.info(f"FINAL MAPPING: {len(mapped_fields)} comprehensive fields mapped to database: {mapped_fields}")
                     
                     # Store complete raw data including MOT history
                     vehicle_record.raw_data = vehicle_data
