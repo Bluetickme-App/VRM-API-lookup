@@ -178,59 +178,29 @@ class EnhancedMOTScraper:
         return mot_data
     
     def _extract_mot_tests_from_history_page(self) -> List[Dict[str, Any]]:
-        """Extract MOT test records using discovered CSS selectors"""
+        """Extract detailed MOT test records from the actual history page structure"""
         try:
             detailed_tests = []
             
-            # Use the discovered selectors from the screenshot
-            primary_selectors = [
-                "body > div.container > div.mot-history-summary",
-                "body > div.container > div:nth-child(6)",
-                ".mot-history-wrapper",
-                ".mot-history-timeline",
-                ".mot-history-wrapper-pass",
-                ".mot-history-wrapper-fail"
-            ]
+            logger.info("Extracting comprehensive MOT test data from history page")
             
-            logger.info("Extracting detailed MOT tests using discovered CSS selectors")
+            # First extract the overall statistics visible on the page
+            page_text = self.driver.page_source
             
-            # Try each selector to find MOT test data
-            for selector in primary_selectors:
-                try:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    logger.info(f"Found {len(elements)} elements with selector: {selector}")
-                    
-                    for element in elements:
-                        try:
-                            element_text = element.text.strip()
-                            if element_text and len(element_text) > 10:
-                                
-                                # Look for nested test records within this container
-                                nested_tests = self._extract_individual_tests(element)
-                                if nested_tests:
-                                    detailed_tests.extend(nested_tests)
-                                    logger.info(f"Extracted {len(nested_tests)} test records from {selector}")
-                                else:
-                                    # Parse container text directly as fallback
-                                    parsed_test = self._parse_test_from_text(element_text)
-                                    if parsed_test:
-                                        detailed_tests.append(parsed_test)
-                                        
-                        except Exception as e:
-                            logger.debug(f"Error processing element in {selector}: {e}")
-                            continue
-                    
-                    if detailed_tests:
-                        break  # Found data with this selector
-                        
-                except Exception as e:
-                    logger.debug(f"Error with selector {selector}: {e}")
-                    continue
+            # Look for the comprehensive test structure shown in the screenshot
+            # Try to find individual MOT test sections
+            test_sections = self._find_individual_test_sections()
             
-            # If no data found, try broader search approach
-            if not detailed_tests:
-                logger.info("Trying broader search for MOT test records")
-                detailed_tests = self._extract_with_broad_search()
+            if test_sections:
+                logger.info(f"Found {len(test_sections)} individual test sections")
+                for section in test_sections:
+                    parsed_test = self._parse_individual_test_section(section)
+                    if parsed_test:
+                        detailed_tests.append(parsed_test)
+            else:
+                # Fallback to text-based extraction from page source
+                logger.info("Using fallback text-based extraction")
+                detailed_tests = self._extract_tests_from_page_text(page_text)
             
             logger.info(f"Total detailed MOT tests extracted: {len(detailed_tests)}")
             return detailed_tests
@@ -238,6 +208,214 @@ class EnhancedMOTScraper:
         except Exception as e:
             logger.error(f"Error extracting MOT tests from history page: {e}")
             return []
+    
+    def _find_individual_test_sections(self) -> List:
+        """Find individual test sections on the MOT history page"""
+        try:
+            # Look for patterns that indicate individual test records
+            potential_selectors = [
+                # Target specific test containers
+                "[class*='test']",
+                "[class*='mot']",
+                "div:has-text('Test Date')",  # Modern CSS4 selector
+                "div:contains('Test Date')",  # Alternative
+                # Try structural approach
+                "body > div.container > div > div",
+                "body > div.container > *",
+                # Generic fallback
+                "div",
+                "section"
+            ]
+            
+            test_sections = []
+            
+            for selector in potential_selectors:
+                try:
+                    if 'has-text' in selector or 'contains' in selector:
+                        # Skip these selectors as they're not supported by Selenium
+                        continue
+                        
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for element in elements:
+                        try:
+                            element_text = element.text.strip()
+                            # Look for test-related keywords
+                            if any(keyword in element_text.lower() for keyword in 
+                                   ['test date', 'passed', 'failed', 'mileage', 'expiry', 'advisory']):
+                                if len(element_text) > 20:  # Meaningful content
+                                    test_sections.append(element)
+                                    
+                        except Exception as e:
+                            continue
+                    
+                    if test_sections:
+                        logger.info(f"Found test sections using selector: {selector}")
+                        break
+                        
+                except Exception as e:
+                    logger.debug(f"Error with selector {selector}: {e}")
+                    continue
+            
+            # Remove duplicates and filter
+            unique_sections = []
+            seen_texts = set()
+            
+            for section in test_sections:
+                try:
+                    text = section.text.strip()
+                    if text and text not in seen_texts and len(text) > 30:
+                        unique_sections.append(section)
+                        seen_texts.add(text)
+                except:
+                    continue
+            
+            return unique_sections[:10]  # Limit to first 10
+            
+        except Exception as e:
+            logger.error(f"Error finding test sections: {e}")
+            return []
+    
+    def _parse_individual_test_section(self, section) -> Optional[Dict[str, Any]]:
+        """Parse an individual test section element"""
+        try:
+            text = section.text.strip()
+            if not text:
+                return None
+            
+            # Initialize test record
+            test_record = {
+                'source': 'mot_history_page_section',
+                'test_date': '',
+                'result': 'UNKNOWN',
+                'mileage': '',
+                'expiry_date': '',
+                'comments': [],
+                'raw_text': text[:500]  # Store raw text for debugging
+            }
+            
+            # Extract test date
+            date_match = re.search(r'Test Date[\s\n]*([^\n]+)', text, re.IGNORECASE)
+            if date_match:
+                test_record['test_date'] = date_match.group(1).strip()
+            
+            # Extract result (look for status badges)
+            text_lower = text.lower()
+            if 'passed' in text_lower and 'failed' not in text_lower:
+                test_record['result'] = 'PASSED'
+            elif 'failed' in text_lower:
+                test_record['result'] = 'FAILED'
+            elif 'unknown' in text_lower:
+                test_record['result'] = 'UNKNOWN'
+            
+            # Extract mileage
+            mileage_match = re.search(r'Mileage[\s\n]*(\d{1,6})', text, re.IGNORECASE)
+            if mileage_match:
+                test_record['mileage'] = mileage_match.group(1)
+            
+            # Extract expiry date
+            expiry_match = re.search(r'Expiry[\s\n]*([^\n]+)', text, re.IGNORECASE)
+            if expiry_match:
+                test_record['expiry_date'] = expiry_match.group(1).strip()
+            
+            # Extract comments/advisories
+            comments = []
+            
+            # Look for advisory notices
+            advisory_matches = re.findall(r'([^.]+ADVISORY[^.]*)', text, re.IGNORECASE)
+            for advisory in advisory_matches:
+                comments.append({
+                    'text': advisory.strip(),
+                    'type': 'ADVISORY'
+                })
+            
+            # Look for failure reasons
+            fail_matches = re.findall(r'([^.]+FAIL[^.]*)', text, re.IGNORECASE)
+            for fail in fail_matches:
+                comments.append({
+                    'text': fail.strip(),
+                    'type': 'FAILURE'
+                })
+            
+            # Look for general comments
+            if 'no advisory notices' in text_lower:
+                comments.append({
+                    'text': 'Vehicle passed MOT with no advisory notices',
+                    'type': 'CLEAN_PASS'
+                })
+            
+            test_record['comments'] = comments
+            
+            # Only return if we have meaningful data
+            if (test_record['test_date'] or 
+                test_record['result'] != 'UNKNOWN' or 
+                test_record['mileage'] or
+                comments):
+                return test_record
+            
+            return None
+            
+        except Exception as e:
+            logger.debug(f"Error parsing test section: {e}")
+            return None
+    
+    def _extract_tests_from_page_text(self, page_text: str) -> List[Dict[str, Any]]:
+        """Extract test data from page source text as fallback"""
+        try:
+            tests = []
+            
+            # Split text into potential test blocks
+            lines = page_text.split('\n')
+            current_test = {}
+            collecting = False
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                # Look for test date indicators
+                if 'test date' in line.lower():
+                    if current_test and any(current_test.values()):
+                        # Save previous test
+                        parsed = self._format_collected_test(current_test)
+                        if parsed:
+                            tests.append(parsed)
+                    
+                    # Start new test
+                    current_test = {'raw_lines': [line]}
+                    collecting = True
+                    
+                elif collecting:
+                    current_test['raw_lines'].append(line)
+                    
+                    # Stop collecting after a reasonable amount of lines
+                    if len(current_test['raw_lines']) > 20:
+                        collecting = False
+            
+            # Process final test
+            if current_test and any(current_test.values()):
+                parsed = self._format_collected_test(current_test)
+                if parsed:
+                    tests.append(parsed)
+            
+            return tests[:10]  # Limit results
+            
+        except Exception as e:
+            logger.error(f"Error extracting tests from page text: {e}")
+            return []
+    
+    def _format_collected_test(self, test_data: Dict) -> Optional[Dict[str, Any]]:
+        """Format collected test data into standard structure"""
+        try:
+            if 'raw_lines' not in test_data:
+                return None
+            
+            text = ' '.join(test_data['raw_lines'])
+            return self._parse_test_from_text(text)
+            
+        except Exception as e:
+            logger.debug(f"Error formatting collected test: {e}")
+            return None
     
     def _extract_individual_tests(self, container_element) -> List[Dict[str, Any]]:
         """Extract individual test records from a container element"""
