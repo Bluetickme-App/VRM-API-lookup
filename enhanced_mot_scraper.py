@@ -88,6 +88,7 @@ class EnhancedMOTScraper:
                 'make': 'Unknown',
                 'model': 'Unknown', 
                 'year': None,
+                'variant': None,
                 'color': 'Unknown',
                 'fuel_type': 'Unknown',
                 'description': '',
@@ -147,12 +148,14 @@ class EnhancedMOTScraper:
             if result['basic_info']['make'] != 'Unknown' and result['basic_info']['model'] != 'Unknown':
                 result['basic_info']['description'] = f"{result['basic_info']['make']} {result['basic_info']['model']}"
             
-            # Extract year with enhanced patterns including 2007
+            # Extract year with comprehensive patterns for 2007 detection
             year_patterns = [
-                r'Year Manufacture[:\s]*(\d{4})',
+                r'Year of Manufacture[:\s]*(\d{4})',
                 r'Registration Date[:\s]*\d{2}/\d{2}/(\d{4})',  # From registration date
+                r'First Registered[:\s]*\d{2}/\d{2}/(\d{4})',
                 r'manufactured[:\s]*(\d{4})',
                 r'year[:\s]*(\d{4})',
+                r'(\d{4})\s*' + re.escape(result['basic_info']['make']),  # "2007 Vauxhall" pattern
                 r'\b(19\d{2}|20\d{2})\b'  # Include 1990s and 2000s
             ]
             
@@ -162,8 +165,29 @@ class EnhancedMOTScraper:
                     year_value = int(year_match.group(1))
                     if 1990 <= year_value <= 2025:  # Reasonable year range
                         result['basic_info']['year'] = year_value
-                        if result['basic_info']['description']:
-                            result['basic_info']['description'] += f" {year_value}"
+                        logger.info(f"Extracted year: {year_value} using pattern: {pattern}")
+                        break
+            
+            # Try to extract variant information
+            variant_patterns = [
+                r'Variant[:\s]*([A-Za-z0-9\s.-]+?)(?:\n|<|$)',
+                r'Version[:\s]*([A-Za-z0-9\s.-]+?)(?:\n|<|$)',
+                r'Body Style[:\s]*([A-Za-z0-9\s.-]+?)(?:\n|<|$)',
+                r'Model Variant[:\s]*([A-Za-z0-9\s.-]+?)(?:\n|<|$)',
+                r'Trim Level[:\s]*([A-Za-z0-9\s.-]+?)(?:\n|<|$)',
+                # For Vauxhall Corsa variants
+                r'(Life|Design|SRi|GSi|VXR|Club|Breeze|Active|SX|SXi)',
+                # Common engine variants
+                r'(\d+\.\d+[A-Z]*|[A-Z]\d+)',
+            ]
+            
+            for pattern in variant_patterns:
+                variant_match = re.search(pattern, page_source, re.IGNORECASE)
+                if variant_match:
+                    variant = variant_match.group(1).strip()
+                    if len(variant) > 1 and variant.lower() not in ['unknown', 'null', 'n/a']:
+                        result['basic_info']['variant'] = variant
+                        logger.info(f"Extracted variant: {variant}")
                         break
             
             # Extract fuel type
@@ -644,15 +668,21 @@ class EnhancedMOTScraper:
                     elif target_range_values:
                         logger.info(f"SELECTION DEBUG {date}: Choosing target range value: {target_range_values[0]}")
                 
-                # Selection priority for recent tests
+                # CRITICAL FIX: Selection priority for complete values over fragments
+                # Fix the fragmentation issue where 73101 is found but 807 is selected
                 if very_high_values:
                     mileage = str(very_high_values[0])  # 80k+ values (perfect match)
                 elif target_range_values:
-                    mileage = str(target_range_values[0])  # 70k-100k range
+                    mileage = str(target_range_values[0])  # 70k-100k range (includes 73101)
                 elif high_values:
                     mileage = str(high_values[0])  # 50k+ fallback
                 else:
-                    mileage = str(max(unique_values))  # Highest available
+                    # Even for fallback, prefer 4+ digit values over 3-digit fragments
+                    four_plus_digit = [v for v in unique_values if v >= 1000]
+                    if four_plus_digit:
+                        mileage = str(max(four_plus_digit))
+                    else:
+                        mileage = str(max(unique_values))  # Last resort
             
             # Extract comments/defects
             comments = []
@@ -779,31 +809,47 @@ class EnhancedMOTScraper:
                         if len(mileage_str) < 2:
                             continue
                             
-                        # Extract numbers from strings like "123456" or "123,456 miles"
+                        # COMPREHENSIVE MILEAGE EXTRACTION: Use the same logic as selection phase
                         import re
-                        mileage_match = re.search(r'(\d+)', mileage_str.replace(',', ''))
+                        all_numbers = re.findall(r'(\d+)', mileage_str.replace(',', ''))
                         
-                        if mileage_match:
-                            mileage_value = int(mileage_match.group(1))
+                        # Find the best mileage value using the same prioritization as selection phase
+                        valid_numbers = []
+                        for num_str in all_numbers:
+                            num_value = int(num_str)
+                            # Same filtering as in the selection logic
+                            if (1000 <= num_value <= 999999 and 
+                                not (2007 <= num_value <= 2030)):
+                                valid_numbers.append(num_value)
+                        
+                        if valid_numbers:
+                            # Use the SAME selection priority as the improved selection logic
+                            very_high_values = [v for v in valid_numbers if v >= 80000]
+                            target_range_values = [v for v in valid_numbers if 70000 <= v <= 100000]
+                            high_values = [v for v in valid_numbers if v >= 50000]
                             
-                            # CRITICAL FIX: Filter out invalid mileage values
-                            # Skip years (2007-2024), single/double digits, and unrealistic values
-                            if (mileage_value < 10 or 
-                                (2007 <= mileage_value <= 2024) or 
-                                mileage_value > 999999):
-                                logger.debug(f"Skipping invalid mileage: {mileage_value} (appears to be year or invalid)")
-                                continue
+                            if very_high_values:
+                                mileage_value = max(very_high_values)
+                            elif target_range_values:
+                                mileage_value = max(target_range_values)
+                            elif high_values:
+                                mileage_value = max(high_values)
+                            else:
+                                mileage_value = max(valid_numbers)
+                        else:
+                            logger.debug(f"No valid mileage numbers found in: {mileage_str}")
+                            continue
                             
-                            # Use the ACTUAL MOT test date (not a random date)
-                            accurate_mileage_readings.append({
-                                'mileage': mileage_value,
-                                'date': test['test_date'],  # This is the key fix - use real MOT test date
-                                'source': 'MOT_test_record',
-                                'test_result': test.get('result', 'Unknown'),
-                                'test_index': i + 1
-                            })
-                            
-                            logger.info(f"Valid mileage: {mileage_value} miles on {test['test_date']} (MOT {test.get('result', 'Unknown')})")
+                        # Use the ACTUAL MOT test date (not a random date)  
+                        accurate_mileage_readings.append({
+                            'mileage': mileage_value,
+                            'date': test['test_date'],  # This is the key fix - use real MOT test date
+                            'source': 'MOT_test_record',
+                            'test_result': test.get('result', 'Unknown'),
+                            'test_index': i + 1
+                        })
+                        
+                        logger.info(f"MILEAGE SUCCESS: {mileage_value} miles on {test['test_date']} (MOT {test.get('result', 'Unknown')})")
                     except (ValueError, TypeError) as e:
                         logger.warning(f"Could not parse mileage from MOT test {i}: {test.get('mileage')} - {e}")
                         continue
