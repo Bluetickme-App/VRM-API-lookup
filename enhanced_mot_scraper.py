@@ -27,22 +27,39 @@ class EnhancedMOTScraper:
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--disable-gpu')
             options.add_argument('--window-size=1920,1080')
+            options.add_argument('--disable-blink-features=AutomationControlled')
+            options.set_preference('general.useragent.override', 
+                                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
             
             service = Service(GeckoDriverManager().install())
             self.driver = webdriver.Firefox(service=service, options=options)
-            self.driver.set_page_load_timeout(20)  # Reduced for efficiency
+            
+            if self.driver is None:
+                raise Exception("WebDriver initialization returned None")
+                
+            self.driver.set_page_load_timeout(25)
             logger.info("Enhanced MOT Scraper WebDriver initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize WebDriver: {e}")
+            self.driver = None
             raise
     
     def scrape_comprehensive_vehicle_data(self, registration: str, target_tests: int = 16) -> Dict[str, Any]:
         """Scrape comprehensive vehicle data including detailed MOT history - targeting all 16 tests"""
         logger.info(f"Starting comprehensive scrape for: {registration} (targeting {target_tests} tests)")
+        
+        if self.driver is None:
+            logger.error("WebDriver not initialized - attempting to reinitialize")
+            self.setup_driver()
+            if self.driver is None:
+                raise Exception("Cannot proceed without valid WebDriver")
+        
         try:
-            # Navigate to MOT check and search for vehicle
-            self.driver.get("https://www.checkcardetails.co.uk/mot-check")
-            time.sleep(3)
+            # Navigate directly to vehicle details page for better data extraction
+            vehicle_url = f"https://www.checkcardetails.co.uk/cardetails/{registration}"
+            logger.info(f"Navigating to: {vehicle_url}")
+            self.driver.get(vehicle_url)
+            time.sleep(5)  # Allow page to fully load
             
             # Find and fill registration input
             input_element = self.driver.find_element(By.CSS_SELECTOR, 'input[type="text"]')

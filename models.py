@@ -73,6 +73,10 @@ class VehicleData(db.Model):
     mot_history = db.Column(JSON)
     mileage_history = db.Column(JSON)
     
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
     # Analysis data
     last_analyzed = db.Column(db.DateTime)
     

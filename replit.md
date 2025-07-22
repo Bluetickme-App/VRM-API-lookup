@@ -9,6 +9,14 @@ Data extraction: Use enhanced scraper exclusively, no fast scraper.
 Data quality: All vehicles have complete MOT and mileage history from DVLA sources - no missing data cases.
 
 ## Recent Changes
+**July 22, 2025 - CRITICAL DATA EXTRACTION FAILURE IDENTIFIED:**
+- EXTRACTION SUCCESS RATE: Only 33.3% field success (3/9 critical fields) confirmed by database analysis
+- MILEAGE DATA ERRORS: Duplicate readings, synthetic values, missing authentic MOT correlations  
+- DATABASE ISSUES: Model field mismatches, WebDriver initialization failures (31 LSP errors)
+- USER VALIDATION: Confirmed extraction "totally incorrect" - authentic DVLA data not being captured
+- SELENIUM FAILURES: Read-only element errors preventing proper form interaction
+- FUNDAMENTAL ISSUE: System generating synthetic data instead of extracting authentic vehicle information
+
 **July 22, 2025 - COMPREHENSIVE FIELD EXTRACTION ENHANCEMENT COMPLETE:**
 - MISSING FIELDS INFRASTRUCTURE: Added support for variant, registration_date, mot_expiry_date, tax_6_months, tax_12_months fields
 - DATABASE SCHEMA EXPANSION: Successfully added new columns to PostgreSQL database with proper data types

@@ -71,8 +71,10 @@ def scrape_vehicle():
         search_record.request_source = 'web'
         
         try:
-            # Check if we already have this vehicle in database
-            existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
+            # Check if we already have this vehicle in database (24-hour cache)  
+            twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+            existing_vehicle = VehicleData.query.filter_by(registration=registration)\
+                .filter(VehicleData.updated_at >= twenty_four_hours_ago).first()
             
             if existing_vehicle and existing_vehicle.updated_at:
                 # Check if data is less than 24 hours old
