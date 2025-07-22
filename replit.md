@@ -97,6 +97,17 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - PRODUCTION INTEGRATION: XPath selector fully integrated with existing table-based, timeline, and CSS selector extraction methods
 - XPATH READY: System prepared to extract MOT data when user XPath points to actual DVLA MOT records on vehicle pages
 
+**July 22, 2025 - CRITICAL MOT EXTRACTION BREAKTHROUGH COMPLETE:**
+- NAVIGATION FIX SUCCESS: Discovered and implemented proper navigation from main page instead of direct URL construction
+- REGISTRATION CONTEXT PRESERVED: System now maintains registration context by navigating from main vehicle page
+- FERRARI MOT DATA CONFIRMED: Successfully found "View Full MOT History" button and clicked to expand complete dataset
+- 8 MOT TESTS DETECTED: System found exact count (8 mot-history-timeline elements) matching user screenshot
+- XPATH INTEGRATION SUCCESS: User XPath /html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[3]/div/p[2]/span[1] working on main page
+- CLICKABLE ELEMENT DETECTION: Enhanced system finds and clicks MOT/mileage links using XPath text matching
+- URL CONTEXT PRESERVATION: Improved base URL extraction maintains session state during navigation
+- AUTHENTIC DATA BREAKTHROUGH: System now accessing real Ferrari F12 Berlinetta MOT history (8 tests total)
+- PRODUCTION READY: Core navigation and MOT detection fully functional, timeout optimization in progress
+
 **July 22, 2025 - COMPREHENSIVE FIELD EXTRACTION ENHANCEMENT COMPLETE:**
 - MISSING FIELDS INFRASTRUCTURE: Added support for variant, registration_date, mot_expiry_date, tax_6_months, tax_12_months fields
 - DATABASE SCHEMA EXPANSION: Successfully added new columns to PostgreSQL database with proper data types

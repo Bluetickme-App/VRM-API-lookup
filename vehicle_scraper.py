@@ -131,12 +131,46 @@ class VehicleScraper:
     def _add_mot_history(self, registration, vehicle_data):
         """Add MOT history to existing vehicle data"""
         try:
-            # Navigate directly to MOT history page
-            mot_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}/mot-history"
-            logger.info(f"Getting MOT history from: {mot_url}")
+            # Navigate from main page to MOT history (don't construct URL directly)
+            main_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}"
+            logger.info(f"Starting from main page: {main_url}")
             
-            self.driver.get(mot_url)
+            self.driver.get(main_url)
             time.sleep(3)
+            
+            # Try to find and click MOT History link on the main page
+            try:
+                # Look for any element containing "MOT" text that might be clickable
+                elements_with_mot = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'MOT') or contains(text(), 'mot')]")
+                
+                mot_clicked = False
+                for element in elements_with_mot:
+                    try:
+                        # Check if element is clickable (link or button)
+                        if element.tag_name in ['a', 'button'] or 'click' in element.get_attribute('onclick') or '':
+                            logger.info(f"Found clickable MOT element: {element.text[:50]}")
+                            element.click()
+                            time.sleep(4)
+                            mot_clicked = True
+                            break
+                    except Exception as e:
+                        continue
+                
+                # If clicking didn't work, try the URL approach but navigate properly
+                if not mot_clicked:
+                    logger.info("No clickable MOT link found - using direct URL navigation")
+                    # Use the proper URL format that maintains session/registration context
+                    current_url = self.driver.current_url
+                    if '/cardetails/' in current_url:
+                        # Extract the base URL and append mot-history
+                        base_url = current_url.split('?')[0]  # Remove any query parameters
+                        mot_url = f"{base_url}/mot-history"
+                        logger.info(f"Navigating to MOT history: {mot_url}")
+                        self.driver.get(mot_url)
+                        time.sleep(4)
+                    
+            except Exception as e:
+                logger.debug(f"Error in MOT navigation: {e}")
             
             # Extract MOT tests
             mot_tests = []
@@ -468,12 +502,46 @@ class VehicleScraper:
     def _add_mileage_history(self, registration, vehicle_data):
         """Add mileage history to existing vehicle data"""
         try:
-            # Navigate directly to mileage history page  
-            mileage_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}/mileage-history"
-            logger.info(f"Getting mileage history from: {mileage_url}")
+            # Navigate from main page to mileage history (don't construct URL directly)
+            main_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}"
+            logger.info(f"Starting from main page for mileage: {main_url}")
             
-            self.driver.get(mileage_url)
+            self.driver.get(main_url)
             time.sleep(3)
+            
+            # Try to find and click Mileage History link on the main page
+            try:
+                # Look for any element containing "Mileage" text that might be clickable
+                elements_with_mileage = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Mileage') or contains(text(), 'mileage')]")
+                
+                mileage_clicked = False
+                for element in elements_with_mileage:
+                    try:
+                        # Check if element is clickable (link or button)
+                        if element.tag_name in ['a', 'button'] or 'click' in element.get_attribute('onclick') or '':
+                            logger.info(f"Found clickable Mileage element: {element.text[:50]}")
+                            element.click()
+                            time.sleep(4)
+                            mileage_clicked = True
+                            break
+                    except Exception as e:
+                        continue
+                
+                # If clicking didn't work, try the URL approach but navigate properly
+                if not mileage_clicked:
+                    logger.info("No clickable Mileage link found - using direct URL navigation")
+                    # Use the proper URL format that maintains session/registration context
+                    current_url = self.driver.current_url
+                    if '/cardetails/' in current_url:
+                        # Extract the base URL and append mileage-history
+                        base_url = current_url.split('?')[0]  # Remove any query parameters
+                        mileage_url = f"{base_url}/mileage-history"
+                        logger.info(f"Navigating to mileage history: {mileage_url}")
+                        self.driver.get(mileage_url)
+                        time.sleep(4)
+                    
+            except Exception as e:
+                logger.debug(f"Error in mileage navigation: {e}")
             
             # Extract mileage readings
             mileage_readings = []
