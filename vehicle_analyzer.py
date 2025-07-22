@@ -70,6 +70,8 @@ def get_system_prompt():
     """
     return """You are a vehicle reliability and MOT advisory analyst focused on UK vehicles. You analyze authentic DVLA vehicle data including comprehensive MOT history, accurate mileage progression, wear patterns, tax/MOT compliance status, and mechanical condition grading.
 
+CRITICAL ASSESSMENT PRIORITY: Recent MOT failures (within 2-4 weeks/months) indicate HIGH DEFECTIVE RISK. If a vehicle fails MOT within days/weeks of previous test, this is a MAJOR RED FLAG indicating serious mechanical problems and poor reliability.
+
 IMPORTANT: All vehicles will have complete MOT and mileage history from DVLA sources. There are no cases of missing data.
 
 Your analysis tasks:
@@ -161,9 +163,27 @@ def create_analysis_prompt(vehicle_data):
     current_year = datetime.now().year
     vehicle_age = current_year - int(year) if year != 'Unknown' and year else 0
     
+    # Analyze recent failures for critical risk assessment
+    recent_failure_warning = ""
+    if len(mot_tests) >= 2:
+        # Check for recent failures (within 2-4 weeks/months)
+        latest_test = mot_tests[0]
+        previous_test = mot_tests[1]
+        
+        latest_result = latest_test.get('result', '').upper()
+        latest_date = latest_test.get('test_date', '')
+        previous_date = previous_test.get('test_date', '')
+        
+        if 'FAIL' in latest_result:
+            recent_failure_warning = f"\n🚨 CRITICAL WARNING: RECENT MOT FAILURE DETECTED 🚨\n"
+            recent_failure_warning += f"Latest test ({latest_date}): FAILED\n"
+            recent_failure_warning += f"Previous test ({previous_date})\n"
+            recent_failure_warning += f"ANALYSIS PRIORITY: This vehicle has FAILED its most recent MOT test.\n"
+            recent_failure_warning += f"Recent failures indicate HIGH DEFECTIVE RISK and serious mechanical problems.\n\n"
+
     prompt = f"""
 AUTHENTIC DVLA VEHICLE DATA FOR ANALYSIS:
-
+{recent_failure_warning}
 BASIC INFORMATION:
 - Registration: {registration}
 - Make/Model: {make} {model}
@@ -311,7 +331,14 @@ ADDITIONAL INFORMATION:
 - CO2 Emissions: {vehicle_data.get('co2_emissions', 'Unknown')}
 - Date First Registered: {vehicle_data.get('date_first_registered', 'Unknown')}
 
-Please analyze this vehicle data and provide a comprehensive assessment following the required JSON schema. Focus on identifying patterns, predicting future issues, and providing actionable trade recommendations.
+CRITICAL ANALYSIS INSTRUCTIONS:
+1. If the most recent MOT test shows a FAILURE, this must be prominently featured in your risk assessment
+2. Recent failures (within weeks/months) indicate HIGH DEFECTIVE RISK and should result in Grade D-E mechanical rating
+3. Vehicles that fail MOT soon after previous tests have serious underlying mechanical problems
+4. Recent failures should strongly influence trade recommendations toward "AVOID" or "CAUTION" 
+5. Cost estimates should be increased significantly for vehicles with recent MOT failures
+
+Please analyze this vehicle data and provide a comprehensive assessment following the required JSON schema. Give special attention to recent MOT failures as indicators of high defective risk.
 """
     
     return prompt
