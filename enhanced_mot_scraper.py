@@ -857,13 +857,25 @@ class EnhancedMOTScraper:
                         if test.get('comments'):
                             for comment in test['comments']:
                                 comment_text = comment.get('text', '')
-                                # Look for the specific HTML pattern: "mot-history-mileage-numbers">NUMBER
-                                html_mileage_match = re.search(r'mot-history-mileage-numbers["\s>]*(\d{5,6})', comment_text)
+                                # Enhanced HTML patterns using the exact CSS selector structure
+                                html_patterns = [
+                                    r'mot-history-mileage-numbers["\s>]*(\d{5,6})',  # Original pattern
+                                    r'<p\s+class="mot-history-mileage-numbers">(\d{5,6})</p>',  # Exact element match
+                                    r'mot-history-mileage-numbers">(\d{5,6})<',  # Closing tag pattern
+                                    r'class="mot-history-mileage-numbers"[^>]*>(\d{5,6})'  # Class attribute pattern
+                                ]
+                                
+                                html_mileage_match = None
+                                for pattern in html_patterns:
+                                    html_mileage_match = re.search(pattern, comment_text)
+                                    if html_mileage_match:
+                                        break
                                 if html_mileage_match:
                                     html_mileage = int(html_mileage_match.group(1))
-                                    if 50000 <= html_mileage <= 999999:  # Reasonable range
+                                    # Expanded range to capture more valid mileage values
+                                    if 10000 <= html_mileage <= 999999:  # More inclusive range
                                         correct_mileage = html_mileage
-                                        logger.info(f"FOUND CORRECT MILEAGE in HTML: {correct_mileage} for {test['test_date']}")
+                                        logger.info(f"HTML EXTRACTION SUCCESS: {correct_mileage} miles for {test['test_date']} using CSS selector pattern")
                                         break
                         
                         # Fallback to old method if HTML extraction fails
