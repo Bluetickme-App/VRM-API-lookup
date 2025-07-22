@@ -91,10 +91,10 @@ def fast_vnc_lookup():
             from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
             
             def fast_vnc_scrape():
-                from optimized_scraper import OptimizedVehicleScraper
-                scraper = OptimizedVehicleScraper(headless=True)
-                # Single retry for speed
-                return scraper.scrape_vehicle_data(registration, max_retries=1)
+                from enhanced_selenium_scraper import EnhancedSeleniumScraper
+                scraper = EnhancedSeleniumScraper(headless=True)
+                # Complete vehicle data with MOT and mileage history
+                return scraper.scrape_complete_vehicle_data(registration)
             
             # Execute fast VNC automation without timeout - let it complete naturally
             try:

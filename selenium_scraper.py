@@ -343,9 +343,25 @@ class SeleniumVehicleScraper:
                 
                 if vehicle_data and vehicle_data.get('basic_info'):
                     vehicle_data['registration'] = registration.upper()
-                    logger.info(f"Successfully extracted data for {registration}")
+                    logger.info(f"Successfully extracted basic data for {registration}")
                     
-                    # Close driver immediately after successful extraction
+                    # Now scrape MOT and mileage history
+                    try:
+                        mot_history = self._scrape_mot_history_page(registration)
+                        if mot_history:
+                            vehicle_data['mot_history'] = mot_history
+                            logger.info(f"Successfully extracted MOT history for {registration}")
+                        
+                        mileage_history = self._scrape_mileage_history_page(registration)
+                        if mileage_history:
+                            vehicle_data['mileage_history'] = mileage_history
+                            logger.info(f"Successfully extracted mileage history for {registration}")
+                    
+                    except Exception as e:
+                        logger.warning(f"Error extracting history data: {e}")
+                        # Continue with basic data even if history fails
+                    
+                    # Close driver after all extraction
                     self._cleanup()
                     return vehicle_data
                 else:

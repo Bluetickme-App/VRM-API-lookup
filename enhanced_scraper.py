@@ -43,7 +43,19 @@ class EnhancedVehicleScraper:
             response = self.session.get(url, timeout=30)
             
             if response.status_code == 200:
-                return self._parse_vehicle_page(response.text, registration)
+                vehicle_data = self._parse_vehicle_page(response.text, registration)
+                
+                # Enhance with MOT and mileage history data
+                if vehicle_data:
+                    mot_history = self._scrape_mot_history(registration)
+                    mileage_history = self._scrape_mileage_history(registration)
+                    
+                    if mot_history:
+                        vehicle_data['mot_history'] = mot_history
+                    if mileage_history:
+                        vehicle_data['mileage_history'] = mileage_history
+                
+                return vehicle_data
             else:
                 logger.error(f"Failed to fetch page. Status code: {response.status_code}")
                 return None

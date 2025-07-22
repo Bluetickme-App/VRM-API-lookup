@@ -7,13 +7,18 @@ This is a comprehensive UK vehicle data extraction API that provides real-time v
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
-**July 22, 2025 - Bug Fixes and Code Quality Improvements:**
-- Fixed missing SESSION_SECRET environment variable causing session failures
-- Resolved SearchHistory model constructor errors with proper attribute assignment
-- Improved type safety for response data handling in API endpoints
-- Added fallback values for missing environment variables (SESSION_SECRET, FRONTEND_PASSWORD)
-- Enhanced error handling and type checking throughout the application
-- Application now runs successfully with proper session management
+**July 22, 2025 - Enhanced Selenium Scraper with MOT and Mileage History:**
+- Created new `enhanced_selenium_scraper.py` with comprehensive MOT and mileage history extraction
+- Enhanced scraper now navigates to specific MOT history and mileage history pages
+- Added robust table parsing and fallback text extraction methods
+- Integrated enhanced scraper into VNC API endpoints (`/api/vnc-vehicle` and `/api/fast-vnc`)
+- Scraper extracts comprehensive vehicle data including:
+  - Basic vehicle information (make, model, year, color, fuel type)
+  - MOT test history with dates, results, and mileage readings
+  - Mileage history with timeline analysis
+  - Summary statistics and trend analysis
+- Enhanced error handling and natural human-like browsing behavior
+- All API endpoints now provide complete vehicle history data using Selenium automation
 
 ## System Architecture
 The system uses a **multi-layered scraping approach** with automatic fallback mechanisms:
