@@ -125,17 +125,78 @@ def scrape_vehicle():
                     return jsonify(response_data)
             
             # If no cached data or data is old, return error for now
-            # In a real implementation, you would scrape fresh data here
-            search_record.success = False
-            search_record.error_message = 'Fresh data scraping temporarily disabled'
-            db.session.add(search_record)
-            db.session.commit()
-            
-            return jsonify({
-                'success': False,
-                'error': 'Vehicle data not found in cache. Fresh scraping is temporarily disabled.',
-                'registration': registration
-            }), 404
+            # Use enhanced Selenium scraper for fresh data
+            try:
+                from enhanced_selenium_scraper import EnhancedSeleniumScraper
+                
+                logger.info(f"Starting fresh scrape for registration: {registration}")
+                scraper = EnhancedSeleniumScraper(headless=True)
+                vehicle_data = scraper.scrape_complete_vehicle_data(registration)
+                
+                if vehicle_data and vehicle_data.get('basic_info'):
+                    basic_info = vehicle_data.get('basic_info', {})
+                    
+                    # Create new vehicle record
+                    vehicle_record = VehicleData(registration=registration)
+                    
+                    # Update with scraped data
+                    vehicle_record.make = (basic_info.get('make') or 'Unknown')[:50]
+                    vehicle_record.model = (basic_info.get('model') or 'Unknown')[:50]
+                    vehicle_record.description = (basic_info.get('description') or 'Unknown')[:200]
+                    vehicle_record.color = (basic_info.get('color') or 'Unknown')[:50]
+                    vehicle_record.fuel_type = (basic_info.get('fuel_type') or 'Unknown')[:50]
+                    vehicle_record.year = basic_info.get('year')
+                    
+                    # Store in database
+                    db.session.add(vehicle_record)
+                    search_record.success = True
+                    search_record.vehicle_data = vehicle_record
+                    db.session.add(search_record)
+                    db.session.commit()
+                    
+                    logger.info(f"Successfully scraped and stored data for {registration}")
+                    
+                    return jsonify({
+                        'success': True,
+                        'data': {
+                            'registration': registration,
+                            'make': vehicle_record.make,
+                            'model': vehicle_record.model,
+                            'description': vehicle_record.description,
+                            'color': vehicle_record.color,
+                            'fuel_type': vehicle_record.fuel_type,
+                            'year': vehicle_record.year,
+                            'mot_history': vehicle_data.get('mot_history'),
+                            'mileage_history': vehicle_data.get('mileage_history')
+                        },
+                        'source': 'fresh_scrape',
+                        'method': 'enhanced_selenium'
+                    })
+                
+                else:
+                    search_record.success = False
+                    search_record.error_message = 'No vehicle data found'
+                    db.session.add(search_record)
+                    db.session.commit()
+                    
+                    return jsonify({
+                        'success': False,
+                        'error': 'Vehicle not found or data could not be extracted',
+                        'registration': registration
+                    }), 404
+                    
+            except Exception as scrape_error:
+                logger.error(f"Scraping failed for {registration}: {scrape_error}")
+                search_record.success = False
+                search_record.error_message = f'Scraping error: {str(scrape_error)}'
+                db.session.add(search_record)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': False,
+                    'error': 'Scraping failed. Please try again later.',
+                    'registration': registration
+                }), 500
             
         except Exception as e:
             logger.error(f"Database error: {str(e)}")

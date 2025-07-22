@@ -101,25 +101,93 @@ document.getElementById('searchForm').addEventListener('submit', async function(
         results.style.display = 'block';
         
         if (data.success) {
+            let vehicleData = data.data || data; // Handle both response formats
+            
+            // Build MOT history section
+            let motHistoryHtml = '';
+            if (vehicleData.mot_history && vehicleData.mot_history.mot_tests && vehicleData.mot_history.mot_tests.length > 0) {
+                const motTests = vehicleData.mot_history.mot_tests.slice(0, 5); // Show first 5 tests
+                motHistoryHtml = `
+                    <div class="mt-3">
+                        <h6><i class="fas fa-clipboard-check"></i> Recent MOT History</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Result</th>
+                                        <th>Mileage</th>
+                                        <th>Expiry</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${motTests.map(test => `
+                                        <tr>
+                                            <td>${test.test_date || 'N/A'}</td>
+                                            <td><span class="badge bg-${test.result === 'PASS' ? 'success' : 'danger'}">${test.result || 'N/A'}</span></td>
+                                            <td>${test.mileage || 'N/A'}</td>
+                                            <td>${test.expiry_date || 'N/A'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Build mileage history section
+            let mileageHistoryHtml = '';
+            if (vehicleData.mileage_history && vehicleData.mileage_history.mileage_records && vehicleData.mileage_history.mileage_records.length > 0) {
+                const mileageRecords = vehicleData.mileage_history.mileage_records.slice(0, 5); // Show first 5 records
+                mileageHistoryHtml = `
+                    <div class="mt-3">
+                        <h6><i class="fas fa-tachometer-alt"></i> Mileage History</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Mileage</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${mileageRecords.map(record => `
+                                        <tr>
+                                            <td>${record.date || 'N/A'}</td>
+                                            <td>${record.mileage || 'N/A'}</td>
+                                            <td>${record.source || 'N/A'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
             results.innerHTML = `
                 <div class="alert alert-success">
                     <h6><i class="fas fa-check-circle"></i> Vehicle Found</h6>
                     <div class="row">
                         <div class="col-md-6">
-                            <strong>Registration:</strong> ${data.registration || 'N/A'}<br>
-                            <strong>Make:</strong> ${data.make || 'N/A'}<br>
-                            <strong>Model:</strong> ${data.model || 'N/A'}<br>
-                            <strong>Year:</strong> ${data.year || 'N/A'}<br>
-                            <strong>Color:</strong> ${data.color || 'N/A'}<br>
+                            <strong>Registration:</strong> ${vehicleData.registration || 'N/A'}<br>
+                            <strong>Make:</strong> ${vehicleData.make || 'N/A'}<br>
+                            <strong>Model:</strong> ${vehicleData.model || 'N/A'}<br>
+                            <strong>Year:</strong> ${vehicleData.year || 'N/A'}<br>
+                            <strong>Color:</strong> ${vehicleData.color || 'N/A'}<br>
                         </div>
                         <div class="col-md-6">
-                            <strong>Fuel Type:</strong> ${data.fuel_type || 'N/A'}<br>
-                            <strong>Engine Size:</strong> ${data.engine_size || 'N/A'}<br>
-                            <strong>Transmission:</strong> ${data.transmission || 'N/A'}<br>
-                            <strong>Body Style:</strong> ${data.body_style || 'N/A'}<br>
-                            ${data.cached ? '<span class="badge bg-info">Cached Data</span>' : ''}
+                            <strong>Fuel Type:</strong> ${vehicleData.fuel_type || 'N/A'}<br>
+                            <strong>Engine Size:</strong> ${vehicleData.engine_size || 'N/A'}<br>
+                            <strong>Transmission:</strong> ${vehicleData.transmission || 'N/A'}<br>
+                            <strong>Body Style:</strong> ${vehicleData.body_style || 'N/A'}<br>
+                            ${vehicleData.cached ? '<span class="badge bg-info">Cached Data</span>' : '<span class="badge bg-success">Fresh Data</span>'}
                         </div>
                     </div>
+                    ${motHistoryHtml}
+                    ${mileageHistoryHtml}
                 </div>
             `;
         } else {
