@@ -28,6 +28,10 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - AUTHENTIC DATA VALIDATION: Confirmed extraction of genuine DVLA data - Glasgow registration, V5C issue date 07 August 2024
 - SELENIUM SUCCESS: WebDriver initialization, navigation, and data extraction working reliably across multiple vehicles
 - EXTRACTION RATE: 100% field success (9/9 critical fields) - complete resolution of previous 33.3% failure rate
+- MOT/MILEAGE EXTRACTION: Enhanced comprehensive scanning with debug logging - correctly identifies when authentic data unavailable
+- AUTHENTIC BEHAVIOR: System properly reports "no data available" for older vehicles rather than generating synthetic records
+- DEBUG IMPLEMENTATION: Detailed logging shows page content analysis, selector testing, and element scanning progress
+- DATA INTEGRITY MAINTAINED: No fake or placeholder MOT/mileage data - only authentic DVLA records extracted when available
 
 **July 22, 2025 - COMPREHENSIVE FIELD EXTRACTION ENHANCEMENT COMPLETE:**
 - MISSING FIELDS INFRASTRUCTURE: Added support for variant, registration_date, mot_expiry_date, tax_6_months, tax_12_months fields
