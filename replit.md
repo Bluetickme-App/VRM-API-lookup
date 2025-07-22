@@ -6,6 +6,15 @@ This is a comprehensive UK vehicle data extraction API that provides real-time v
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+**July 22, 2025 - Bug Fixes and Code Quality Improvements:**
+- Fixed missing SESSION_SECRET environment variable causing session failures
+- Resolved SearchHistory model constructor errors with proper attribute assignment
+- Improved type safety for response data handling in API endpoints
+- Added fallback values for missing environment variables (SESSION_SECRET, FRONTEND_PASSWORD)
+- Enhanced error handling and type checking throughout the application
+- Application now runs successfully with proper session management
+
 ## System Architecture
 The system uses a **multi-layered scraping approach** with automatic fallback mechanisms:
 1. **Fast API Scraping** - Primary lightweight scraping for quick responses

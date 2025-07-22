@@ -115,12 +115,12 @@ def scrape_vehicle():
                     if not isinstance(response_data, dict):
                         response_data = {}
                     
-                    # Add cache information
-                    response_data = dict(response_data)  # Ensure it's a mutable dict
-                    response_data.update({
+                    # Add cache information - create new dict to avoid type issues
+                    cache_info = {
                         'cached': True,
                         'cache_age_hours': round(time_diff.total_seconds() / 3600, 2)
-                    })
+                    }
+                    response_data = {**response_data, **cache_info}
                     
                     return jsonify(response_data)
             
