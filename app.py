@@ -136,6 +136,7 @@ def scrape_vehicle():
                     # Debug logging
                     logger.info(f"MAPPING DEBUG - vehicle_details keys: {list(vehicle_details.keys())}")
                     logger.info(f"MAPPING DEBUG - model_variant: {vehicle_details.get('model_variant')}")
+                    logger.info(f"MAPPING DEBUG - description: {vehicle_details.get('description')}")
                     logger.info(f"MAPPING DEBUG - primary_colour: {vehicle_details.get('primary_colour')}")
                     
                     # Map make from model_variant for different vehicles
@@ -143,15 +144,32 @@ def scrape_vehicle():
                     model_variant = vehicle_details.get('model_variant', '')
                     description = vehicle_details.get('description', '')
                     
+                    # Enhanced make extraction patterns (from replit.md luxury vehicle patterns)
                     if 'corsa' in model_variant.lower():
                         make = 'Vauxhall'
                     elif 'a6' in model_variant.lower():
                         make = 'Audi'
                     elif '3 series' in description.lower() or 'bmw' in description.lower():
                         make = 'BMW'
+                    elif 'f12berlinetta' in model_variant.lower() or 'f12' in model_variant.lower() or 'berlinetta' in model_variant.lower() or 'berlinetta' in description.lower():
+                        make = 'Ferrari'
+                    elif 'f430' in model_variant.lower() or 'f458' in model_variant.lower() or 'f488' in model_variant.lower():
+                        make = 'Ferrari'
+                    elif 'f8' in model_variant.lower() or 'roma' in model_variant.lower() or 'portofino' in model_variant.lower():
+                        make = 'Ferrari'
+                    elif 'california' in model_variant.lower() or 'laferrari' in model_variant.lower():
+                        make = 'Ferrari'
+                    elif 'huracan' in model_variant.lower() or 'aventador' in model_variant.lower() or 'gallardo' in model_variant.lower():
+                        make = 'Lamborghini'
+                    elif '911' in model_variant.lower() or 'cayenne' in model_variant.lower() or 'panamera' in model_variant.lower():
+                        make = 'Porsche'
                     
-                    # Map other fields directly from vehicle_details
-                    model = model_variant if model_variant else 'Unknown'
+                    # Map model with proper Ferrari handling
+                    if make == 'Ferrari' and 'f12' in model_variant.lower():
+                        model = 'F12 Berlinetta'
+                    else:
+                        model = model_variant if model_variant else 'Unknown'
+                        
                     color = vehicle_details.get('primary_colour', 'Unknown')
                     fuel_type = vehicle_details.get('fuel_type', 'Unknown')
                     
