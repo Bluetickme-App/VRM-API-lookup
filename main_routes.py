@@ -125,32 +125,31 @@ def scrape_vehicle():
                     return jsonify(response_data)
             
             # If no cached data or data is old, return error for now
-            # Use enhanced Selenium scraper for fresh data
+            # Use fast scraper for web interface to avoid timeouts
             try:
-                from enhanced_selenium_scraper import EnhancedSeleniumScraper
+                from fast_scraper import FastVehicleScraper
                 
-                logger.info(f"Starting fresh scrape for registration: {registration}")
-                scraper = EnhancedSeleniumScraper(headless=True)
-                vehicle_data = scraper.scrape_complete_vehicle_data(registration)
+                logger.info(f"Starting fast scrape for registration: {registration}")
+                scraper = FastVehicleScraper(headless=True)
+                basic_data = scraper.scrape_basic_vehicle_data(registration)
                 
-                if vehicle_data and vehicle_data.get('basic_info'):
-                    basic_info = vehicle_data.get('basic_info', {})
+                if basic_data:
                     
                     # Create new vehicle record
-                    vehicle_record = VehicleData(registration=registration)
+                    vehicle_record = VehicleData()
+                    vehicle_record.registration = registration
                     
                     # Update with scraped data
-                    vehicle_record.make = (basic_info.get('make') or 'Unknown')[:50]
-                    vehicle_record.model = (basic_info.get('model') or 'Unknown')[:50]
-                    vehicle_record.description = (basic_info.get('description') or 'Unknown')[:200]
-                    vehicle_record.color = (basic_info.get('color') or 'Unknown')[:50]
-                    vehicle_record.fuel_type = (basic_info.get('fuel_type') or 'Unknown')[:50]
-                    vehicle_record.year = basic_info.get('year')
+                    vehicle_record.make = (basic_data.get('make') or 'Unknown')[:50]
+                    vehicle_record.model = (basic_data.get('model') or 'Unknown')[:50]
+                    vehicle_record.description = (basic_data.get('description') or 'Unknown')[:200]
+                    vehicle_record.color = (basic_data.get('color') or 'Unknown')[:50]
+                    vehicle_record.fuel_type = (basic_data.get('fuel_type') or 'Unknown')[:50]
+                    vehicle_record.year = basic_data.get('year')
                     
                     # Store in database
                     db.session.add(vehicle_record)
                     search_record.success = True
-                    search_record.vehicle_data = vehicle_record
                     db.session.add(search_record)
                     db.session.commit()
                     
@@ -166,8 +165,8 @@ def scrape_vehicle():
                             'color': vehicle_record.color,
                             'fuel_type': vehicle_record.fuel_type,
                             'year': vehicle_record.year,
-                            'mot_history': vehicle_data.get('mot_history'),
-                            'mileage_history': vehicle_data.get('mileage_history')
+                            'mot_history': basic_data.get('mot_history'),
+                            'mileage_history': basic_data.get('mileage_history')
                         },
                         'source': 'fresh_scrape',
                         'method': 'enhanced_selenium'

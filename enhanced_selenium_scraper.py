@@ -60,12 +60,12 @@ class EnhancedSeleniumScraper:
             logger.warning(f"Error during process cleanup: {e}")
     
     def _natural_delay(self, min_time=None, max_time=None):
-        """Add natural human-like delay between actions"""
-        min_delay = min_time if min_time is not None else self.min_delay
-        max_delay = max_time if max_time is not None else self.max_delay
+        """Add natural human-like delay between actions - optimized for speed"""
+        min_delay = min_time if min_time is not None else 0.3
+        max_delay = max_time if max_time is not None else 0.8
         delay = random.uniform(min_delay, max_delay)
         time.sleep(delay)
-        logger.info(f"Natural delay: {delay:.2f}s")
+        logger.debug(f"Natural delay: {delay:.2f}s")
     
     def _setup_driver(self):
         """Initialize Firefox WebDriver"""
@@ -168,7 +168,7 @@ class EnhancedSeleniumScraper:
             self.driver.get("https://www.checkcardetails.co.uk/")
             logger.info("Navigated to checkcardetails.co.uk")
             
-            self._natural_delay(3.0, 6.0)
+            self._natural_delay(1.0, 2.0)
             
             # Wait for page to load
             WebDriverWait(self.driver, self.page_load_timeout).until(
