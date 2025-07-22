@@ -140,21 +140,33 @@ class VehicleScraper:
             
             # Try to find and click MOT History link on the main page
             try:
+                # First try the specific "View Full MOT History" element
+                mot_clicked = False
+                try:
+                    viewfull_element = self.driver.find_element(By.ID, "viewfullmothistory")
+                    if viewfull_element:
+                        logger.info("Found 'View Full MOT History' button by ID")
+                        viewfull_element.click()
+                        time.sleep(4)
+                        mot_clicked = True
+                except:
+                    logger.debug("viewfullmothistory ID not found, trying other methods")
+                
                 # Look for any element containing "MOT" text that might be clickable
                 elements_with_mot = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'MOT') or contains(text(), 'mot')]")
                 
-                mot_clicked = False
-                for element in elements_with_mot:
-                    try:
-                        # Check if element is clickable (link or button)
-                        if element.tag_name in ['a', 'button'] or 'click' in element.get_attribute('onclick') or '':
-                            logger.info(f"Found clickable MOT element: {element.text[:50]}")
-                            element.click()
-                            time.sleep(4)
-                            mot_clicked = True
-                            break
-                    except Exception as e:
-                        continue
+                if not mot_clicked:
+                    for element in elements_with_mot:
+                        try:
+                            # Check if element is clickable (link or button)
+                            if element.tag_name in ['a', 'button'] or 'click' in element.get_attribute('onclick') or '':
+                                logger.info(f"Found clickable MOT element: {element.text[:50]}")
+                                element.click()
+                                time.sleep(4)
+                                mot_clicked = True
+                                break
+                        except Exception as e:
+                            continue
                 
                 # If clicking didn't work, try the URL approach but navigate properly
                 if not mot_clicked:
