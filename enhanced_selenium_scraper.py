@@ -372,6 +372,18 @@ class EnhancedSeleniumScraper:
             # Extract data from the page
             self._extract_page_data(vehicle_data)
             
+            # Ensure data flows to top level for database storage
+            if vehicle_data.get('basic_info'):
+                basic_info = vehicle_data['basic_info']
+                if basic_info.get('make'): vehicle_data['make'] = basic_info['make']
+                if basic_info.get('model'): vehicle_data['model'] = basic_info['model']
+                if basic_info.get('year'): vehicle_data['year'] = basic_info['year']
+                if basic_info.get('color'): vehicle_data['color'] = basic_info['color']
+                if basic_info.get('fuel_type'): vehicle_data['fuel_type'] = basic_info['fuel_type']
+                if basic_info.get('last_v5_issue_date'): vehicle_data['last_v5_issue_date'] = basic_info['last_v5_issue_date']
+                
+                logger.info(f"Mapped basic data: make={basic_info.get('make')}, model={basic_info.get('model')}, year={basic_info.get('year')}")
+            
             # Look for and store MOT/mileage links during basic extraction
             self._find_and_store_history_links(vehicle_data)
             
@@ -945,6 +957,19 @@ class EnhancedSeleniumScraper:
             # First try structured table/element extraction
             self._extract_structured_data(vehicle_data)
             
+            # Add ctrl+a extraction for comprehensive data capture
+            try:
+                # Use ctrl+a to get all visible text
+                self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.CONTROL + "a")
+                self._natural_delay(0.1, 0.3)
+                full_text = self.driver.execute_script("return window.getSelection().toString();")
+                if full_text and len(full_text) > 100:
+                    logger.info(f"Full page text extraction: {len(full_text)} characters")
+                    # Extract using comprehensive patterns
+                    self._extract_from_full_text(full_text, vehicle_data)
+            except Exception as e:
+                logger.warning(f"Ctrl+A extraction failed: {e}")
+            
             # Then try regex patterns as fallback
             if not vehicle_data['basic_info'].get('make'):
                 make_patterns = [
@@ -1055,6 +1080,63 @@ class EnhancedSeleniumScraper:
             
         except Exception as e:
             logger.error(f"Error extracting page data: {e}")
+    
+    def _extract_from_full_text(self, full_text: str, vehicle_data: dict):
+        """Extract vehicle data from full page text using comprehensive patterns"""
+        try:
+            # Make extraction with brand recognition
+            make_patterns = [
+                r'(?:Make|Brand|Manufacturer)[:\s]*([A-Z][a-zA-Z\-\s]+?)(?:\n|\s+Model|\s+A6|\s+CLA|\s+Golf)',
+                r'(Mercedes-Benz|BMW|Audi|Volkswagen|Ford|Toyota|Honda|Nissan|Vauxhall|Peugeot|Renault|Citroen|Volvo|Jaguar|Land Rover|Mini|Porsche|Ferrari|Lamborghini|Bentley|Rolls-Royce|Maserati|McLaren|Lotus|Alfa Romeo|Fiat|Skoda|Seat|Hyundai|Kia|Mazda|Subaru|Mitsubishi|Suzuki|Lexus|Infiniti|Acura|Cadillac|Chevrolet|Chrysler|Dodge|Jeep|Lincoln|Buick|GMC|Ram)(?=\s)',
+                r'^([A-Z][a-zA-Z\-\s]+?)\s+(?:A6|CLA|Golf|Focus|Corolla|Civic|Qashqai|Astra|208|Clio|C3|XC60|XF|Evoque|Cooper|911)',
+                r'Make[:\s]+([A-Za-z0-9\s\-]+)',
+            ]
+            
+            for pattern in make_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE | re.MULTILINE)
+                if match:
+                    make = match.group(1).strip()
+                    if make and len(make) > 2 and len(make) < 30 and make.lower() not in ['unknown', 'not available']:
+                        vehicle_data['basic_info']['make'] = make
+                        logger.info(f"Found make from full text: {make}")
+                        break
+            
+            # Model extraction
+            model_patterns = [
+                r'(?:Model|Variant)[:\s]*([A-Za-z0-9\s\-]+?)(?:\n|\s+\d{4}|\s+Petrol|\s+Diesel)',
+                r'(?:Mercedes-Benz|BMW|Audi|Volkswagen)\s+([A-Z0-9\-\s]+?)(?:\s+\d{4}|\s+SE|\s+TDI|\s+TSI|\n)',
+                r'Model[:\s]+([A-Za-z0-9\s\-]+)',
+                r'(A6|CLA|Golf|Focus|Corolla|Civic|Qashqai|Astra|208|Clio|C3|XC60|XF|Evoque|Cooper|911)(?=\s|$)',
+            ]
+            
+            for pattern in model_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE | re.MULTILINE)
+                if match:
+                    model = match.group(1).strip()
+                    if model and len(model) > 1 and len(model) < 30 and model.lower() not in ['unknown', 'not available']:
+                        vehicle_data['basic_info']['model'] = model
+                        logger.info(f"Found model from full text: {model}")
+                        break
+            
+            # V5C Issue Date extraction
+            v5_patterns = [
+                r'V5C Issue Date[:\s]*([^\n\r]+)',
+                r'Last V5C Issue Date[:\s]*([^\n\r]+)',
+                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
+                r'V5\s*Issue[:\s]*([^\n\r]+)',
+            ]
+            
+            for pattern in v5_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE)
+                if match:
+                    v5_date = match.group(1).strip()
+                    if v5_date and len(v5_date) < 50 and v5_date.lower() not in ['unknown', 'not available']:
+                        vehicle_data['basic_info']['last_v5_issue_date'] = v5_date
+                        logger.info(f"Found V5C date from full text: {v5_date}")
+                        break
+                        
+        except Exception as e:
+            logger.error(f"Error in full text extraction: {e}")
     
     def _extract_structured_data(self, vehicle_data: dict):
         """Extract data from structured HTML elements like tables and divs"""

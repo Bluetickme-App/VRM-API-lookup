@@ -170,8 +170,8 @@ def scrape_vehicle():
                             'color': vehicle_record.color,
                             'fuel_type': vehicle_record.fuel_type,
                             'year': vehicle_record.year,
-                            'last_v5_issue_date': basic_data.get('last_v5_issue_date'),
-                            'v5_issue_date': basic_data.get('v5_issue_date'),
+                            'last_v5_issue_date': basic_data.get('last_v5_issue_date') or basic_data.get('v5_issue_date'),
+                            'v5_issue_date': basic_data.get('v5_issue_date') or basic_data.get('last_v5_issue_date'),
                             'mot_history': basic_data.get('mot_history'),
                             'mileage_history': basic_data.get('mileage_history')
                         },
