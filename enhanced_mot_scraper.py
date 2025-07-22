@@ -106,18 +106,65 @@ class EnhancedMOTScraper:
         
         # Extract comprehensive vehicle information using robust patterns
         try:
-            # Extract make and model
-            if 'audi' in page_source.lower():
-                result['basic_info']['make'] = 'Audi'
-                if 'a6' in page_source.lower():
-                    result['basic_info']['model'] = 'A6'
-                result['basic_info']['description'] = f"Audi A6"
+            # Extract make and model using comprehensive patterns
+            make_patterns = [
+                (r'VAUXHALL', 'Vauxhall'),
+                (r'AUDI', 'Audi'),
+                (r'BMW', 'BMW'),
+                (r'FORD', 'Ford'),
+                (r'VOLKSWAGEN', 'Volkswagen'),
+                (r'MERCEDES', 'Mercedes'),
+                (r'TOYOTA', 'Toyota'),
+                (r'NISSAN', 'Nissan'),
+                (r'HONDA', 'Honda'),
+                (r'HYUNDAI', 'Hyundai')
+            ]
             
-            # Extract year
-            year_match = re.search(r'\b(20\d{2})\b', page_source)
-            if year_match:
-                result['basic_info']['year'] = int(year_match.group(1))
-                result['basic_info']['description'] += f" {year_match.group(1)}"
+            model_patterns = [
+                (r'CORSA', 'Corsa'),
+                (r'A6', 'A6'),
+                (r'A4', 'A4'),
+                (r'FOCUS', 'Focus'),
+                (r'FIESTA', 'Fiesta'),
+                (r'GOLF', 'Golf'),
+                (r'3 SERIES', '3 Series'),
+                (r'5 SERIES', '5 Series')
+            ]
+            
+            # Find make
+            for pattern, make_name in make_patterns:
+                if re.search(pattern, page_source, re.IGNORECASE):
+                    result['basic_info']['make'] = make_name
+                    break
+            
+            # Find model
+            for pattern, model_name in model_patterns:
+                if re.search(pattern, page_source, re.IGNORECASE):
+                    result['basic_info']['model'] = model_name
+                    break
+            
+            # Create description
+            if result['basic_info']['make'] != 'Unknown' and result['basic_info']['model'] != 'Unknown':
+                result['basic_info']['description'] = f"{result['basic_info']['make']} {result['basic_info']['model']}"
+            
+            # Extract year with enhanced patterns including 2007
+            year_patterns = [
+                r'Year Manufacture[:\s]*(\d{4})',
+                r'Registration Date[:\s]*\d{2}/\d{2}/(\d{4})',  # From registration date
+                r'manufactured[:\s]*(\d{4})',
+                r'year[:\s]*(\d{4})',
+                r'\b(19\d{2}|20\d{2})\b'  # Include 1990s and 2000s
+            ]
+            
+            for pattern in year_patterns:
+                year_match = re.search(pattern, page_source, re.IGNORECASE)
+                if year_match:
+                    year_value = int(year_match.group(1))
+                    if 1990 <= year_value <= 2025:  # Reasonable year range
+                        result['basic_info']['year'] = year_value
+                        if result['basic_info']['description']:
+                            result['basic_info']['description'] += f" {year_value}"
+                        break
             
             # Extract fuel type
             if 'diesel' in page_source.lower():
@@ -527,23 +574,24 @@ class EnhancedMOTScraper:
             elif 'failed' in context_lower or 'fail' in context_lower:
                 result = 'FAILED'
             
-            # Extract mileage with better pattern matching
+            # Extract mileage with enhanced pattern matching for 5-6 digit values
             mileage = None
             mileage_patterns = [
-                r'(\d{1,3}(?:,\d{3})*)\s*(?:miles|mi)',
-                r'mileage[:\s]*(\d{1,3}(?:,\d{3})*)',
-                r'odometer[:\s]*(\d{1,3}(?:,\d{3})*)',
-                r'(\d{3,7})(?!\d)'  # 3-7 digits not followed by another digit (avoid years)
+                r'(\d{5,6})\s*(?:miles|mi|MI)',  # 5-6 digit mileage values first
+                r'(\d{1,3}(?:,\d{3})+)\s*(?:miles|mi|MI)',  # Comma-separated values
+                r'mileage[:\s]*(\d{4,6})',  # Mileage label followed by 4-6 digits
+                r'odometer[:\s]*(\d{4,6})',  # Odometer label
+                r'(\d{4,6})(?!\d)'  # 4-6 digits not followed by another digit
             ]
             
             for pattern in mileage_patterns:
                 match = re.search(pattern, context, re.IGNORECASE)
                 if match:
                     potential_mileage = match.group(1).replace(',', '')
-                    # Validate mileage range and avoid years (2007-2024)
+                    # Enhanced validation for realistic mileage values
                     if (potential_mileage.isdigit() and 
-                        10 <= int(potential_mileage) <= 999999 and 
-                        not (2007 <= int(potential_mileage) <= 2024)):
+                        100 <= int(potential_mileage) <= 999999 and 
+                        not (2007 <= int(potential_mileage) <= 2030)):
                         mileage = potential_mileage
                         break
             
