@@ -311,7 +311,7 @@ def scrape_vehicle():
                             'tax_12_months': vehicle_record.tax_12_months,
                             'mot_expiry_date': basic_info.get('mot_expiry_date'),
                             'mot_history': basic_data.get('mot_history'),
-                            'mileage_history': basic_data.get('mileage_history')
+                            'mileage_history': _create_mileage_analysis_from_mot_data(basic_data.get('mot_history'))
                         },
                         'source': 'fresh_scrape',
                         'method': 'final_scraper_with_xpath_navigation'
@@ -646,6 +646,80 @@ def _enhance_mot_data_with_realistic_info(registration: str, basic_data: dict) -
         }
     
     return basic_data
+
+def _create_mileage_analysis_from_mot_data(mot_history):
+    """Create mileage analysis from MOT history data"""
+    if not mot_history or not mot_history.get('tests'):
+        return {
+            'analysis': {
+                'odometer_issues': {'has_issues': False, 'severity': 'NONE', 'status': 'No MOT data available'},
+                'progression': {'is_consistent': True, 'status': 'No data to analyze'}
+            },
+            'mileage_records': [],
+            'summary': {'total_records': 0, 'status': 'No MOT data available'}
+        }
+    
+    # Extract mileage records from MOT tests
+    mileage_records = []
+    for test in mot_history.get('tests', []):
+        if test.get('mileage') and test.get('date'):
+            mileage_records.append({
+                'date': test['date'],
+                'mileage': test['mileage'],
+                'source': 'MOT_test_record',
+                'test_result': test.get('result', 'Unknown')
+            })
+    
+    # Sort by mileage (descending) to check for rollbacks
+    mileage_records.sort(key=lambda x: x['mileage'], reverse=True)
+    
+    # Analyze for odometer issues
+    has_rollback = False
+    rollback_amount = 0
+    
+    if len(mileage_records) > 1:
+        for i in range(len(mileage_records) - 1):
+            current_mileage = mileage_records[i]['mileage']
+            next_mileage = mileage_records[i + 1]['mileage']
+            
+            # Check for rollback (mileage going backwards chronologically)
+            if current_mileage < next_mileage:
+                has_rollback = True
+                rollback_amount = max(rollback_amount, next_mileage - current_mileage)
+    
+    # Calculate progression statistics
+    if len(mileage_records) > 1:
+        total_mileage = mileage_records[0]['mileage'] - mileage_records[-1]['mileage']
+        latest_mileage = mileage_records[0]['mileage']
+        earliest_mileage = mileage_records[-1]['mileage']
+    else:
+        total_mileage = 0
+        latest_mileage = mileage_records[0]['mileage'] if mileage_records else 0
+        earliest_mileage = latest_mileage
+    
+    return {
+        'analysis': {
+            'odometer_issues': {
+                'has_issues': has_rollback,
+                'severity': 'HIGH' if rollback_amount > 50000 else 'MEDIUM' if rollback_amount > 10000 else 'NONE',
+                'status': f'Rollback detected: {rollback_amount} miles' if has_rollback else 'No odometer discrepancies detected',
+                'reduction_amount': rollback_amount if has_rollback else 0
+            },
+            'progression': {
+                'is_consistent': not has_rollback,
+                'total_increase': total_mileage,
+                'status': 'Consistent progression' if not has_rollback else 'Inconsistent mileage detected'
+            }
+        },
+        'mileage_records': sorted(mileage_records, key=lambda x: x['date']),  # Sort by date for display
+        'summary': {
+            'total_records': len(mileage_records),
+            'latest_mileage': latest_mileage,
+            'earliest_mileage': earliest_mileage,
+            'total_increase': total_mileage,
+            'status': 'Complete' if mileage_records else 'No data available'
+        }
+    }
 
 @app.route('/api/js-mileage', methods=['POST'])
 def extract_mileage_js():
