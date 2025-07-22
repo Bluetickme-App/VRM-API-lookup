@@ -16,6 +16,8 @@ from data_extractor import DataExtractor
 from config import SCRAPER_CONFIG
 import time
 import logging
+import re
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -184,10 +186,66 @@ class VehicleScraper:
                     logger.info(f"6th child div has {len(all_children)} total descendant elements")
                 
                 # Enhanced MOT extraction based on actual HTML structure
-                # First, look for the specific structure we know exists
+                # First, check for "View Full MOT History" button and click it
+                try:
+                    view_full_button = self.driver.find_element(By.CSS_SELECTOR, "#viewfullmothistory")
+                    if view_full_button.is_displayed():
+                        logger.info("Found 'View Full MOT History' button, clicking to expand data")
+                        self.driver.execute_script("arguments[0].click();", view_full_button)
+                        time.sleep(2)  # Wait for expansion
+                except Exception as e:
+                    logger.debug(f"No expandable MOT history button found: {e}")
+                
+                # Look for the actual table structure with MOT data
+                mot_table_elements = self.driver.find_elements(By.CSS_SELECTOR, "table.main-mileage-table")
                 mot_timeline_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.mot-history-timeline")
                 
-                if mot_timeline_elements:
+                # Extract from table structure first (more reliable)
+                if mot_table_elements:
+                    logger.info(f"Found {len(mot_table_elements)} MOT table elements")
+                    
+                    for table_elem in mot_table_elements:
+                        # Extract table rows with MOT data
+                        rows = table_elem.find_elements(By.CSS_SELECTOR, "tr")
+                        logger.info(f"Found {len(rows)} table rows in MOT data")
+                        
+                        for row in rows:
+                            try:
+                                # Look for date cells with dvla-date class
+                                date_cell = row.find_elements(By.CSS_SELECTOR, "td.dvla-date")
+                                mileage_cell = row.find_elements(By.CSS_SELECTOR, "td.odometervalue")
+                                
+                                if date_cell and len(date_cell) > 0:
+                                    date_text = date_cell[0].text.strip()
+                                    logger.info(f"Found MOT date: {date_text}")
+                                    
+                                    # Extract mileage if available
+                                    mileage = None
+                                    if mileage_cell and len(mileage_cell) > 0:
+                                        mileage_text = mileage_cell[0].text.strip()
+                                        # Extract numeric mileage (15493, 2294, etc.)
+                                        mileage_match = re.search(r'(\d+)', mileage_text)
+                                        if mileage_match:
+                                            mileage = int(mileage_match.group(1))
+                                            logger.info(f"Extracted mileage: {mileage}")
+                                    
+                                    # Determine result - look for failure indicators in row text
+                                    row_text = row.text.lower()
+                                    result = 'FAIL' if any(fail_word in row_text for fail_word in ['fail', 'failed', 'advisory']) else 'PASS'
+                                    
+                                    mot_tests.append({
+                                        'date': date_text,
+                                        'result': result,
+                                        'mileage': mileage,
+                                        'raw_text': row.text[:150]
+                                    })
+                                    logger.info(f"Extracted MOT from table: {date_text} - {result} - {mileage} miles")
+                                    
+                            except Exception as e:
+                                logger.debug(f"Error processing table row: {e}")
+                                continue
+                
+                elif mot_timeline_elements:
                     logger.info(f"Found {len(mot_timeline_elements)} mot-history-timeline elements")
                     
                     for timeline_elem in mot_timeline_elements:
@@ -236,8 +294,11 @@ class VehicleScraper:
                                             logger.info(f"Extracted MOT from timeline: {date_str} - {result} - {mileage} miles")
                                         break
                 
-                # Also try the specific selectors for backup
+                # Also try the specific selectors for backup including table-based extraction
                 backup_selectors = [
+                    "table.main-mileage-table tr",  # Table rows with MOT data
+                    "td.dvla-date",  # Date cells specifically
+                    "td.odometervalue",  # Mileage cells specifically
                     "div.mot-history-wrapper-pass div.mot-history-timeline",
                     "div.mot-history-wrapper-fail div.mot-history-timeline", 
                     ".total-tests",
