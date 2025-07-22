@@ -149,10 +149,14 @@ def create_analysis_prompt(vehicle_data):
     mot_history = vehicle_data.get('mot_history', {})
     mileage_history = vehicle_data.get('mileage_history', {})
     
-    mot_tests = mot_history.get('mot_tests', [])
+    # Check for MOT tests in both possible field names (tests or mot_tests)
+    mot_tests = mot_history.get('tests', [])
+    if not mot_tests:
+        mot_tests = mot_history.get('mot_tests', [])
+    
     mileage_records = mileage_history.get('mileage_records', [])
     
-    print(f"DEBUG: Found {len(mot_tests)} MOT tests for {registration}")
+    print(f"DEBUG ANALYZER: Found {len(mot_tests)} MOT tests for {registration}")
     if mot_tests:
         first_test = mot_tests[0]
         print(f"DEBUG: First test has comments: {bool(first_test.get('comments'))}")
@@ -196,7 +200,7 @@ COMPLETE MOT TEST HISTORY ({len(mot_tests)} authentic DVLA tests):
     
     # Add complete MOT test details with all defects and advisories
     for i, test in enumerate(mot_tests[:12]):  # Include more tests for better pattern analysis
-        test_date = test.get('test_date', 'Unknown')
+        test_date = test.get('date', test.get('test_date', 'Unknown'))  # Handle both field names
         result = test.get('result', 'Unknown')
         mileage = test.get('mileage', 'Unknown')
         

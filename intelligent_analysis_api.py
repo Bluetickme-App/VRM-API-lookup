@@ -7,6 +7,21 @@ from flask import Blueprint, request, jsonify, render_template
 from datetime import datetime
 import logging
 from vehicle_analyzer import analyze_vehicle_data, format_analysis_for_display
+
+def _normalize_mot_history_structure(mot_history):
+    """Normalize MOT history structure to ensure consistent format for OpenAI analysis"""
+    if not mot_history:
+        return {}
+    
+    # If data is stored as 'mot_tests', convert to 'tests' for analysis
+    if 'mot_tests' in mot_history and 'tests' not in mot_history:
+        normalized = mot_history.copy()
+        normalized['tests'] = mot_history['mot_tests']
+        # Keep both formats for compatibility
+        return normalized
+    
+    # If data already has 'tests', return as-is
+    return mot_history
 from models import VehicleData, db
 
 # Create blueprint for intelligent analysis
@@ -56,7 +71,7 @@ def intelligent_vehicle_analysis():
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
             # Use complete scraped data from raw_data field
-            'mot_history': raw_data.get('mot_history', {}),
+            'mot_history': _normalize_mot_history_structure(raw_data.get('mot_history', {})),
             'mileage_history': raw_data.get('mileage_history', {}),
             # Include all additional scraped information
             'basic_info': raw_data.get('basic_info', {}),
@@ -124,9 +139,18 @@ def analyze_vehicle_by_registration(registration):
         
         # Debug logging to verify data extraction
         logging.info(f"Raw data keys for {registration}: {list(raw_data.keys())}")
-        if 'mot_history' in raw_data:
-            mot_tests_count = len(raw_data['mot_history'].get('mot_tests', []))
-            logging.info(f"Found {mot_tests_count} MOT tests in raw_data for {registration}")
+        
+        # Extract MOT history with proper data structure mapping
+        mot_history = raw_data.get('mot_history', {})
+        if 'mot_tests' in mot_history:
+            mot_tests_count = len(mot_history['mot_tests'])
+            logging.info(f"Found {mot_tests_count} MOT tests in mot_tests field for {registration}")
+        elif 'tests' in mot_history:
+            mot_tests_count = len(mot_history['tests'])
+            logging.info(f"Found {mot_tests_count} MOT tests in tests field for {registration}")
+        else:
+            logging.info(f"Found 0 MOT tests for {registration}")
+            print(f"DEBUG: Found 0 MOT tests for {registration}")
         
         # Convert to analysis format with complete scraped data
         vehicle_data = {
@@ -143,7 +167,7 @@ def analyze_vehicle_by_registration(registration):
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
             # Use complete scraped data from raw_data field
-            'mot_history': raw_data.get('mot_history', {}),
+            'mot_history': _normalize_mot_history_structure(raw_data.get('mot_history', {})),
             'mileage_history': raw_data.get('mileage_history', {}),
             # Include all additional scraped information
             'basic_info': raw_data.get('basic_info', {}),
@@ -243,7 +267,7 @@ def scrape_and_analyze():
         finally:
             # Always close the scraper to clean up resources
             try:
-                scraper.close()
+                scraper._cleanup()
             except:
                 pass
         
@@ -280,7 +304,7 @@ def scrape_and_analyze():
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
             # Use complete scraped data from raw_data field
-            'mot_history': raw_data.get('mot_history', {}),
+            'mot_history': _normalize_mot_history_structure(raw_data.get('mot_history', {})),
             'mileage_history': raw_data.get('mileage_history', {}),
             # Include all additional scraped information
             'basic_info': raw_data.get('basic_info', {}),
