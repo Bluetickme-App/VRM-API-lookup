@@ -224,22 +224,30 @@ def scrape_and_analyze():
         
         logging.info(f"Starting scrape and analyze for registration: {registration}")
         
-        # First, import and use the scraper
-        from enhanced_mot_scraper import EnhancedMOTScraper
+        # First, import and use the enhanced selenium scraper
+        from enhanced_selenium_scraper import EnhancedSeleniumScraper
         
-        # Scrape the vehicle data
+        # Scrape the vehicle data with complete MOT history
         logging.info(f"Scraping data for {registration}")
-        scraper = EnhancedMOTScraper()
-        scrape_result = scraper.scrape_comprehensive_vehicle_data(registration)
+        scraper = EnhancedSeleniumScraper()
         
-        if not scrape_result.get('success', False):
-            return jsonify({
-                'success': False,
-                'error': f'Failed to scrape data for {registration}: {scrape_result.get("error", "Unknown error")}',
-                'scrape_result': scrape_result
-            }), 500
+        try:
+            scrape_result = scraper.scrape_complete_vehicle_data(registration)
+            
+            if not scrape_result or not scrape_result.get('success', False):
+                return jsonify({
+                    'success': False,
+                    'error': f'Failed to scrape data for {registration}: {scrape_result.get("error", "Unknown error") if scrape_result else "No data returned"}'
+                }), 500
         
-        # Get the scraped data from database
+        finally:
+            # Always close the scraper to clean up resources
+            try:
+                scraper.close()
+            except:
+                pass
+        
+        # Get the scraped data from database  
         vehicle_record = VehicleData.query.filter_by(registration=registration).first()
         
         if not vehicle_record:
@@ -248,7 +256,16 @@ def scrape_and_analyze():
                 'error': f'Vehicle data was scraped but not found in database for {registration}'
             }), 500
         
-        # Convert to analysis format
+        # Extract complete data from raw_data field (contains all scraped MOT/mileage data)
+        raw_data = vehicle_record.raw_data or {}
+        
+        # Debug logging to verify complete data extraction
+        logging.info(f"Scrape and analyze: Raw data keys for {registration}: {list(raw_data.keys())}")
+        if 'mot_history' in raw_data:
+            mot_tests_count = len(raw_data['mot_history'].get('mot_tests', []))
+            logging.info(f"Scrape and analyze: Found {mot_tests_count} MOT tests in raw_data for {registration}")
+        
+        # Convert to analysis format with complete scraped data
         vehicle_data = {
             'registration': vehicle_record.registration,
             'make': vehicle_record.make,
@@ -262,8 +279,13 @@ def scrape_and_analyze():
             'tax_status': vehicle_record.tax_status,
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
-            'mot_history': vehicle_record.mot_history or {},
-            'mileage_history': vehicle_record.mileage_history or {}
+            # Use complete scraped data from raw_data field
+            'mot_history': raw_data.get('mot_history', {}),
+            'mileage_history': raw_data.get('mileage_history', {}),
+            # Include all additional scraped information
+            'basic_info': raw_data.get('basic_info', {}),
+            'vehicle_details': raw_data.get('vehicle_details', {}),
+            'summary': raw_data.get('summary', {})
         }
         
         # Perform intelligent analysis

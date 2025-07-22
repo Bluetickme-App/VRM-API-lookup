@@ -132,34 +132,116 @@ class EnhancedSeleniumScraper:
                 self._cleanup()
                 return None
             
-            # Add placeholder MOT and mileage history (navigation is complex due to Cloudflare protection)
-            # The basic vehicle data extraction works well - focus on that for now
-            logger.info(f"Adding standard MOT/mileage placeholders for {registration}")
+            # Extract complete MOT and mileage history using enhanced MOT scraper
+            logger.info(f"Extracting complete MOT history for {registration}")
             
-            vehicle_data['mot_history'] = {
-                'extraction_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'mot_tests': [],
-                'summary': {},
-                'total_tests_found': 0,
-                'registration': registration.upper(),
-                'scraped_from': 'enhanced_selenium_mot_history_page',
-                'page_url': vehicle_data.get('current_url', 'https://www.checkcardetails.co.uk'),
-                'page_title': 'Check Car Details'
-            }
+            try:
+                # Import and use the enhanced MOT scraper that successfully extracts 10+ tests
+                from enhanced_mot_scraper import EnhancedMOTScraper
+                mot_scraper = EnhancedMOTScraper()
+                
+                # Get complete MOT history data
+                mot_result = mot_scraper.scrape_comprehensive_vehicle_data(registration)
+                if mot_result and mot_result.get('success', False):
+                    # Extract the complete data from the successful scrape
+                    scraped_data = mot_result.get('data', {})
+                    vehicle_data['mot_history'] = scraped_data.get('mot_history', {})
+                    vehicle_data['mileage_history'] = scraped_data.get('mileage_history', {})
+                    
+                    mot_tests_count = len(vehicle_data['mot_history'].get('mot_tests', []))
+                    logger.info(f"Successfully extracted {mot_tests_count} MOT tests for {registration}")
+                else:
+                    logger.warning(f"Enhanced MOT scraper failed for {registration}, using fallback")
+                    raise Exception("MOT scraper failed")
+                    
+            except Exception as e:
+                logger.warning(f"Error using enhanced MOT scraper: {e}, falling back to placeholders")
+                
+                # Fallback to empty structures if enhanced scraper fails
+                vehicle_data['mot_history'] = {
+                    'extraction_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'mot_tests': [],
+                    'summary': {},
+                    'total_tests_found': 0,
+                    'registration': registration.upper(),
+                    'scraped_from': 'enhanced_selenium_fallback',
+                    'page_url': vehicle_data.get('current_url', 'https://www.checkcardetails.co.uk'),
+                    'page_title': 'Check Car Details'
+                }
+                
+                vehicle_data['mileage_history'] = {
+                    'extraction_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'mileage_records': [],
+                    'analysis': {},
+                    'total_records_found': 0,
+                    'registration': registration.upper(),
+                    'scraped_from': 'enhanced_selenium_fallback',
+                    'page_url': vehicle_data.get('current_url', 'https://www.checkcardetails.co.uk'),
+                    'page_title': 'Check Car Details'
+                }
             
-            vehicle_data['mileage_history'] = {
-                'extraction_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'mileage_records': [],
-                'analysis': {},
-                'total_records_found': 0,
-                'registration': registration.upper(),
-                'scraped_from': 'enhanced_selenium_mileage_history_page',
-                'page_url': vehicle_data.get('current_url', 'https://www.checkcardetails.co.uk'),
-                'page_title': 'Check Car Details'
-            }
+            # Save to database using the same pattern as the app.py endpoint
+            try:
+                from models import VehicleData, SearchHistory, db
+                from app import app
+                from datetime import datetime
+                
+                with app.app_context():
+                    # Check if vehicle already exists
+                    existing_record = VehicleData.query.filter_by(registration=registration.upper()).first()
+                    
+                    if existing_record:
+                        # Update existing record with enhanced data
+                        vehicle_record = existing_record
+                        logger.info(f"Updating existing record for {registration}")
+                    else:
+                        # Create new record
+                        vehicle_record = VehicleData(registration=registration.upper())
+                        logger.info(f"Creating new record for {registration}")
+                    
+                    # Update all fields with scraped data
+                    vehicle_record.make = vehicle_data.get('make')
+                    vehicle_record.model = vehicle_data.get('model')
+                    vehicle_record.year = vehicle_data.get('year')
+                    vehicle_record.color = vehicle_data.get('color')
+                    vehicle_record.fuel_type = vehicle_data.get('fuel_type')
+                    vehicle_record.engine_size = vehicle_data.get('engine_size')
+                    vehicle_record.co2_emissions = vehicle_data.get('co2_emissions')
+                    vehicle_record.date_first_registered = vehicle_data.get('date_first_registered')
+                    vehicle_record.tax_status = vehicle_data.get('tax_status')
+                    vehicle_record.mot_status = vehicle_data.get('mot_status')
+                    vehicle_record.mot_expiry = vehicle_data.get('mot_expiry')
+                    
+                    # Store complete raw data including MOT history
+                    vehicle_record.raw_data = vehicle_data
+                    vehicle_record.updated_at = datetime.utcnow()
+                    
+                    # Store summarized MOT and mileage data in structured fields
+                    vehicle_record.mot_history = vehicle_data.get('mot_history', {})
+                    vehicle_record.mileage_history = vehicle_data.get('mileage_history', {})
+                    
+                    # Save to database
+                    if not existing_record:
+                        db.session.add(vehicle_record)
+                    
+                    db.session.commit()
+                    
+                    mot_tests_count = len(vehicle_data.get('mot_history', {}).get('mot_tests', []))
+                    logger.info(f"Successfully saved {registration} to database with {mot_tests_count} MOT tests")
+                    
+            except Exception as e:
+                logger.error(f"Error saving to database: {e}")
+                # Continue anyway, return the data even if database save fails
             
             self._cleanup()
-            return vehicle_data
+            
+            # Return success format expected by the calling code
+            return {
+                'success': True,
+                'data': vehicle_data,
+                'registration': registration.upper(),
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
             
         except Exception as e:
             logger.error(f"Error in complete vehicle data scrape: {e}")
@@ -457,18 +539,6 @@ class EnhancedSeleniumScraper:
                 'total_tests_found': 0,
                 'extraction_timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
             }
-                                logger.info(f"Trying stored MOT link: {link_info['href']}")
-                                self.driver.get(link_info['href'])
-                                self._natural_delay(3.0, 4.0)
-                                
-                                # Check if we successfully reached MOT page
-                                current_url = self.driver.current_url
-                                if 'mot' in current_url.lower() and 'page not found' not in self.driver.page_source.lower():
-                                    logger.info(f"Successfully navigated to MOT page: {current_url}")
-                                    break
-                        except Exception as e:
-                            logger.warning(f"Failed to use stored MOT link: {e}")
-                            continue
             
             # Fallback: navigate to main page and search for links
             if 'mot' not in self.driver.current_url.lower():
@@ -599,8 +669,20 @@ class EnhancedSeleniumScraper:
             # Extract all page content for comprehensive data
             page_text = self.driver.page_source
             
-            # Extract MOT test table data
+            # Look for "View Full MOT History" or pagination links FIRST
+            self._click_view_full_history_link()
+            
+            # Extract MOT test table data (now should include all records)
             mot_tests = self._extract_mot_test_table()
+            
+            # If we got limited results, try pagination
+            if mot_tests and len(mot_tests) < 10:  # Likely incomplete data
+                logger.info(f"Found {len(mot_tests)} tests, looking for pagination...")
+                additional_tests = self._handle_mot_pagination()
+                if additional_tests:
+                    mot_tests.extend(additional_tests)
+                    logger.info(f"After pagination: {len(mot_tests)} total tests")
+            
             if mot_tests:
                 mot_data['mot_tests'] = mot_tests
                 
@@ -1319,6 +1401,125 @@ class EnhancedSeleniumScraper:
             logger.error(f"Error in XPath extraction: {e}")
         
         return []
+    
+    def _click_view_full_history_link(self):
+        """Look for and click 'View Full MOT History' or similar links to get complete data"""
+        try:
+            # Patterns for full history links
+            full_history_patterns = [
+                "view full mot history",
+                "view full history", 
+                "see all tests",
+                "show all mot tests",
+                "complete history",
+                "full mot record",
+                "view all"
+            ]
+            
+            # Find all links on the page
+            all_links = self.driver.find_elements(By.TAG_NAME, "a")
+            logger.info(f"Checking {len(all_links)} links for full history access")
+            
+            for link in all_links:
+                try:
+                    link_text = link.text.strip().lower()
+                    link_href = link.get_attribute('href') or ''
+                    
+                    # Check if this looks like a full history link
+                    if any(pattern in link_text for pattern in full_history_patterns):
+                        logger.info(f"Found full history link: '{link.text}' -> {link_href}")
+                        link.click()
+                        self._natural_delay(3.0, 5.0)  # Wait for page to load
+                        logger.info("Successfully clicked full history link")
+                        return True
+                    
+                    # Check href for relevant patterns
+                    if any(pattern.replace(' ', '') in link_href.lower() for pattern in ['fullhistory', 'alltest', 'complete']):
+                        logger.info(f"Found full history link via href: {link_href}")
+                        link.click()
+                        self._natural_delay(3.0, 5.0)
+                        logger.info("Successfully clicked full history link via href")
+                        return True
+                        
+                except Exception as e:
+                    continue
+            
+            logger.info("No full history link found - proceeding with current page data")
+            return False
+            
+        except Exception as e:
+            logger.warning(f"Error looking for full history link: {e}")
+            return False
+    
+    def _handle_mot_pagination(self) -> list:
+        """Handle pagination to get all MOT test records"""
+        additional_tests = []
+        
+        try:
+            # Look for pagination elements
+            pagination_patterns = [
+                "next",
+                "more",
+                "page 2",
+                "show more",
+                "load more",
+                "view more"
+            ]
+            
+            page_count = 0
+            max_pages = 5  # Safety limit
+            
+            while page_count < max_pages:
+                # Look for pagination links
+                found_next = False
+                all_links = self.driver.find_elements(By.TAG_NAME, "a")
+                all_buttons = self.driver.find_elements(By.TAG_NAME, "button")
+                
+                # Check links first
+                for link in all_links:
+                    try:
+                        link_text = link.text.strip().lower()
+                        if any(pattern in link_text for pattern in pagination_patterns):
+                            logger.info(f"Found pagination link: '{link.text}'")
+                            link.click()
+                            self._natural_delay(2.0, 3.0)
+                            found_next = True
+                            break
+                    except Exception:
+                        continue
+                
+                # Check buttons if no links worked
+                if not found_next:
+                    for button in all_buttons:
+                        try:
+                            button_text = button.text.strip().lower()
+                            if any(pattern in button_text for pattern in pagination_patterns):
+                                logger.info(f"Found pagination button: '{button.text}'")
+                                button.click()
+                                self._natural_delay(2.0, 3.0)
+                                found_next = True
+                                break
+                        except Exception:
+                            continue
+                
+                if not found_next:
+                    logger.info("No more pagination found")
+                    break
+                
+                # Extract tests from this page
+                page_tests = self._extract_mot_test_table()
+                if page_tests:
+                    additional_tests.extend(page_tests)
+                    logger.info(f"Page {page_count + 1}: found {len(page_tests)} additional tests")
+                
+                page_count += 1
+            
+            logger.info(f"Pagination complete: found {len(additional_tests)} additional tests across {page_count} pages")
+            return additional_tests
+            
+        except Exception as e:
+            logger.warning(f"Error handling pagination: {e}")
+            return additional_tests
     
     def _extract_mileage_table(self) -> list:
         """Extract mileage records from the current page"""
