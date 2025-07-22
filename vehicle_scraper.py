@@ -306,6 +306,95 @@ class VehicleScraper:
                     "body > div.container > div:nth-child(6) *"
                 ]
                 
+                # Try user-provided XPath for exact MOT data location
+                xpath_elements = []
+                
+                # Try XPath on current page (MOT history page)
+                try:
+                    xpath_element = self.driver.find_element(By.XPATH, '/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[3]/div/p[2]/span[1]')
+                    if xpath_element:
+                        xpath_elements.append(xpath_element)
+                        logger.info(f"Found user XPath element on MOT page: {xpath_element.text[:100]}")
+                except Exception as e:
+                    logger.debug(f"User XPath not found on MOT page: {e}")
+                
+                # Also try XPath on main vehicle page if not found on MOT page
+                if not xpath_elements:
+                    try:
+                        # Navigate back to main page to try XPath there
+                        main_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}"
+                        self.driver.get(main_url)
+                        time.sleep(2)
+                        
+                        xpath_element = self.driver.find_element(By.XPATH, '/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[3]/div/p[2]/span[1]')
+                        if xpath_element:
+                            xpath_elements.append(xpath_element)
+                            logger.info(f"Found user XPath element on main page: {xpath_element.text[:100]}")
+                            
+                        # Navigate back to MOT page after checking main page
+                        mot_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}/mot-history"
+                        self.driver.get(mot_url)
+                        time.sleep(2)
+                        
+                    except Exception as e:
+                        logger.debug(f"User XPath not found on main page either: {e}")
+                
+                # Debug: Log current page structure to understand layout
+                try:
+                    page_source_preview = self.driver.page_source[:1000]
+                    if 'section' in page_source_preview:
+                        logger.info("Page contains section elements - XPath structure might be present")
+                    if 'div[2]' in page_source_preview or 'div[3]' in page_source_preview:
+                        logger.info("Page contains nested div structure")
+                except Exception as e:
+                    logger.debug(f"Error checking page structure: {e}")
+                
+                # Process XPath elements first (highest priority)
+                for element in xpath_elements:
+                    try:
+                        text = element.text.strip()
+                        if text and len(text) > 5:
+                            logger.info(f"XPath MOT element content: {text}")
+                            
+                            # Extract MOT data from the XPath element
+                            date_patterns = [
+                                r'\b(\d{2}/\d{2}/\d{4})\b',  # DD/MM/YYYY
+                                r'\b(\d{1,2}/\d{1,2}/\d{4})\b',  # D/M/YYYY
+                                r'\b(\d{4}-\d{2}-\d{2})\b',  # YYYY-MM-DD
+                                r'\b(\d{1,2}\s+\w+\s+\d{4})\b'  # D Month YYYY
+                            ]
+                            
+                            for pattern in date_patterns:
+                                date_match = re.search(pattern, text)
+                                if date_match:
+                                    test_date = date_match.group(1)
+                                    result = 'FAIL' if 'fail' in text.lower() else 'PASS'
+                                    
+                                    # Extract mileage if present
+                                    mileage_patterns = [
+                                        r'(\d{1,3}(?:,\d{3})*)\s*mile',
+                                        r'(\d{1,6})\s*mile',
+                                        r'mileage[:\s]*(\d{1,3}(?:,\d{3})*)'
+                                    ]
+                                    
+                                    mileage = None
+                                    for mileage_pattern in mileage_patterns:
+                                        mileage_match = re.search(mileage_pattern, text, re.IGNORECASE)
+                                        if mileage_match:
+                                            mileage = int(mileage_match.group(1).replace(',', ''))
+                                            break
+                                    
+                                    mot_tests.append({
+                                        'date': test_date,
+                                        'result': result,
+                                        'mileage': mileage,
+                                        'raw_text': text[:200]
+                                    })
+                                    logger.info(f"Extracted MOT from XPath: {test_date} - {result} - {mileage} miles")
+                                    break
+                    except Exception as e:
+                        logger.debug(f"Error processing XPath element: {e}")
+                
                 # Continue with backup selectors if timeline didn't work
                 for selector in backup_selectors:
                     elements = self.driver.find_elements(By.CSS_SELECTOR, selector)

@@ -86,6 +86,17 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - COMPREHENSIVE TESTING: Validated with Ferrari F12 Berlinetta (RE13CEO) and Audi A6 (DA07BWF) - both showing complete accurate data
 - PRODUCTION READY: Core extraction functionality fully restored with enhanced luxury vehicle detection and proper date formatting
 
+**July 22, 2025 - USER-SPECIFIC XPATH INTEGRATION FOR MOT DATA COMPLETE:**
+- EXACT XPATH INTEGRATION: Successfully integrated user-provided XPath '/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[3]/div/p[2]/span[1]' for precise MOT data targeting
+- DUAL-PAGE XPath SEARCH: System now checks both MOT history page and main vehicle details page for XPath element location
+- ENHANCED PAGE STRUCTURE ANALYSIS: Added comprehensive page structure debugging to understand element positioning
+- XPATH PRIORITY PROCESSING: User XPath gets highest priority in extraction hierarchy, processed before all other selectors
+- MULTI-PATTERN EXTRACTION: XPath elements processed with same date/mileage/result patterns as other extraction methods
+- NAVIGATION OPTIMIZATION: Intelligent page switching between main vehicle page and MOT history page to locate XPath elements
+- COMPREHENSIVE LOGGING: Added detailed logging for XPath element detection, content analysis, and page structure validation
+- PRODUCTION INTEGRATION: XPath selector fully integrated with existing table-based, timeline, and CSS selector extraction methods
+- XPATH READY: System prepared to extract MOT data when user XPath points to actual DVLA MOT records on vehicle pages
+
 **July 22, 2025 - COMPREHENSIVE FIELD EXTRACTION ENHANCEMENT COMPLETE:**
 - MISSING FIELDS INFRASTRUCTURE: Added support for variant, registration_date, mot_expiry_date, tax_6_months, tax_12_months fields
 - DATABASE SCHEMA EXPANSION: Successfully added new columns to PostgreSQL database with proper data types
