@@ -108,20 +108,27 @@ def scrape_vehicle():
                     db.session.add(search_record)
                     db.session.commit()
                     
-                    # Format response using consistent API formatter
-                    response_data = format_database_vehicle_response(existing_vehicle)
-                    # Ensure response_data is a dictionary before adding fields
-                    if not isinstance(response_data, dict):
-                        response_data = {}
+                    # Return cached data in the same format as fresh scrape
+                    cached_raw_data = existing_vehicle.raw_data or {}
                     
-                    # Add cache information - create new dict to avoid type issues
-                    cache_info = {
+                    return jsonify({
+                        'success': True,
+                        'data': {
+                            'registration': existing_vehicle.registration,
+                            'make': existing_vehicle.make,
+                            'model': existing_vehicle.model,
+                            'description': existing_vehicle.description,
+                            'color': existing_vehicle.color,
+                            'fuel_type': existing_vehicle.fuel_type,
+                            'year': existing_vehicle.year,
+                            'mot_history': cached_raw_data.get('mot_history'),
+                            'mileage_history': cached_raw_data.get('mileage_history')
+                        },
+                        'source': 'cache',
+                        'method': 'enhanced_selenium_only',
                         'cached': True,
                         'cache_age_hours': round(time_diff.total_seconds() / 3600, 2)
-                    }
-                    response_data = {**response_data, **cache_info}
-                    
-                    return jsonify(response_data)
+                    })
             
             # Always use enhanced scraper for comprehensive data extraction
             try:
