@@ -1097,23 +1097,28 @@ class EnhancedSeleniumScraper:
         extracted_data = []
         
         try:
-            # Specific XPath for mileage data from user
-            mileage_xpath = "/html/body/section/div[2]/div/div[4]/div/div[2]/div[2]/div[1]/div[2]/div[2]/p/span[1]"
+            # Multiple XPath selectors for mileage data from user
+            mileage_xpaths = [
+                "/html/body/section/div[2]/div/div[4]/div/div[2]/div[2]/div[1]/div[2]/div[2]/p/span[1]",
+                "/html/body/div[2]/div[3]"  # New XPath from user
+            ]
             
-            # Try to extract mileage data
-            try:
-                mileage_element = self.driver.find_element(By.XPATH, mileage_xpath)
-                mileage_value = mileage_element.text.strip()
-                if mileage_value:
-                    logger.info(f"Found mileage via XPath: {mileage_value}")
-                    extracted_data.append({
-                        'source': 'xpath_extraction',
-                        'type': 'mileage',
-                        'value': mileage_value,
-                        'xpath': mileage_xpath
-                    })
-            except Exception as e:
-                logger.debug(f"XPath mileage extraction failed: {e}")
+            # Try to extract mileage data using multiple XPaths
+            for mileage_xpath in mileage_xpaths:
+                try:
+                    mileage_element = self.driver.find_element(By.XPATH, mileage_xpath)
+                    mileage_value = mileage_element.text.strip()
+                    if mileage_value:
+                        logger.info(f"Found mileage via XPath {mileage_xpath}: {mileage_value}")
+                        extracted_data.append({
+                            'source': 'xpath_extraction',
+                            'type': 'mileage',
+                            'value': mileage_value,
+                            'xpath': mileage_xpath
+                        })
+                        break  # Found data, stop trying other XPaths
+                except Exception as e:
+                    logger.debug(f"XPath mileage extraction failed for {mileage_xpath}: {e}")
             
             # Try MOT data XPath from user's earlier hint
             mot_xpath = "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[3]/div/p[2]/span[1]"
