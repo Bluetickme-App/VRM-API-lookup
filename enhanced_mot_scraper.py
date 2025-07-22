@@ -255,44 +255,72 @@ class EnhancedMOTScraper:
                         logger.info(f"Found Corsa variant: {variant}")
                         break
             
-            # Extract fuel type
-            if 'diesel' in page_source.lower():
-                result['basic_info']['fuel_type'] = 'DIESEL'
-            elif 'petrol' in page_source.lower():
-                result['basic_info']['fuel_type'] = 'PETROL'
-            
-            # Extract color
-            colors = ['grey', 'gray', 'black', 'white', 'red', 'blue', 'silver']
-            for color in colors:
-                if color in page_source.lower():
-                    result['basic_info']['color'] = color.title()
+            # Extract fuel type with enhanced patterns
+            fuel_patterns = [
+                r'fuel\s+type[:\s]*([^<\n]+)',
+                r'fuel[:\s]*([^<\n]+)',
+                r'(diesel|petrol|electric|hybrid)',
+            ]
+            for pattern in fuel_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    fuel = match.group(1).strip().upper()
+                    if 'PETROL' in fuel or 'GASOLINE' in fuel:
+                        result['basic_info']['fuel_type'] = 'PETROL'
+                    elif 'DIESEL' in fuel:
+                        result['basic_info']['fuel_type'] = 'DIESEL'
+                    else:
+                        result['basic_info']['fuel_type'] = fuel
                     break
             
-            # Extract transmission information
+            # Extract color with enhanced patterns
+            color_patterns = [
+                r'colour[:\s]*([^<\n]+)',
+                r'color[:\s]*([^<\n]+)',
+                r'(black|white|red|blue|silver|grey|gray|green|yellow|orange)',
+            ]
+            for pattern in color_patterns:
+                match = re.search(pattern, page_source, re.IGNORECASE)
+                if match:
+                    result['basic_info']['color'] = match.group(1).strip().title()
+                    break
+            
+            # Extract transmission information with enhanced patterns
             transmission_patterns = [
                 r'transmission[:\s]*([^<\n]+)',
                 r'gearbox[:\s]*([^<\n]+)', 
                 r'(\w+\s+\d+\s+gears?)',
-                r'(auto|manual|automatic)[^<\n]*'
+                r'(auto|manual|automatic)[^<\n]*',
+                r'(semi-auto|semi automatic)',
+                r'(\d+\s*speed)',
             ]
             for pattern in transmission_patterns:
                 match = re.search(pattern, page_source, re.IGNORECASE)
                 if match:
-                    result['basic_info']['transmission'] = match.group(1).strip()
-                    break
+                    trans = match.group(1).strip()
+                    if len(trans) > 2:  # Avoid single characters
+                        result['basic_info']['transmission'] = trans
+                        logger.info(f"Extracted transmission: {trans}")
+                        break
             
-            # Extract engine size
+            # Extract engine size with comprehensive patterns
             engine_patterns = [
+                r'engine\s+size[:\s]*([^<\n]+)',
                 r'engine[:\s]*([^<\n]+cc)',
                 r'(\d+\s*cc)',
                 r'(\d+\.\d+\s*litre?s?)',
-                r'engine\s+size[:\s]*([^<\n]+)'
+                r'(\d+\.\d+L)',
+                r'capacity[:\s]*([^<\n]+)',
+                r'displacement[:\s]*([^<\n]+)',
             ]
             for pattern in engine_patterns:
                 match = re.search(pattern, page_source, re.IGNORECASE)
                 if match:
-                    result['basic_info']['engine_size'] = match.group(1).strip()
-                    break
+                    engine = match.group(1).strip()
+                    if any(char.isdigit() for char in engine):  # Must contain numbers
+                        result['basic_info']['engine_size'] = engine
+                        logger.info(f"Extracted engine size: {engine}")
+                        break
             
             # Extract registration place with enhanced patterns
             place_patterns = [
