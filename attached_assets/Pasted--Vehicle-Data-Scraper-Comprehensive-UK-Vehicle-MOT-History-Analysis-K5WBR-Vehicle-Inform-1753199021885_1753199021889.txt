@@ -1,0 +1,217 @@
+
+🚗 Vehicle Data Scraper
+Comprehensive UK Vehicle MOT & History Analysis
+
+K5WBR
+ Vehicle Information
+Registration
+K5WBR
+Make
+Unknown
+Model
+Unknown
+Year
+2024
+Color
+White
+Fuel Type
+DIESEL
+ MOT Test History
+8
+Total Tests
+6
+Passed
+2
+Failed
+0
+Advisories
+PASSED
+Test Date
+08/06/2023
+Mileage
+414 miles
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+08/06/2023
+
+Mileage
+
+116639
+
+Expiry Date
+
+07/06/2024
+
+PASSED_WITH_ADVISORY
+
+Test Date
+25/03/2022
+Mileage
+Not recorded
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+25/03/2022
+
+Mileage
+
+103225
+
+Expiry Date
+
+24/03/2023
+
+FAILED
+Test Date
+25/03/2022
+Mileage
+103 miles
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+25/03/2022
+
+Mileage
+
+103225
+
++8103 miles travelled since last MOT.
+
+Comments
+Offside Front Tyre tread d
+PASSED_WITH_ADVISORY
+Test Date
+24/03/2021
+Mileage
+Not recorded
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+24/03/2021
+
+Mileage
+
+95122
+
+Expiry Date
+
+23/03/2022
+
+FAILED
+Test Date
+22/03/2021
+Mileage
+120 miles
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+22/03/2021
+
+Mileage
+
+95122
+
++7120 miles travelled since last MOT.
+
+Comments
+Nearside Front Tyre has a c
+PASSED_WITH_ADVISORY
+Test Date
+09/03/2020
+Mileage
+203 miles
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+09/03/2020
+
+Mileage
+
+88002
+
+Expiry Date
+
+20/03/2021
+
+PASSED_WITH_ADVISORY
+
+Test Date
+21/03/2019
+Mileage
+849 miles
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+21/03/2019
+
+Mileage
+
+76799
+
+Expiry Date
+
+20/03/2020
+
+PASSED_WITH_ADVISORY
+
+Test Date
+17/04/2018
+Mileage
+Not recorded
+Expiry Date
+Unknown
+Source
+enhanced_mot_detailed_page
+Comments & Advisories:
+DETAILED_HISTORY
+Test Date
+
+17/04/2018
+
+Mileage
+
+58950
+
+Expiry Date
+
+22/04/2019
+
+ Mileage Analysis
+No Mileage Analysis Available
+No mileage data found for analysis.
