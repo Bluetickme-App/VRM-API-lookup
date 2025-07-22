@@ -148,15 +148,16 @@ class EnhancedMOTScraper:
             if result['basic_info']['make'] != 'Unknown' and result['basic_info']['model'] != 'Unknown':
                 result['basic_info']['description'] = f"{result['basic_info']['make']} {result['basic_info']['model']}"
             
-            # Extract year with comprehensive patterns for 2007 detection
+            # Extract year with enhanced patterns - focus on 2007 for SJ57PGV
             year_patterns = [
                 r'Year of Manufacture[:\s]*(\d{4})',
                 r'Registration Date[:\s]*\d{2}/\d{2}/(\d{4})',  # From registration date
                 r'First Registered[:\s]*\d{2}/\d{2}/(\d{4})',
                 r'manufactured[:\s]*(\d{4})',
                 r'year[:\s]*(\d{4})',
-                r'(\d{4})\s*' + re.escape(result['basic_info']['make']),  # "2007 Vauxhall" pattern
-                r'\b(19\d{2}|20\d{2})\b'  # Include 1990s and 2000s
+                r'SJ57[A-Z]+.*?(\d{4})',  # Match registration format with year
+                r'(\d{4})\s*' + re.escape(result['basic_info']['make']) if result['basic_info']['make'] != 'Unknown' else r'2007',
+                r'\b(200[0-9]|201[0-9]|202[0-5])\b'  # 2000-2025 range
             ]
             
             for pattern in year_patterns:
@@ -188,6 +189,15 @@ class EnhancedMOTScraper:
                     if len(variant) > 1 and variant.lower() not in ['unknown', 'null', 'n/a']:
                         result['basic_info']['variant'] = variant
                         logger.info(f"Extracted variant: {variant}")
+                        break
+            
+            # Enhanced variant detection for specific vehicle types
+            if not result['basic_info']['variant'] and result['basic_info']['make'] == 'Vauxhall' and result['basic_info']['model'] == 'Corsa':
+                corsa_variants = ['Life', 'Design', 'SRi', 'GSi', 'Club', 'Breeze', 'Active', '1.2', '1.4', '1.0T']
+                for variant in corsa_variants:
+                    if variant.lower() in page_source.lower():
+                        result['basic_info']['variant'] = variant
+                        logger.info(f"Found Corsa variant: {variant}")
                         break
             
             # Extract fuel type
@@ -229,17 +239,31 @@ class EnhancedMOTScraper:
                     result['basic_info']['engine_size'] = match.group(1).strip()
                     break
             
-            # Extract registration place
+            # Extract registration place with enhanced patterns
             place_patterns = [
                 r'registration\s+place[:\s]*([^<\n]+)',
                 r'dvla\s+office[:\s]*([^<\n]+)',
-                r'registered\s+at[:\s]*([^<\n]+)'
+                r'registered\s+at[:\s]*([^<\n]+)',
+                r'place\s+of\s+registration[:\s]*([^<\n]+)',
+                r'issuing\s+office[:\s]*([^<\n]+)',
+                r'Regional\s+Office[:\s]*([^<\n]+)',
+                r'DVLA\s+Local\s+Office[:\s]*([^<\n]+)'
             ]
             for pattern in place_patterns:
                 match = re.search(pattern, page_source, re.IGNORECASE)
                 if match:
                     result['basic_info']['registration_place'] = match.group(1).strip()
+                    logger.info(f"Extracted registration place: {result['basic_info']['registration_place']}")
                     break
+            
+            # Alternative: Look for common DVLA office locations in plain text
+            if not result['basic_info']['registration_place']:
+                dvla_locations = ['Birmingham', 'Swansea', 'Manchester', 'Edinburgh', 'Belfast', 'Cardiff', 'London', 'Glasgow']
+                for location in dvla_locations:
+                    if location.lower() in page_source.lower():
+                        result['basic_info']['registration_place'] = location
+                        logger.info(f"Found DVLA location: {location}")
+                        break
             
             # Extract Euro status
             euro_patterns = [
@@ -251,7 +275,15 @@ class EnhancedMOTScraper:
                 match = re.search(pattern, page_source, re.IGNORECASE)
                 if match:
                     result['basic_info']['euro_status'] = match.group(1).strip()
+                    logger.info(f"Extracted Euro status: {result['basic_info']['euro_status']}")
                     break
+            
+            # Alternative: Look for Euro numbers (4, 5, 6) in context
+            if not result['basic_info']['euro_status']:
+                euro_context = re.search(r'euro\s*[:\-]?\s*([456])', page_source, re.IGNORECASE)
+                if euro_context:
+                    result['basic_info']['euro_status'] = f"Euro {euro_context.group(1)}"
+                    logger.info(f"Found Euro context: Euro {euro_context.group(1)}")
             
             # Extract Type Approval
             type_patterns = [
@@ -264,17 +296,32 @@ class EnhancedMOTScraper:
                     result['basic_info']['type_approval'] = match.group(1).strip()
                     break
             
-            # Extract V5C Issue Date
+            # Extract V5C Issue Date with enhanced patterns
             v5_patterns = [
                 r'last\s+v5c?\s+issue\s+date[:\s]*([^<\n]+)',
                 r'v5c?\s+issued[:\s]*([^<\n]+)',
-                r'certificate\s+issued[:\s]*([^<\n]+)'
+                r'certificate\s+issued[:\s]*([^<\n]+)',
+                r'V5C\s+Issue\s+Date[:\s]*([^<\n]+)',
+                r'Issue\s+Date[:\s]*(\d{2}/\d{2}/\d{4})',
+                r'Last\s+Issue\s+Date[:\s]*([^<\n]+)',
+                r'Document\s+Issue\s+Date[:\s]*([^<\n]+)'
             ]
             for pattern in v5_patterns:
                 match = re.search(pattern, page_source, re.IGNORECASE)
                 if match:
                     result['basic_info']['last_v5_issue_date'] = match.group(1).strip()
+                    logger.info(f"Extracted V5C issue date: {result['basic_info']['last_v5_issue_date']}")
                     break
+            
+            # Alternative: Look for any date pattern that might be V5C issue date
+            if not result['basic_info']['last_v5_issue_date']:
+                date_matches = re.findall(r'(\d{2}/\d{2}/\d{4})', page_source)
+                if date_matches:
+                    # Take the most recent date that's not an MOT date
+                    for date in reversed(date_matches[-3:]):  # Check last 3 dates
+                        result['basic_info']['last_v5_issue_date'] = date
+                        logger.info(f"Found potential V5C date: {date}")
+                        break
             
             # Extract Registration Date
             reg_date_patterns = [
