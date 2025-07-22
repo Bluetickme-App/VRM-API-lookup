@@ -301,17 +301,38 @@ class VehicleScraper:
                                 logger.debug(f"Error processing table row: {e}")
                                 continue
                 
-                # First extract MOT summary statistics from user's HTML structure
+                # First try user's main container selector: body > div.container
+                container_found = False
                 try:
-                    total_tests_elem = self.driver.find_element(By.CSS_SELECTOR, ".total-tests .mot-history-summary-two")
-                    if total_tests_elem:
-                        total_tests = int(total_tests_elem.text.strip())
-                        logger.info(f"Found MOT summary: {total_tests} total tests")
+                    main_container = self.driver.find_element(By.CSS_SELECTOR, "body > div.container")
+                    if main_container:
+                        logger.info("Found main container using user's selector: body > div.container")
+                        container_found = True
+                        
+                        # Extract MOT summary from within the container
+                        try:
+                            total_tests_elem = main_container.find_element(By.CSS_SELECTOR, ".total-tests .mot-history-summary-two")
+                            if total_tests_elem:
+                                total_tests = int(total_tests_elem.text.strip())
+                                logger.info(f"Found MOT summary in container: {total_tests} total tests")
+                        except:
+                            total_tests = 0
                 except:
-                    total_tests = 0
+                    # Fallback to global search
+                    try:
+                        total_tests_elem = self.driver.find_element(By.CSS_SELECTOR, ".total-tests .mot-history-summary-two")
+                        if total_tests_elem:
+                            total_tests = int(total_tests_elem.text.strip())
+                            logger.info(f"Found MOT summary (global): {total_tests} total tests")
+                    except:
+                        total_tests = 0
                 
-                # Extract from MOT wrapper elements (based on user's authentic HTML structure)
-                mot_wrapper_elements = self.driver.find_elements(By.CSS_SELECTOR, ".mot-history-wrapper")
+                # Extract from MOT wrapper elements using user's container selector first
+                if container_found:
+                    mot_wrapper_elements = main_container.find_elements(By.CSS_SELECTOR, ".mot-history-wrapper")
+                    logger.info(f"Searching for MOT wrappers within user's container selector")
+                else:
+                    mot_wrapper_elements = self.driver.find_elements(By.CSS_SELECTOR, ".mot-history-wrapper")
                 if mot_wrapper_elements:
                     logger.info(f"Found {len(mot_wrapper_elements)} mot-history-wrapper elements from authentic DVLA data")
                     
