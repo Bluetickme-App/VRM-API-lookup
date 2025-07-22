@@ -90,12 +90,11 @@ def scrape_vehicle():
             }), 400
         
         # Log search attempt - mark as web interface request
-        search_record = SearchHistory(
-            registration=registration,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent', ''),
-            request_source='web'
-        )
+        search_record = SearchHistory()
+        search_record.registration = registration
+        search_record.ip_address = request.remote_addr
+        search_record.user_agent = request.headers.get('User-Agent', '')
+        search_record.request_source = 'web'
         
         try:
             # Check if we already have this vehicle in database
@@ -112,8 +111,16 @@ def scrape_vehicle():
                     
                     # Format response using consistent API formatter
                     response_data = format_database_vehicle_response(existing_vehicle)
-                    response_data['cached'] = True
-                    response_data['cache_age_hours'] = round(time_diff.total_seconds() / 3600, 2)
+                    # Ensure response_data is a dictionary before adding fields
+                    if not isinstance(response_data, dict):
+                        response_data = {}
+                    
+                    # Add cache information
+                    response_data = dict(response_data)  # Ensure it's a mutable dict
+                    response_data.update({
+                        'cached': True,
+                        'cache_age_hours': round(time_diff.total_seconds() / 3600, 2)
+                    })
                     
                     return jsonify(response_data)
             
