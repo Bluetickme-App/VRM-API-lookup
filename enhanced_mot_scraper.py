@@ -65,6 +65,9 @@ class EnhancedMOTScraper:
             # Combine the data
             basic_data['mot_history'] = mot_history_data
             
+            # CRITICAL FIX: Create mileage history from MOT test data with accurate dates
+            basic_data = self._create_mileage_from_mot_tests(basic_data)
+            
             return basic_data
         
         except Exception as e:
@@ -643,6 +646,100 @@ class EnhancedMOTScraper:
             logger.debug(f"Error in pagination extraction: {e}")
         
         return paginated_tests
+    
+    def _create_mileage_from_mot_tests(self, vehicle_data: dict) -> dict:
+        """Create accurate mileage history directly from MOT test data with correct dates"""
+        try:
+            mot_history = vehicle_data.get('mot_history', {})
+            mot_tests = mot_history.get('mot_tests', [])
+            
+            if not mot_tests:
+                logger.warning("No MOT tests available for mileage extraction")
+                return vehicle_data
+            
+            # Extract mileage readings DIRECTLY from MOT test data with correct dates
+            accurate_mileage_readings = []
+            
+            for i, test in enumerate(mot_tests):
+                if test.get('mileage') and test.get('test_date'):
+                    try:
+                        # Clean mileage reading - remove commas and extract numeric value
+                        mileage_str = str(test['mileage']).replace(',', '').strip()
+                        # Extract numbers from strings like "123456" or "123,456 miles"
+                        import re
+                        mileage_match = re.search(r'(\d+)', mileage_str.replace(',', ''))
+                        
+                        if mileage_match:
+                            mileage_value = int(mileage_match.group(1))
+                            
+                            # Use the ACTUAL MOT test date (not a random date)
+                            accurate_mileage_readings.append({
+                                'mileage': mileage_value,
+                                'date': test['test_date'],  # This is the key fix - use real MOT test date
+                                'source': 'MOT_test_record',
+                                'test_result': test.get('result', 'Unknown'),
+                                'test_index': i + 1
+                            })
+                            
+                            logger.info(f"Accurate mileage: {mileage_value} miles on {test['test_date']} (MOT {test.get('result', 'Unknown')})")
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"Could not parse mileage from MOT test {i}: {test.get('mileage')} - {e}")
+                        continue
+            
+            if accurate_mileage_readings:
+                # Sort by date to create proper chronological timeline
+                from datetime import datetime
+                try:
+                    accurate_mileage_readings.sort(key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y'))
+                except:
+                    # If date parsing fails, sort by mileage as fallback
+                    accurate_mileage_readings.sort(key=lambda x: x['mileage'])
+                
+                # Calculate mileage progression between readings
+                for i in range(1, len(accurate_mileage_readings)):
+                    current = accurate_mileage_readings[i]
+                    previous = accurate_mileage_readings[i-1]
+                    
+                    miles_increase = current['mileage'] - previous['mileage']
+                    current['miles_since_previous'] = miles_increase
+                
+                # Create corrected mileage history structure
+                vehicle_data['mileage_history'] = {
+                    'mileage_readings': accurate_mileage_readings,
+                    'total_readings': len(accurate_mileage_readings),
+                    'data_source': 'MOT_test_correlation_corrected',
+                    'date_range': {
+                        'earliest': accurate_mileage_readings[0]['date'],
+                        'latest': accurate_mileage_readings[-1]['date']
+                    },
+                    'mileage_range': {
+                        'lowest': min(r['mileage'] for r in accurate_mileage_readings),
+                        'highest': max(r['mileage'] for r in accurate_mileage_readings)
+                    },
+                    'timeline_accuracy': 'authentic_mot_test_dates'
+                }
+                
+                logger.info(f"MILEAGE FIX: Created {len(accurate_mileage_readings)} accurate mileage readings from MOT tests")
+                logger.info(f"Date range: {vehicle_data['mileage_history']['date_range']}")
+            else:
+                logger.warning("No valid mileage readings could be extracted from MOT tests")
+                vehicle_data['mileage_history'] = {
+                    'mileage_readings': [],
+                    'total_readings': 0,
+                    'data_source': 'mot_extraction_failed',
+                    'error': 'no_valid_mileage_in_mot_tests'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error creating mileage history from MOT tests: {e}")
+            vehicle_data['mileage_history'] = {
+                'mileage_readings': [],
+                'total_readings': 0,
+                'data_source': 'extraction_error',
+                'error': str(e)
+            }
+        
+        return vehicle_data
     
     def _merge_unique_tests(self, existing_tests: List[Dict[str, Any]], new_tests: List[Dict[str, Any]]):
         """Merge new tests into existing list, avoiding duplicates"""
