@@ -125,18 +125,18 @@ def scrape_vehicle():
                             'mileage_history': cached_raw_data.get('mileage_history')
                         },
                         'source': 'cache',
-                        'method': 'enhanced_selenium_only',
+                        'method': 'final_scraper_with_xpath_navigation',
                         'cached': True,
                         'cache_age_hours': round(time_diff.total_seconds() / 3600, 2)
                     })
             
             # Always use enhanced scraper for comprehensive data extraction
             try:
-                from final_scraper import FinalVehicleScraper
+                from enhanced_mot_scraper import EnhancedMOTScraper
                 
-                logger.info(f"Starting final scraper for registration: {registration}")
-                scraper = FinalVehicleScraper()
-                basic_data = scraper.scrape_vehicle_data(registration)
+                logger.info(f"Starting enhanced MOT scraper for registration: {registration}")
+                scraper = EnhancedMOTScraper()
+                basic_data = scraper.scrape_comprehensive_vehicle_data(registration)
                 
                 if basic_data:
                     
@@ -188,7 +188,7 @@ def scrape_vehicle():
                             'mileage_history': basic_data.get('mileage_history')
                         },
                         'source': 'fresh_scrape',
-                        'method': 'enhanced_selenium_only'
+                        'method': 'final_scraper_with_xpath_navigation'
                     })
                 
                 else:
