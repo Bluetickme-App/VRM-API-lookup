@@ -11,6 +11,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 from webdriver_manager.firefox import GeckoDriverManager
+from bs4 import BeautifulSoup
 from data_extractor import DataExtractor
 from config import SCRAPER_CONFIG
 import time
@@ -149,9 +150,39 @@ class VehicleScraper:
                     logger.info("Page explicitly shows no MOT history available")
                 else:
                     logger.info("Page may contain MOT data, attempting extraction")
+                    
+                # Debug: Look for any MOT-related class names in the page
+                soup = BeautifulSoup(page_text, 'html.parser')
+                mot_elements = soup.find_all(class_=lambda x: x and 'mot' in x.lower())
+                logger.info(f"Found {len(mot_elements)} elements with 'mot' in class name")
+                for elem in mot_elements[:3]:  # Show first 3
+                    logger.info(f"MOT element class: {elem.get('class')} - tag: {elem.name}")
                 
-                # Try comprehensive selectors for MOT history
+                # Check for various MOT wrapper types
+                wrapper_variants = [
+                    'mot-history-wrapper-pass',
+                    'mot-history-wrapper-fail', 
+                    'mot-history-wrapper',
+                    'mot-wrapper',
+                    'history-wrapper'
+                ]
+                
+                for variant in wrapper_variants:
+                    found = soup.find_all(class_=lambda x: x and variant in str(x).lower())
+                    if found:
+                        logger.info(f"Found {len(found)} elements with class containing '{variant}'")
+                
+                # Try specific MOT history selectors (user-provided + variations)
                 selectors_to_try = [
+                    "body > div.container > div.mot-history-wrapper.mot-history-wrapper-pass > div",  # User-provided specific
+                    "body > div.container > div.mot-history-wrapper.mot-history-wrapper-fail > div",  # Fail variant
+                    "body > div.container > div.mot-history-wrapper > div",  # Generic wrapper
+                    "div.mot-history-wrapper.mot-history-wrapper-pass div",  # Pass wrapper
+                    "div.mot-history-wrapper.mot-history-wrapper-fail div",  # Fail wrapper  
+                    "div.mot-history-wrapper > div",  # Any wrapper
+                    ".mot-history-wrapper div",  # Simple wrapper
+                    ".mot-history-wrapper *",  # All children
+                    "div[class*='mot-history'] div",  # Partial match
                     "table tr",
                     ".mot-test", 
                     ".test-result",
