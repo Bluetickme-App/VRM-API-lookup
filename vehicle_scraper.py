@@ -140,17 +140,27 @@ class VehicleScraper:
             
             # Try to find and click MOT History link on the main page
             try:
-                # First try the specific "View Full MOT History" element
+                # First try the specific "View Full MOT History" element using user's JS selector
                 mot_clicked = False
                 try:
-                    viewfull_element = self.driver.find_element(By.ID, "viewfullmothistory")
+                    # Try the more specific CSS selector from user's JavaScript path
+                    viewfull_element = self.driver.find_element(By.CSS_SELECTOR, "#viewfullmothistory > span:nth-child(1)")
                     if viewfull_element:
-                        logger.info("Found 'View Full MOT History' button by ID")
+                        logger.info("Found MOT link using user's JS selector: #viewfullmothistory > span:nth-child(1)")
                         viewfull_element.click()
                         time.sleep(4)
                         mot_clicked = True
                 except:
-                    logger.debug("viewfullmothistory ID not found, trying other methods")
+                    # Fallback to ID selector
+                    try:
+                        viewfull_element = self.driver.find_element(By.ID, "viewfullmothistory")
+                        if viewfull_element:
+                            logger.info("Found 'View Full MOT History' button by ID (fallback)")
+                            viewfull_element.click()
+                            time.sleep(4)
+                            mot_clicked = True
+                    except:
+                        logger.debug("Both JS selector and ID selector failed, trying other methods")
                 
                 # Look for any element containing "MOT" text that might be clickable
                 elements_with_mot = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'MOT') or contains(text(), 'mot')]")
