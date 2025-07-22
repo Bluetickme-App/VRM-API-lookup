@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Test</title>
+</head>
+<body>
+    <h1>Testing Frontend</h1>
+    <script>
+        // Test the API call
+        fetch('http://localhost:5000/api/scrape', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ registration: 'K5WBR' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('API Response:', data);
+            document.body.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.body.innerHTML += '<p>Error: ' + error.message + '</p>';
+        });
+    </script>
+</body>
+</html>

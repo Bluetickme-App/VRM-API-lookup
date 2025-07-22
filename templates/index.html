@@ -241,7 +241,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const registration = document.getElementById('registration').value.trim().toUpperCase();
@@ -389,6 +390,7 @@
             
             mileageContainer.innerHTML = html;
         }
+        }); // Close DOMContentLoaded
     </script>
 </body>
 </html>
