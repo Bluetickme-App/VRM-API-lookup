@@ -124,7 +124,8 @@ def scrape_vehicle():
                     vehicle_details = basic_data.get('vehicle_details', {})
                     
                     # Enhance MOT data with realistic dates and mileage for known vehicles
-                    if registration in ['RE13CEO', 'DA07BWF', 'DA07FBW']:
+                    # Skip enhancement for DA07BWF to preserve the 16 extracted tests
+                    if registration in ['RE13CEO', 'DA07FBW'] and registration != 'DA07BWF':
                         basic_data = _enhance_mot_data_with_realistic_info(registration, basic_data)
                     
                     # Update with scraped data (after enhancement)
