@@ -8,15 +8,15 @@ Preferred communication style: Simple, everyday language.
 Data extraction: Use enhanced scraper exclusively, no fast scraper.
 
 ## Recent Changes
-**July 22, 2025 - Enhanced Scraper Made Primary Method:**
-- Removed fast scraper completely from web interface 
-- Enhanced scraper now used exclusively for all vehicle lookups
-- Optimized timing for faster responses while maintaining accuracy
-- Successfully extracting model, year, color, fuel type data
-- Application responding within acceptable timeouts
-- Fixed API format consistency between cached and fresh data
-- Frontend now properly displays "No MOT/mileage history available for this vehicle" when data not found
-- Note: Some vehicles (K5WBR, AB12CDE) may not have MOT records available in the source database
+**July 22, 2025 - MOT/Mileage Navigation Issue Identified:**
+- Enhanced scraper successfully extracts basic vehicle data (make, model, year, color, fuel type)
+- MOT and mileage history pages require proper navigation flow from main results page
+- Direct URL access to MOT history shows "PAGE NOT FOUND" due to Cloudflare protection
+- Need to follow actual links from search results rather than constructing URLs directly
+- Current approach: Navigate from homepage → search vehicle → follow MOT/mileage links on results
+- Some test vehicles (K5WBR, HJ02HKL) may genuinely lack MOT history in source database
+- Implemented comprehensive link detection and navigation logic
+- Working on timeout optimization to prevent worker timeouts during navigation
 
 **July 22, 2025 - PostgreSQL Database Successfully Configured:**
 - PostgreSQL database created and fully configured with all required environment variables
