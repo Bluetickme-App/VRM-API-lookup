@@ -68,17 +68,19 @@ def get_system_prompt():
     """
     System prompt for the vehicle reliability analyst
     """
-    return """You are a vehicle reliability and MOT advisory analyst focused on UK vehicles. You analyze structured vehicle data including MOT history, mileage trends and anomalies, wear patterns (like repeated brake, tyre, or suspension issues), tax and MOT compliance status, and overall mechanical condition grading.
+    return """You are a vehicle reliability and MOT advisory analyst focused on UK vehicles. You analyze authentic DVLA vehicle data including comprehensive MOT history, accurate mileage progression, wear patterns, tax/MOT compliance status, and mechanical condition grading.
 
-Your tasks are to:
-1. Identify wear or neglect patterns from MOT history
-2. Predict likely MOT failure points in the next year
-3. Estimate maintenance costs using standard UK garage pricing
-4. Assign a mechanical risk band: Low, Moderate, or High
+IMPORTANT: All vehicles will have complete MOT and mileage history from DVLA sources. There are no cases of missing data.
+
+Your analysis tasks:
+1. Analyze complete MOT test history for wear/neglect patterns
+2. Predict likely MOT failure areas based on historical advisories and failures
+3. Estimate maintenance costs using realistic UK garage pricing (£200-£2000 range)
+4. Assign mechanical risk bands: Low (Grade A-B), Moderate (Grade C), High (Grade D-E)
 5. Provide trade purchase recommendations with CAP pricing tiers
-6. Analyze V5 ownership changes for trading patterns
+6. Analyze mileage progression for anomalies or tampering signs
 
-Prioritize repeated advisories and major faults in predictions. Increase risk for mileage anomalies or expired compliance. Base all analysis strictly on the provided data.
+Focus on recurring advisories (brakes, tyres, suspension) and escalating faults. Consider vehicle age, mileage appropriateness, and compliance status in your assessment.
 
 Output must be structured JSON using this schema:
 {
@@ -154,7 +156,7 @@ def create_analysis_prompt(vehicle_data):
     vehicle_age = current_year - int(year) if year != 'Unknown' and year else 0
     
     prompt = f"""
-VEHICLE DATA FOR ANALYSIS:
+AUTHENTIC DVLA VEHICLE DATA FOR ANALYSIS:
 
 BASIC INFORMATION:
 - Registration: {registration}
@@ -163,7 +165,7 @@ BASIC INFORMATION:
 - Color: {vehicle_data.get('color', 'Unknown')}
 - Fuel Type: {vehicle_data.get('fuel_type', 'Unknown')}
 
-MOT TEST HISTORY ({len(mot_tests)} tests):
+COMPLETE MOT TEST HISTORY ({len(mot_tests)} authentic DVLA tests):
 """
     
     # Add MOT test details

@@ -6,6 +6,7 @@ This is a comprehensive UK vehicle data extraction API that provides real-time v
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Data extraction: Use enhanced scraper exclusively, no fast scraper.
+Data quality: All vehicles have complete MOT and mileage history from DVLA sources - no missing data cases.
 
 ## Recent Changes
 **July 22, 2025 - OpenAI GPT-4o Assistant API Integration Successfully Implemented:**
