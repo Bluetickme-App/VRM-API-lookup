@@ -8,15 +8,15 @@ Preferred communication style: Simple, everyday language.
 Data extraction: Use enhanced scraper exclusively, no fast scraper.
 
 ## Recent Changes
-**July 22, 2025 - MOT/Mileage Navigation Issue Identified:**
+**July 22, 2025 - MOT Data Structure Confirmed Available:**
 - Enhanced scraper successfully extracts basic vehicle data (make, model, year, color, fuel type)
-- MOT and mileage history pages require proper navigation flow from main results page
-- Direct URL access to MOT history shows "PAGE NOT FOUND" due to Cloudflare protection
-- Need to follow actual links from search results rather than constructing URLs directly
-- Current approach: Navigate from homepage → search vehicle → follow MOT/mileage links on results
-- Some test vehicles (K5WBR, HJ02HKL) may genuinely lack MOT history in source database
-- Implemented comprehensive link detection and navigation logic
-- Working on timeout optimization to prevent worker timeouts during navigation
+- Confirmed that comprehensive MOT data IS available on the website with rich detail structure
+- MOT pages show: test dates, pass/fail results, mileage readings, advisory notices, expiry dates
+- Example from DA07BWF: 16 total tests, 14 pass, 2 fail, with full comment history
+- Navigation requires following proper link flow due to Cloudflare protection on direct URLs
+- MOT data uses `.mot-history-wrapper` structure with detailed CSS classes for extraction
+- Current status: Basic vehicle data working, MOT navigation being optimized for reliability
+- Next: Implement proper MOT extraction targeting confirmed data structure
 
 **July 22, 2025 - PostgreSQL Database Successfully Configured:**
 - PostgreSQL database created and fully configured with all required environment variables
