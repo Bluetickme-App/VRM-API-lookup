@@ -190,27 +190,45 @@ def scrape_vehicle():
                     registration_place = vehicle_details.get('registration_place', '')
                     vehicle_record.registration_place = registration_place[:200] if registration_place else None
                     
-                    # Handle date fields
-                    registration_date_str = basic_info.get('registration_date') or basic_data.get('registration_date')
+                    # Handle date fields - extract from vehicle_details structure
+                    registration_date_str = vehicle_details.get('registration_date', '')
                     if registration_date_str:
                         try:
                             from datetime import datetime
                             vehicle_record.registration_date = datetime.strptime(registration_date_str, '%d/%m/%Y').date()
-                        except:
-                            pass
+                        except Exception as e:
+                            logger.debug(f"Error parsing registration date '{registration_date_str}': {e}")
                     
-                    v5_date_str = basic_info.get('last_v5_issue_date') or basic_data.get('v5_issue_date')
+                    # Fix V5C date mapping - extract from vehicle_details
+                    v5_date_str = vehicle_details.get('last_v5c_issue_date', '')
+                    logger.info(f"V5C date mapping - raw value: '{v5_date_str}'")
+                    
                     if v5_date_str:
                         try:
                             from datetime import datetime
-                            for date_format in ['%d %B %Y', '%d/%m/%Y', '%Y-%m-%d']:
+                            # Try multiple date formats for V5C dates
+                            date_formats = [
+                                '%d %B %Y',      # 22 January 2025  
+                                '%d/%m/%Y',      # 22/01/2025
+                                '%Y-%m-%d',      # 2025-01-22
+                                '%d-%m-%Y',      # 22-01-2025
+                                '%B %d, %Y',     # January 22, 2025
+                                '%d %b %Y'       # 22 Jan 2025
+                            ]
+                            
+                            for date_format in date_formats:
                                 try:
-                                    vehicle_record.last_v5c_issue_date = datetime.strptime(v5_date_str, date_format).date()
+                                    parsed_date = datetime.strptime(v5_date_str, date_format).date()
+                                    vehicle_record.last_v5c_issue_date = parsed_date
+                                    logger.info(f"V5C date successfully parsed: '{v5_date_str}' -> {parsed_date}")
                                     break
-                                except:
+                                except ValueError:
                                     continue
-                        except:
-                            pass
+                                    
+                            if not vehicle_record.last_v5c_issue_date:
+                                logger.warning(f"Could not parse V5C date: '{v5_date_str}'")
+                        except Exception as e:
+                            logger.error(f"Error processing V5C date '{v5_date_str}': {e}")
                             
                     # Add missing fields storage
                     variant = basic_info.get('variant') or basic_data.get('variant')
