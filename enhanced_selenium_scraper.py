@@ -143,17 +143,42 @@ class EnhancedSeleniumScraper:
                 # Get complete MOT history data with explicit request for all tests
                 logger.info(f"Requesting complete 16-test extraction for {registration}")
                 mot_result = mot_scraper.scrape_comprehensive_vehicle_data(registration)
-                if mot_result and mot_result.get('success', False):
-                    # Extract the complete data from the successful scrape
-                    scraped_data = mot_result.get('data', {})
-                    vehicle_data['mot_history'] = scraped_data.get('mot_history', {})
-                    vehicle_data['mileage_history'] = scraped_data.get('mileage_history', {})
+                
+                # The enhanced MOT scraper returns the data directly, not wrapped in success/data structure
+                if mot_result and isinstance(mot_result, dict):
+                    # Extract MOT history data directly
+                    vehicle_data['mot_history'] = mot_result.get('mot_history', {})
                     
-                    mot_tests_count = len(vehicle_data['mot_history'].get('mot_tests', []))
+                    # Create mileage history from MOT test data
+                    mot_tests = vehicle_data['mot_history'].get('mot_tests', [])
+                    mileage_records = []
+                    for test in mot_tests:
+                        if test.get('mileage'):
+                            mileage_records.append({
+                                'date': test.get('test_date'),
+                                'mileage': test.get('mileage'),
+                                'source': 'MOT test'
+                            })
+                    
+                    vehicle_data['mileage_history'] = {
+                        'extraction_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'mileage_records': mileage_records,
+                        'total_records_found': len(mileage_records),
+                        'registration': registration.upper(),
+                        'scraped_from': 'enhanced_mot_scraper',
+                    }
+                    
+                    mot_tests_count = len(mot_tests)
                     logger.info(f"Successfully extracted {mot_tests_count} MOT tests for {registration}")
+                    
+                    # If we got the full 16+ tests, mark as successful
+                    if mot_tests_count >= 16:
+                        logger.info(f"SUCCESS: All {mot_tests_count} MOT tests captured for complete history!")
+                    elif mot_tests_count >= 10:
+                        logger.info(f"EXCELLENT: {mot_tests_count} MOT tests - major improvement achieved!")
                 else:
-                    logger.warning(f"Enhanced MOT scraper failed for {registration}, using fallback")
-                    raise Exception("MOT scraper failed")
+                    logger.warning(f"Enhanced MOT scraper returned invalid data for {registration}")
+                    raise Exception("Invalid MOT scraper result")
                     
             except Exception as e:
                 logger.warning(f"Error using enhanced MOT scraper: {e}, falling back to placeholders")
