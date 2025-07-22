@@ -140,7 +140,10 @@ class EnhancedMOTScraper:
             ]
             
             model_patterns = [
-                # Ferrari models
+                # Ferrari models - more comprehensive
+                (r'F12.*BERLINETTA', 'F12 Berlinetta'),
+                (r'F12BERLINETTA', 'F12 Berlinetta'),  
+                (r'F12', 'F12'),
                 (r'F430', 'F430'),
                 (r'458', '458'),
                 (r'488', '488'),
@@ -153,6 +156,7 @@ class EnhancedMOTScraper:
                 (r'FF', 'FF'),
                 (r'GTC4LUSSO', 'GTC4Lusso'),
                 (r'LAFERRARI', 'LaFerrari'),
+                (r'BERLINETTA', 'Berlinetta'),
                 # Luxury models
                 (r'GALLARDO', 'Gallardo'),
                 (r'HURACAN', 'Huracan'),
@@ -171,32 +175,35 @@ class EnhancedMOTScraper:
                 (r'5 SERIES', '5 Series')
             ]
             
-            # Find make
+            # Find make with enhanced detection
             for pattern, make_name in make_patterns:
                 if re.search(pattern, page_source, re.IGNORECASE):
                     result['basic_info']['make'] = make_name
+                    logger.info(f"Detected make: {make_name} using pattern: {pattern}")
                     break
             
-            # Find model
+            # Find model with enhanced detection
             for pattern, model_name in model_patterns:
                 if re.search(pattern, page_source, re.IGNORECASE):
                     result['basic_info']['model'] = model_name
+                    logger.info(f"Detected model: {model_name} using pattern: {pattern}")
                     break
             
             # Create description
             if result['basic_info']['make'] != 'Unknown' and result['basic_info']['model'] != 'Unknown':
                 result['basic_info']['description'] = f"{result['basic_info']['make']} {result['basic_info']['model']}"
             
-            # Extract year with enhanced patterns - focus on 2007 for SJ57PGV
+            # Extract year with enhanced patterns for accurate manufacture year
             year_patterns = [
+                r'Year\s+Manufacture[:\s]*(\d{4})',  # "Year Manufacture 2013"
                 r'Year of Manufacture[:\s]*(\d{4})',
-                r'Registration Date[:\s]*\d{2}/\d{2}/(\d{4})',  # From registration date
+                r'Registration Date[:\s]*\d{2}/\d{2}/(\d{4})',  
                 r'First Registered[:\s]*\d{2}/\d{2}/(\d{4})',
                 r'manufactured[:\s]*(\d{4})',
                 r'year[:\s]*(\d{4})',
-                r'SJ57[A-Z]+.*?(\d{4})',  # Match registration format with year
-                r'(\d{4})\s*' + re.escape(result['basic_info']['make']) if result['basic_info']['make'] != 'Unknown' else r'2007',
-                r'\b(200[0-9]|201[0-9]|202[0-5])\b'  # 2000-2025 range
+                # Avoid using current dates from MOT tests - prefer manufacture year patterns
+                r'Model Year[:\s]*(\d{4})',
+                r'Vehicle Age[:\s]*\d+.*?(\d{4})'  # Extract from vehicle age context
             ]
             
             for pattern in year_patterns:
@@ -297,7 +304,7 @@ class EnhancedMOTScraper:
             
             # Alternative: Look for common DVLA office locations in plain text
             if not result['basic_info']['registration_place']:
-                dvla_locations = ['Birmingham', 'Swansea', 'Manchester', 'Edinburgh', 'Belfast', 'Cardiff', 'London', 'Glasgow']
+                dvla_locations = ['Birmingham', 'Swansea', 'Manchester', 'Edinburgh', 'Belfast', 'Cardiff', 'London', 'Glasgow', 'Reading', 'Bristol', 'Newcastle', 'Leeds', 'Nottingham']
                 for location in dvla_locations:
                     if location.lower() in page_source.lower():
                         result['basic_info']['registration_place'] = location
@@ -337,13 +344,15 @@ class EnhancedMOTScraper:
             
             # Extract V5C Issue Date with enhanced patterns
             v5_patterns = [
+                r'Last\s+V5C\s+Issue\s+Date[:\s]*([^<\n]+)',  # "Last V5C Issue Date 08 February 2022"
                 r'last\s+v5c?\s+issue\s+date[:\s]*([^<\n]+)',
                 r'v5c?\s+issued[:\s]*([^<\n]+)',
                 r'certificate\s+issued[:\s]*([^<\n]+)',
                 r'V5C\s+Issue\s+Date[:\s]*([^<\n]+)',
-                r'Issue\s+Date[:\s]*(\d{2}/\d{2}/\d{4})',
+                r'Issue\s+Date[:\s]*(\d{2}.*?\d{4})',  # Flexible date format
                 r'Last\s+Issue\s+Date[:\s]*([^<\n]+)',
-                r'Document\s+Issue\s+Date[:\s]*([^<\n]+)'
+                r'Document\s+Issue\s+Date[:\s]*([^<\n]+)',
+                r'(\d{2}\s+\w+\s+\d{4})'  # "08 February 2022" format
             ]
             for pattern in v5_patterns:
                 match = re.search(pattern, page_source, re.IGNORECASE)
