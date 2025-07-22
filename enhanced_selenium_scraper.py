@@ -257,12 +257,56 @@ class EnhancedSeleniumScraper:
     def _scrape_mot_history_page(self, registration: str) -> Optional[Dict[str, Any]]:
         """Navigate to and scrape MOT history page"""
         try:
-            # Navigate to MOT history page
-            mot_url = f"https://www.checkcardetails.co.uk/mot/mothistory/{registration.lower()}"
-            logger.info(f"Navigating to MOT history: {mot_url}")
+            # First navigate to main vehicle page to find MOT history link
+            main_url = f"https://www.checkcardetails.co.uk/carcheck/{registration.lower()}"
+            logger.info(f"First navigating to main page: {main_url}")
             
-            self.driver.get(mot_url)
-            self._natural_delay(1.0, 2.0)
+            self.driver.get(main_url)
+            self._natural_delay(2.0, 3.0)
+            
+            # Wait for page to load and handle Cloudflare
+            WebDriverWait(self.driver, self.page_load_timeout).until(
+                lambda driver: driver.execute_script("return document.readyState") == "complete"
+            )
+            
+            # Look for MOT history link on the main page
+            mot_link_found = False
+            try:
+                # Try to find MOT history link
+                link_selectors = [
+                    "a[href*='mothistory']",
+                    "a[href*='mot']",
+                    ".mot-link",
+                    ".mot-history-link",
+                    "a:contains('MOT')",
+                    "a:contains('History')"
+                ]
+                
+                for selector in link_selectors:
+                    try:
+                        mot_link = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        if mot_link.is_displayed():
+                            logger.info(f"Found MOT history link: {mot_link.get_attribute('href')}")
+                            mot_link.click()
+                            self._natural_delay(2.0, 3.0)
+                            mot_link_found = True
+                            break
+                    except NoSuchElementException:
+                        continue
+                        
+                # If no link found, try direct navigation with proper session
+                if not mot_link_found:
+                    logger.info("No MOT link found, trying direct navigation with session")
+                    mot_url = f"https://www.checkcardetails.co.uk/mot/mothistory/{registration.lower()}"
+                    self.driver.get(mot_url)
+                    self._natural_delay(2.0, 3.0)
+                    
+            except Exception as link_error:
+                logger.warning(f"Error finding MOT link: {link_error}")
+                # Fallback to direct navigation
+                mot_url = f"https://www.checkcardetails.co.uk/mot/mothistory/{registration.lower()}"
+                self.driver.get(mot_url)
+                self._natural_delay(2.0, 3.0)
             
             # Wait for page to load
             WebDriverWait(self.driver, self.page_load_timeout).until(
@@ -286,6 +330,16 @@ class EnhancedSeleniumScraper:
             mot_tests = self._extract_mot_test_table()
             if mot_tests:
                 mot_data['mot_tests'] = mot_tests
+                
+            # Log page content for debugging if no tests found
+            if not mot_tests:
+                logger.warning(f"No MOT tests found for {registration}. Page title: {self.driver.title}")
+                # Check if page contains "no records" or similar messages
+                page_text = self.driver.page_source.lower()
+                if 'no mot' in page_text or 'no records' in page_text or 'no data' in page_text:
+                    logger.info("Page explicitly states no MOT data available")
+                else:
+                    logger.warning("Page loaded but no test data extracted - may need parsing improvement")
             
             # Extract summary information
             summary = self._extract_mot_summary()
@@ -306,12 +360,56 @@ class EnhancedSeleniumScraper:
     def _scrape_mileage_history_page(self, registration: str) -> Optional[Dict[str, Any]]:
         """Navigate to and scrape mileage history page"""
         try:
-            # Navigate to mileage history page
-            mileage_url = f"https://www.checkcardetails.co.uk/mot/mileagehistory/{registration.lower()}"
-            logger.info(f"Navigating to mileage history: {mileage_url}")
+            # First navigate to main vehicle page to find mileage history link
+            main_url = f"https://www.checkcardetails.co.uk/carcheck/{registration.lower()}"
+            logger.info(f"First navigating to main page for mileage: {main_url}")
             
-            self.driver.get(mileage_url)
-            self._natural_delay(1.0, 2.0)
+            self.driver.get(main_url)
+            self._natural_delay(2.0, 3.0)
+            
+            # Wait for page to load and handle Cloudflare
+            WebDriverWait(self.driver, self.page_load_timeout).until(
+                lambda driver: driver.execute_script("return document.readyState") == "complete"
+            )
+            
+            # Look for mileage history link on the main page
+            mileage_link_found = False
+            try:
+                # Try to find mileage history link
+                link_selectors = [
+                    "a[href*='mileagehistory']",
+                    "a[href*='mileage']",
+                    ".mileage-link",
+                    ".mileage-history-link",
+                    "a:contains('Mileage')",
+                    "a:contains('History')"
+                ]
+                
+                for selector in link_selectors:
+                    try:
+                        mileage_link = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        if mileage_link.is_displayed():
+                            logger.info(f"Found mileage history link: {mileage_link.get_attribute('href')}")
+                            mileage_link.click()
+                            self._natural_delay(2.0, 3.0)
+                            mileage_link_found = True
+                            break
+                    except NoSuchElementException:
+                        continue
+                        
+                # If no link found, try direct navigation with proper session
+                if not mileage_link_found:
+                    logger.info("No mileage link found, trying direct navigation with session")
+                    mileage_url = f"https://www.checkcardetails.co.uk/mot/mileagehistory/{registration.lower()}"
+                    self.driver.get(mileage_url)
+                    self._natural_delay(2.0, 3.0)
+                    
+            except Exception as link_error:
+                logger.warning(f"Error finding mileage link: {link_error}")
+                # Fallback to direct navigation
+                mileage_url = f"https://www.checkcardetails.co.uk/mot/mileagehistory/{registration.lower()}"
+                self.driver.get(mileage_url)
+                self._natural_delay(2.0, 3.0)
             
             # Wait for page to load
             WebDriverWait(self.driver, self.page_load_timeout).until(
