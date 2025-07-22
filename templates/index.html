@@ -339,6 +339,11 @@
                     <div class="info-content" id="vehicleDetails">
                         <!-- Vehicle details will be populated here -->
                     </div>
+                    <div class="p-3 border-top">
+                        <button id="analyzeWithAI" class="btn btn-success btn-lg w-100" style="display: none;">
+                            <i data-feather="brain"></i> 🧠 Analyze with OpenAI GPT-4o
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- MOT History Section -->
@@ -440,6 +445,13 @@
             // Display mileage analysis
             displayMileageAnalysis(vehicleData.mileage_history);
             
+            // Show and setup OpenAI analysis button
+            const analyzeBtn = document.getElementById('analyzeWithAI');
+            analyzeBtn.style.display = 'block';
+            analyzeBtn.onclick = function() {
+                window.location.href = `/analysis/${vehicleData.registration}`;
+            };
+            
             // Add source indicator
             if (source === 'cache') {
                 const cacheIndicator = document.createElement('div');
@@ -450,6 +462,7 @@
             }
             
             document.getElementById('resultsSection').style.display = 'block';
+            feather.replace();
         }
         
         function displayVehicleInfo(vehicleData) {

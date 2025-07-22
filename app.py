@@ -40,6 +40,11 @@ def index():
     """Render the main frontend interface"""
     return render_template('index.html')
 
+@app.route('/analysis/<registration>')
+def analysis_page(registration):
+    """Render the OpenAI analysis page for a specific vehicle"""
+    return render_template('analysis.html', registration=registration.upper())
+
 @app.route('/api/scrape', methods=['POST'])
 def scrape_vehicle():
     """API endpoint to scrape vehicle data"""
