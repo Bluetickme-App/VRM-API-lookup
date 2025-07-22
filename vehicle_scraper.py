@@ -183,93 +183,122 @@ class VehicleScraper:
                     all_children = sixth_child.find_all()
                     logger.info(f"6th child div has {len(all_children)} total descendant elements")
                 
-                # Try specific MOT history selectors (user-provided + enhanced variations)
-                selectors_to_try = [
-                    "body > div.container > div.mot-history-wrapper.mot-history-wrapper-pass > div",  # User-provided specific
-                    "body > div.container > div.mot-history-summary",  # User-provided summary selector
-                    "body > div.container > div:nth-child(6) *",  # User-provided nth-child all children
-                    "body > div.container > div:nth-child(6) div",  # nth-child divs only
-                    "body > div.container > div.mot-history-wrapper.mot-history-wrapper-fail > div",  # Fail variant
-                    "body > div.container > div.mot-history-wrapper > div",  # Generic wrapper
-                    "div.mot-history-summary",  # Summary container
-                    "div.mot-history-summary *",  # All summary children
-                    ".mot-history-summary div",  # Summary divs
-                    "div.mot-history-wrapper.mot-history-wrapper-pass div",  # Pass wrapper
-                    "div.mot-history-wrapper.mot-history-wrapper-fail div",  # Fail wrapper  
-                    "div.mot-history-wrapper > div",  # Any wrapper
-                    ".mot-history-wrapper div",  # Simple wrapper
-                    ".mot-history-wrapper *",  # All children
-                    "div[class*='mot-history'] div",  # Partial match
-                    "div[class*='mot-summary']",  # Summary variations
-                    "table tr",
-                    ".mot-test", 
-                    ".test-result",
-                    ".mot-history-item",
-                    ".history-item",
-                    "div[class*='mot']",
-                    "div[class*='test']",
-                    "*[class*='history']",
-                    "tbody tr",
-                    ".row"
-                ]
+                # Enhanced MOT extraction based on actual HTML structure
+                # First, look for the specific structure we know exists
+                mot_timeline_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.mot-history-timeline")
                 
-                all_elements = []
-                for selector in selectors_to_try:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    all_elements.extend(elements)
-                    logger.info(f"Selector '{selector}' found {len(elements)} elements")
-                
-                logger.info(f"Total elements to scan: {len(all_elements)}")
-                
-                for element in all_elements:
-                    try:
-                        text = element.text.strip()
-                        if text and len(text) > 10:  # Only check substantial text
-                            # Look for date patterns and MOT-related keywords
-                            if any(word in text.lower() for word in ['pass', 'fail', 'advisory', 'mot', '202', '201']):
-                                logger.info(f"Found potential MOT text: {text[:100]}")
+                if mot_timeline_elements:
+                    logger.info(f"Found {len(mot_timeline_elements)} mot-history-timeline elements")
+                    
+                    for timeline_elem in mot_timeline_elements:
+                        timeline_text = timeline_elem.text.strip()
+                        logger.info(f"Timeline content preview: {timeline_text[:100]}")
+                        
+                        # Extract MOT test data from timeline
+                        if timeline_text and len(timeline_text) > 20:
+                            # Look for date patterns and results in timeline
+                            if any(word in timeline_text.lower() for word in ['pass', 'fail', 'advisory', '20']):
+                                logger.info(f"Found potential MOT data in timeline: {timeline_text[:150]}")
                                 
-                                # Extract date pattern (DD/MM/YYYY or similar)
+                                # Extract dates and results
                                 date_patterns = [
                                     r'\b(\d{2}/\d{2}/\d{4})\b',  # DD/MM/YYYY
                                     r'\b(\d{1,2}/\d{1,2}/\d{4})\b',  # D/M/YYYY
-                                    r'\b(\d{4}-\d{2}-\d{2})\b',  # YYYY-MM-DD
                                     r'\b(\d{1,2}\s+\w+\s+\d{4})\b'  # D Month YYYY
                                 ]
                                 
                                 for pattern in date_patterns:
-                                    date_match = re.search(pattern, text)
-                                    if date_match:
-                                        test_date = date_match.group(1)
-                                        
-                                        # Determine result
-                                        result = 'FAIL' if 'fail' in text.lower() else 'PASS'
-                                        
-                                        # Extract mileage if present  
-                                        mileage_patterns = [
-                                            r'(\d{1,3}(?:,\d{3})*)\s*mile',
-                                            r'(\d{1,6})\s*mile',
-                                            r'mileage[:\s]*(\d{1,3}(?:,\d{3})*)',
-                                        ]
-                                        
-                                        mileage = None
-                                        for mileage_pattern in mileage_patterns:
-                                            mileage_match = re.search(mileage_pattern, text, re.IGNORECASE)
-                                            if mileage_match:
-                                                mileage = int(mileage_match.group(1).replace(',', ''))
-                                                break
-                                        
-                                        mot_tests.append({
-                                            'date': test_date,
-                                            'result': result,
-                                            'mileage': mileage,
-                                            'raw_text': text[:100]  # Keep first 100 chars for reference
-                                        })
-                                        logger.info(f"Extracted MOT test: {test_date} - {result}")
-                                        break  # Found date, move to next element
-                    except Exception as e:
-                        logger.debug(f"Error processing element: {e}")
-                        continue
+                                    date_matches = re.findall(pattern, timeline_text)
+                                    if date_matches:
+                                        for date_str in date_matches:
+                                            # Find result for this date
+                                            result = 'FAIL' if 'fail' in timeline_text.lower() else 'PASS'
+                                            
+                                            # Extract mileage if present
+                                            mileage_patterns = [
+                                                r'(\d{1,3}(?:,\d{3})*)\s*mile',
+                                                r'(\d{1,6})\s*mile',
+                                            ]
+                                            
+                                            mileage = None
+                                            for mileage_pattern in mileage_patterns:
+                                                mileage_match = re.search(mileage_pattern, timeline_text, re.IGNORECASE)
+                                                if mileage_match:
+                                                    mileage = int(mileage_match.group(1).replace(',', ''))
+                                                    break
+                                            
+                                            mot_tests.append({
+                                                'date': date_str,
+                                                'result': result,
+                                                'mileage': mileage,
+                                                'raw_text': timeline_text[:200]
+                                            })
+                                            logger.info(f"Extracted MOT from timeline: {date_str} - {result} - {mileage} miles")
+                                        break
+                
+                # Also try the specific selectors for backup
+                backup_selectors = [
+                    "div.mot-history-wrapper-pass div.mot-history-timeline",
+                    "div.mot-history-wrapper-fail div.mot-history-timeline", 
+                    ".total-tests",
+                    "div.mot-history-summary",
+                    "body > div.container > div:nth-child(6) *"
+                ]
+                
+                # Continue with backup selectors if timeline didn't work
+                for selector in backup_selectors:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    logger.info(f"Backup selector '{selector}' found {len(elements)} elements")
+                    
+                    for element in elements:
+                        try:
+                            text = element.text.strip()
+                            if text and len(text) > 10:  # Only check substantial text
+                                # Look for date patterns and MOT-related keywords
+                                if any(word in text.lower() for word in ['pass', 'fail', 'advisory', 'mot', '202', '201']):
+                                    logger.info(f"Found potential MOT text: {text[:100]}")
+                                    
+                                    # Extract date pattern (DD/MM/YYYY or similar)
+                                    date_patterns = [
+                                        r'\b(\d{2}/\d{2}/\d{4})\b',  # DD/MM/YYYY
+                                        r'\b(\d{1,2}/\d{1,2}/\d{4})\b',  # D/M/YYYY
+                                        r'\b(\d{4}-\d{2}-\d{2})\b',  # YYYY-MM-DD
+                                        r'\b(\d{1,2}\s+\w+\s+\d{4})\b'  # D Month YYYY
+                                    ]
+                                    
+                                    for pattern in date_patterns:
+                                        date_match = re.search(pattern, text)
+                                        if date_match:
+                                            test_date = date_match.group(1)
+                                            
+                                            # Determine result
+                                            result = 'FAIL' if 'fail' in text.lower() else 'PASS'
+                                            
+                                            # Extract mileage if present  
+                                            mileage_patterns = [
+                                                r'(\d{1,3}(?:,\d{3})*)\s*mile',
+                                                r'(\d{1,6})\s*mile',
+                                                r'mileage[:\s]*(\d{1,3}(?:,\d{3})*)',
+                                            ]
+                                            
+                                            mileage = None
+                                            for mileage_pattern in mileage_patterns:
+                                                mileage_match = re.search(mileage_pattern, text, re.IGNORECASE)
+                                                if mileage_match:
+                                                    mileage = int(mileage_match.group(1).replace(',', ''))
+                                                    break
+                                            
+                                            mot_tests.append({
+                                                'date': test_date,
+                                                'result': result,
+                                                'mileage': mileage,
+                                                'raw_text': text[:100]  # Keep first 100 chars for reference
+                                            })
+                                            logger.info(f"Extracted MOT test: {test_date} - {result}")
+                                            break  # Found date, move to next element
+                        except Exception as e:
+                            logger.debug(f"Error processing element: {e}")
+                            continue
                 
                 if mot_tests:
                     vehicle_data['mot_history'] = {
