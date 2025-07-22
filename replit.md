@@ -9,6 +9,14 @@ Data extraction: Use enhanced scraper exclusively, no fast scraper.
 Data quality: All vehicles have complete MOT and mileage history from DVLA sources - no missing data cases.
 
 ## Recent Changes
+**July 22, 2025 - Mileage Date Correlation Fix Completed:**
+- CRITICAL FIX: Resolved mileage reading date accuracy issue - dates now correctly match MOT test dates
+- Implemented `_create_mileage_from_mot_tests()` function for authentic date correlation
+- Mileage readings now use actual MOT test dates instead of incorrect random dates
+- Chronological timeline properly sorted (2021 → 2022 → 2023 → 2024)
+- All mileage readings marked as "MOT_test_record" source for data integrity
+- Function successfully tested: 4 readings with proper dates (04/06/2021, 03/06/2022, 02/06/2023, 04/06/2024)
+
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
 - Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation

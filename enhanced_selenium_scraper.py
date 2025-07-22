@@ -249,6 +249,9 @@ class EnhancedSeleniumScraper:
                     vehicle_record.raw_data = vehicle_data
                     vehicle_record.updated_at = datetime.utcnow()
                     
+                    # Create accurate mileage history from MOT test data before storing
+                    vehicle_data = self._create_mileage_from_mot_tests(vehicle_data)
+                    
                     # Store summarized MOT and mileage data in structured fields
                     vehicle_record.mot_history = vehicle_data.get('mot_history', {})
                     vehicle_record.mileage_history = vehicle_data.get('mileage_history', {})
@@ -813,15 +816,21 @@ class EnhancedSeleniumScraper:
                     logger.info("Trying XPath extraction for mileage data...")
                     xpath_results = self._extract_via_xpath()
                     if xpath_results:
-                        # Convert XPath results to mileage format
+                        # Convert XPath results to mileage format with correct date correlation
                         mileage_records = []
-                        for result in xpath_results:
+                        for i, result in enumerate(xpath_results):
                             if result.get('mileage'):
+                                # Use the test_date from MOT results if available
+                                correct_date = result.get('test_date', '')
+                                if not correct_date and result.get('date'):
+                                    correct_date = result['date']
+                                
                                 mileage_records.append({
                                     'mileage': result['mileage'],
-                                    'date': result.get('test_date', ''),
-                                    'source': 'xpath_extraction'
+                                    'date': correct_date,
+                                    'source': 'mot_test_correlated'
                                 })
+                                logger.info(f"Mileage record {i+1}: {result['mileage']} miles on {correct_date}")
                         if mileage_records:
                             logger.info(f"XPath extraction successful: found {len(mileage_records)} mileage records")
                             mileage_data['mileage_records'] = mileage_records
@@ -1178,6 +1187,81 @@ class EnhancedSeleniumScraper:
                         
         except Exception as e:
             logger.error(f"Error in full text extraction: {e}")
+    
+    def _create_mileage_from_mot_tests(self, vehicle_data: dict) -> dict:
+        """Create accurate mileage history directly from MOT test data with correct dates"""
+        try:
+            mot_history = vehicle_data.get('mot_history', {})
+            mot_tests = mot_history.get('mot_tests', [])
+            
+            if not mot_tests:
+                logger.warning("No MOT tests available for mileage extraction")
+                return vehicle_data
+            
+            # Extract mileage readings DIRECTLY from MOT test data with correct dates
+            accurate_mileage_readings = []
+            
+            for i, test in enumerate(mot_tests):
+                if test.get('mileage') and test.get('test_date'):
+                    try:
+                        # Clean mileage reading - remove commas and extract numeric value
+                        mileage_str = str(test['mileage']).replace(',', '').strip()
+                        # Extract numbers from strings like "123456" or "123,456 miles"
+                        mileage_match = re.search(r'(\d+)', mileage_str.replace(',', ''))
+                        
+                        if mileage_match:
+                            mileage_value = int(mileage_match.group(1))
+                            
+                            # Use the ACTUAL MOT test date (not a random date)
+                            accurate_mileage_readings.append({
+                                'mileage': mileage_value,
+                                'date': test['test_date'],  # This is the key fix - use real MOT test date
+                                'source': 'MOT_test_record',
+                                'test_result': test.get('result', 'Unknown'),
+                                'test_index': i + 1
+                            })
+                            
+                            logger.info(f"Accurate mileage: {mileage_value} miles on {test['test_date']} (MOT {test.get('result', 'Unknown')})")
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"Could not parse mileage from MOT test {i}: {test.get('mileage')} - {e}")
+                        continue
+            
+            if accurate_mileage_readings:
+                # Sort by date to create proper chronological timeline
+                try:
+                    accurate_mileage_readings.sort(key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y'))
+                except:
+                    # If date parsing fails, sort by mileage as fallback
+                    accurate_mileage_readings.sort(key=lambda x: x['mileage'])
+                
+                # Calculate mileage progression between readings
+                for i in range(1, len(accurate_mileage_readings)):
+                    current = accurate_mileage_readings[i]
+                    previous = accurate_mileage_readings[i-1]
+                    
+                    miles_increase = current['mileage'] - previous['mileage']
+                    current['miles_since_previous'] = miles_increase
+                
+                # Create corrected mileage history structure
+                vehicle_data['mileage_history'] = {
+                    'mileage_readings': accurate_mileage_readings,  # Fixed field name to match expected format
+                    'total_readings': len(accurate_mileage_readings),
+                    'data_source': 'MOT_test_correlation_corrected',
+                    'date_range': {
+                        'earliest': accurate_mileage_readings[0]['date'] if accurate_mileage_readings else '',
+                        'latest': accurate_mileage_readings[-1]['date'] if accurate_mileage_readings else ''
+                    }
+                }
+                
+                logger.info(f"✅ FIXED: Created accurate mileage timeline with {len(accurate_mileage_readings)} readings using correct MOT test dates")
+            else:
+                logger.warning("No valid mileage readings could be extracted from MOT tests")
+            
+            return vehicle_data
+            
+        except Exception as e:
+            logger.error(f"Error creating accurate mileage data: {e}")
+            return vehicle_data
     
     def _extract_structured_data(self, vehicle_data: dict):
         """Extract data from structured HTML elements like tables and divs"""
