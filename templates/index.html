@@ -501,7 +501,7 @@
         }
         
         function displayMOTHistory(motHistory) {
-            if (!motHistory || !motHistory.mot_tests || motHistory.mot_tests.length === 0) {
+            if (!motHistory || !motHistory.tests || motHistory.tests.length === 0) {
                 document.getElementById('motSummary').innerHTML = `
                     <div class="no-data">
                         <i data-feather="info"></i>
@@ -519,7 +519,7 @@
             const summaryHtml = `
                 <div class="summary-stats">
                     <div class="stat-card">
-                        <div class="stat-number">${summary.total_tests || motHistory.total_tests_found || 0}</div>
+                        <div class="stat-number">${summary.total_tests || motHistory.total_tests || 0}</div>
                         <div class="stat-label">Total Tests</div>
                     </div>
                     <div class="stat-card">
@@ -540,7 +540,7 @@
             document.getElementById('motSummary').innerHTML = summaryHtml;
             
             // Display individual tests
-            const motTestsHtml = motHistory.mot_tests.map(test => {
+            const motTestsHtml = motHistory.tests.map(test => {
                 const resultClass = test.result ? test.result.toLowerCase() : 'unknown';
                 const badgeClass = getBadgeClass(test.result);
                 
@@ -548,9 +548,9 @@
                     ? `<div class="comments-section">
                         <h6>Comments & Advisories:</h6>
                         ${test.comments.map(comment => `
-                            <div class="comment-item ${getCommentClass(comment.type)}">
-                                <div class="comment-type">${comment.type || 'Comment'}</div>
-                                <div>${comment.text || ''}</div>
+                            <div class="comment-item ${getCommentClass(comment)}">
+                                <div class="comment-type">${getCommentType(comment)}</div>
+                                <div>${comment}</div>
                             </div>
                         `).join('')}
                     </div>`
@@ -563,7 +563,7 @@
                         <div class="test-details">
                             <div class="detail-item">
                                 <span class="detail-label">Test Date</span>
-                                <span class="detail-value">${test.test_date || 'Not recorded'}</span>
+                                <span class="detail-value">${test.date || 'Not recorded'}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Mileage</span>
@@ -657,13 +657,21 @@
             return 'badge-unknown';
         }
         
-        function getCommentClass(type) {
-            if (!type) return '';
-            const typeLower = type.toLowerCase();
-            if (typeLower.includes('advisory')) return 'comment-advisory';
-            if (typeLower.includes('fail')) return 'comment-failure';
-            if (typeLower.includes('clean')) return 'comment-clean';
-            return '';
+        function getCommentClass(comment) {
+            if (!comment) return 'comment-clean';
+            const text = comment.toLowerCase();
+            if (text.includes('advisory')) return 'comment-advisory';
+            if (text.includes('fail') || text.includes('major')) return 'comment-failure';
+            return 'comment-clean';
+        }
+        
+        function getCommentType(comment) {
+            if (!comment) return 'Comment';
+            const text = comment.toLowerCase();
+            if (text.includes('advisory')) return 'ADVISORY';
+            if (text.includes('major')) return 'MAJOR';
+            if (text.includes('fail')) return 'FAILURE';
+            return 'Note';
         }
         
         function formatMileage(mileage) {
