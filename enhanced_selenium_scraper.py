@@ -855,11 +855,81 @@ class EnhancedSeleniumScraper:
             logger.error(f"Error in structured data extraction: {e}")
     
     def _extract_mot_test_table(self) -> list:
-        """Extract MOT test data from the current page"""
+        """Extract MOT test data from the specific website format using targeted selectors"""
         mot_tests = []
         
         try:
-            # Look for tables with different selectors
+            # First check for the rich MOT history structure we confirmed exists
+            mot_wrappers = self.driver.find_elements(By.CSS_SELECTOR, ".mot-history-wrapper")
+            logger.info(f"Found {len(mot_wrappers)} MOT history wrappers")
+            
+            if mot_wrappers:
+                # Extract from the comprehensive MOT history structure
+                for wrapper in mot_wrappers:
+                    try:
+                        test_data = {}
+                        
+                        # Extract test result (PASSED/FAILED)
+                        try:
+                            result_elem = wrapper.find_element(By.CSS_SELECTOR, ".mot-history-result p")
+                            test_data['result'] = result_elem.text.strip()
+                        except:
+                            test_data['result'] = 'Unknown'
+                        
+                        # Extract test date
+                        try:
+                            date_elem = wrapper.find_element(By.CSS_SELECTOR, ".mot-test-date")
+                            test_data['test_date'] = date_elem.text.strip()
+                        except:
+                            test_data['test_date'] = ''
+                        
+                        # Extract mileage readings
+                        try:
+                            mileage_elems = wrapper.find_elements(By.CSS_SELECTOR, ".mot-history-mileage-numbers")
+                            if len(mileage_elems) >= 1:
+                                test_data['mileage'] = mileage_elems[0].text.strip()
+                            if len(mileage_elems) >= 2:
+                                test_data['expiry_date'] = mileage_elems[1].text.strip()
+                        except:
+                            test_data['mileage'] = ''
+                            test_data['expiry_date'] = ''
+                        
+                        # Extract comments and advisory notices
+                        comments = []
+                        try:
+                            comment_elements = wrapper.find_elements(By.CSS_SELECTOR, ".mot-history-ul li")
+                            for li in comment_elements:
+                                comment_text = li.text.strip()
+                                if comment_text:
+                                    is_advisory = 'ADVISORY' in comment_text
+                                    comments.append({
+                                        'text': comment_text.replace('ADVISORY', '').strip(),
+                                        'type': 'ADVISORY' if is_advisory else 'COMMENT'
+                                    })
+                        except:
+                            pass
+                        
+                        test_data['comments'] = comments
+                        test_data['advisory_count'] = len([c for c in comments if c['type'] == 'ADVISORY'])
+                        
+                        # Extract mileage progression
+                        try:
+                            mileage_change_elem = wrapper.find_element(By.CSS_SELECTOR, ".travelled-history")
+                            test_data['mileage_change'] = mileage_change_elem.text.strip()
+                        except:
+                            test_data['mileage_change'] = ''
+                        
+                        if test_data.get('test_date') and test_data.get('result'):
+                            mot_tests.append(test_data)
+                            logger.info(f"Extracted MOT test: {test_data['test_date']} - {test_data['result']}")
+                    
+                    except Exception as e:
+                        logger.warning(f"Error parsing MOT wrapper: {e}")
+                        continue
+                
+                return mot_tests
+            
+            # Fallback to table-based extraction if MOT wrappers not found
             table_selectors = [
                 'table',
                 '.table',
