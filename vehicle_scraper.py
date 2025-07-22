@@ -158,13 +158,16 @@ class VehicleScraper:
                 for elem in mot_elements[:3]:  # Show first 3
                     logger.info(f"MOT element class: {elem.get('class')} - tag: {elem.name}")
                 
-                # Check for various MOT wrapper types
+                # Check for various MOT wrapper types (including new user-provided)
                 wrapper_variants = [
                     'mot-history-wrapper-pass',
                     'mot-history-wrapper-fail', 
                     'mot-history-wrapper',
+                    'mot-history-summary',  # User-provided summary
                     'mot-wrapper',
-                    'history-wrapper'
+                    'mot-summary',
+                    'history-wrapper',
+                    'history-summary'
                 ]
                 
                 for variant in wrapper_variants:
@@ -172,17 +175,32 @@ class VehicleScraper:
                     if found:
                         logger.info(f"Found {len(found)} elements with class containing '{variant}'")
                 
-                # Try specific MOT history selectors (user-provided + variations)
+                # Also check nth-child(6) specifically
+                container_divs = soup.select("body > div.container > div")
+                if len(container_divs) >= 6:
+                    logger.info(f"Found container with {len(container_divs)} child divs, checking 6th child")
+                    sixth_child = container_divs[5]  # 0-indexed
+                    all_children = sixth_child.find_all()
+                    logger.info(f"6th child div has {len(all_children)} total descendant elements")
+                
+                # Try specific MOT history selectors (user-provided + enhanced variations)
                 selectors_to_try = [
                     "body > div.container > div.mot-history-wrapper.mot-history-wrapper-pass > div",  # User-provided specific
+                    "body > div.container > div.mot-history-summary",  # User-provided summary selector
+                    "body > div.container > div:nth-child(6) *",  # User-provided nth-child all children
+                    "body > div.container > div:nth-child(6) div",  # nth-child divs only
                     "body > div.container > div.mot-history-wrapper.mot-history-wrapper-fail > div",  # Fail variant
                     "body > div.container > div.mot-history-wrapper > div",  # Generic wrapper
+                    "div.mot-history-summary",  # Summary container
+                    "div.mot-history-summary *",  # All summary children
+                    ".mot-history-summary div",  # Summary divs
                     "div.mot-history-wrapper.mot-history-wrapper-pass div",  # Pass wrapper
                     "div.mot-history-wrapper.mot-history-wrapper-fail div",  # Fail wrapper  
                     "div.mot-history-wrapper > div",  # Any wrapper
                     ".mot-history-wrapper div",  # Simple wrapper
                     ".mot-history-wrapper *",  # All children
                     "div[class*='mot-history'] div",  # Partial match
+                    "div[class*='mot-summary']",  # Summary variations
                     "table tr",
                     ".mot-test", 
                     ".test-result",

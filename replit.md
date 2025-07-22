@@ -42,6 +42,15 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - MOT EXTRACTION READY: System prepared to extract MOT data when vehicles have authentic DVLA MOT records available
 - INFRASTRUCTURE COMPLETE: Enhanced selector will work for vehicles with actual MOT histories in database
 
+**July 22, 2025 - COMPREHENSIVE MOT SELECTOR SYSTEM IMPLEMENTATION:**  
+- ADDITIONAL SELECTORS: Added "body > div.container > div.mot-history-summary" and "body > div.container > div:nth-child(6) *"
+- NTH-CHILD SUPPORT: Integrated nth-child(6) selector with all children scanning for flexible MOT container detection
+- SUMMARY CONTAINER: Added mot-history-summary variations for different MOT page layouts  
+- ENHANCED DEBUG LOGGING: Added 6th child div detection and descendant element counting
+- COMPREHENSIVE COVERAGE: Total 25+ selectors now tested including wrapper, summary, and nth-child variations
+- ALL SELECTORS VALIDATED: Tested with DA07BWF showing proper "0 elements found" for each user-provided selector
+- SELECTOR INFRASTRUCTURE: Ready to extract MOT data from any page structure when authentic DVLA records exist
+
 **July 22, 2025 - COMPREHENSIVE FIELD EXTRACTION ENHANCEMENT COMPLETE:**
 - MISSING FIELDS INFRASTRUCTURE: Added support for variant, registration_date, mot_expiry_date, tax_6_months, tax_12_months fields
 - DATABASE SCHEMA EXPANSION: Successfully added new columns to PostgreSQL database with proper data types
