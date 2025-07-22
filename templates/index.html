@@ -1,238 +1,394 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-search"></i> Vehicle Registration Lookup
-                </h5>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Data Scraper - VRN Lookup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .vehicle-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin: 20px 0;
+        }
+        .data-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        .data-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .data-value {
+            font-size: 1.1em;
+            color: #212529;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .search-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-top: -30px;
+            position: relative;
+            z-index: 10;
+        }
+        .btn-search {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        .error-alert {
+            display: none;
+        }
+        .mot-item, .mileage-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .badge-success {
+            background-color: #28a745;
+        }
+        .badge-danger {
+            background-color: #dc3545;
+        }
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1 class="display-4 mb-4">
+                        <i class="fas fa-car me-3"></i>
+                        Vehicle Data Scraper
+                    </h1>
+                    <p class="lead">Get comprehensive vehicle information including MOT history, mileage records, and detailed specifications</p>
+                </div>
             </div>
-            <div class="card-body">
-                <form id="searchForm">
-                    <div class="mb-3">
-                        <label for="registration" class="form-label">Registration Number</label>
-                        <input type="text" class="form-control" id="registration" name="registration" 
-                               placeholder="Enter vehicle registration (e.g., AB12 ABC)" required>
-                        <div class="form-text">Enter a UK vehicle registration number</div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Search Vehicle
-                    </button>
-                </form>
-                
-                <div id="loading" class="loading text-center mt-3">
-                    <div class="spinner-border text-primary" role="status">
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Search Form -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="search-form">
+                    <form id="vehicleForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label for="registration" class="form-label">Vehicle Registration Number</label>
+                                <input type="text" class="form-control form-control-lg" id="registration" 
+                                       placeholder="e.g., AB12CDE, K5WBR" required>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary btn-search w-100">
+                                    <i class="fas fa-search me-2"></i>
+                                    Search Vehicle
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="row">
+            <div class="col-12">
+                <div class="loading-spinner text-center py-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Searching for vehicle data...</p>
+                    <p class="mt-3 text-muted">Extracting vehicle data...</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="alert alert-danger error-alert" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span class="error-message"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Data Display -->
+        <div id="vehicleData" style="display: none;">
+            <!-- Basic Information -->
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="vehicle-card">
+                        <h3 class="mb-4">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Basic Vehicle Information
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <div class="data-label">Registration</div>
+                                    <div class="data-value" id="reg-display"></div>
+                                </div>
+                                <div class="data-item">
+                                    <div class="data-label">Make</div>
+                                    <div class="data-value" id="make-display"></div>
+                                </div>
+                                <div class="data-item">
+                                    <div class="data-label">Model</div>
+                                    <div class="data-value" id="model-display"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <div class="data-label">Year</div>
+                                    <div class="data-value" id="year-display"></div>
+                                </div>
+                                <div class="data-item">
+                                    <div class="data-label">Color</div>
+                                    <div class="data-value" id="color-display"></div>
+                                </div>
+                                <div class="data-item">
+                                    <div class="data-label">Fuel Type</div>
+                                    <div class="data-value" id="fuel-display"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOT History -->
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="vehicle-card">
+                        <h3 class="mb-4">
+                            <i class="fas fa-clipboard-check me-2 text-success"></i>
+                            MOT Test History
+                        </h3>
+                        <div id="mot-history">
+                            <p class="text-muted">No MOT history available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mileage History -->
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="vehicle-card">
+                        <h3 class="mb-4">
+                            <i class="fas fa-tachometer-alt me-2 text-info"></i>
+                            Mileage History
+                        </h3>
+                        <div id="mileage-history">
+                            <p class="text-muted">No mileage history available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Source Information -->
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="vehicle-card">
+                        <h3 class="mb-4">
+                            <i class="fas fa-database me-2 text-secondary"></i>
+                            Data Source Information
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <div class="data-label">Extraction Method</div>
+                                    <div class="data-value" id="method-display"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <div class="data-label">Data Source</div>
+                                    <div class="data-value" id="source-display"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const registration = document.getElementById('registration').value.trim().toUpperCase();
+            
+            if (!registration) {
+                showError('Please enter a vehicle registration number');
+                return;
+            }
+            
+            // Show loading
+            showLoading(true);
+            hideError();
+            hideVehicleData();
+            
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ registration: registration })
+                });
                 
-                <div id="results" class="mt-4" style="display: none;">
-                    <!-- Results will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="fas fa-database"></i> Database Status
-                </h6>
-            </div>
-            <div class="card-body">
-                <div id="dbStatus">
-                    <span class="badge bg-success">Connected</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="fas fa-history"></i> Recent Searches
-                </h6>
-            </div>
-            <div class="card-body">
-                <div id="recentSearches">
-                    <p class="text-muted">No recent searches</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.getElementById('searchForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const registration = document.getElementById('registration').value.trim();
-    const loading = document.getElementById('loading');
-    const results = document.getElementById('results');
-    
-    if (!registration) {
-        alert('Please enter a registration number');
-        return;
-    }
-    
-    loading.style.display = 'block';
-    results.style.display = 'none';
-    
-    try {
-        const response = await fetch('/api/scrape', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ registration: registration })
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    displayVehicleData(data);
+                } else {
+                    showError(data.error || 'Failed to retrieve vehicle data');
+                }
+            } catch (error) {
+                showError('Network error: Unable to connect to the server');
+            } finally {
+                showLoading(false);
+            }
         });
         
-        const data = await response.json();
+        function showLoading(show) {
+            const spinner = document.querySelector('.loading-spinner');
+            spinner.style.display = show ? 'block' : 'none';
+        }
         
-        loading.style.display = 'none';
-        results.style.display = 'block';
+        function showError(message) {
+            const errorAlert = document.querySelector('.error-alert');
+            const errorMessage = document.querySelector('.error-message');
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'block';
+        }
         
-        if (data.success) {
-            let vehicleData = data.data || data; // Handle both response formats
+        function hideError() {
+            const errorAlert = document.querySelector('.error-alert');
+            errorAlert.style.display = 'none';
+        }
+        
+        function hideVehicleData() {
+            document.getElementById('vehicleData').style.display = 'none';
+        }
+        
+        function displayVehicleData(response) {
+            const vehicleData = response.data;
             
-            // Build MOT history section
-            let motHistoryHtml = '';
-            if (vehicleData.mot_history && vehicleData.mot_history.mot_tests && vehicleData.mot_history.mot_tests.length > 0) {
-                const motTests = vehicleData.mot_history.mot_tests.slice(0, 5); // Show first 5 tests
-                motHistoryHtml = `
-                    <div class="mt-3">
-                        <h6><i class="fas fa-clipboard-check"></i> Recent MOT History</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Result</th>
-                                        <th>Mileage</th>
-                                        <th>Expiry</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${motTests.map(test => `
-                                        <tr>
-                                            <td>${test.test_date || 'N/A'}</td>
-                                            <td><span class="badge bg-${test.result === 'PASS' ? 'success' : 'danger'}">${test.result || 'N/A'}</span></td>
-                                            <td>${test.mileage || 'N/A'}</td>
-                                            <td>${test.expiry_date || 'N/A'}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+            // Basic Information
+            document.getElementById('reg-display').textContent = vehicleData.registration || 'Unknown';
+            document.getElementById('make-display').textContent = vehicleData.make || 'Unknown';
+            document.getElementById('model-display').textContent = vehicleData.model || 'Unknown';
+            document.getElementById('year-display').textContent = vehicleData.year || 'Unknown';
+            document.getElementById('color-display').textContent = vehicleData.color || 'Unknown';
+            document.getElementById('fuel-display').textContent = vehicleData.fuel_type || 'Unknown';
+            
+            // Data Source Information
+            document.getElementById('method-display').textContent = response.method || 'Unknown';
+            document.getElementById('source-display').textContent = response.source || 'Unknown';
+            
+            // MOT History
+            displayMOTHistory(vehicleData.mot_history);
+            
+            // Mileage History
+            displayMileageHistory(vehicleData.mileage_history);
+            
+            // Show the vehicle data
+            document.getElementById('vehicleData').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('vehicleData').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function displayMOTHistory(motData) {
+            const motContainer = document.getElementById('mot-history');
+            
+            if (!motData || !motData.mot_tests || motData.mot_tests.length === 0) {
+                motContainer.innerHTML = '<p class="text-muted">No MOT test history available</p>';
+                return;
+            }
+            
+            let html = '';
+            motData.mot_tests.forEach(test => {
+                const badgeClass = test.result === 'PASS' ? 'badge-success' : 
+                                 test.result === 'FAIL' ? 'badge-danger' : 'badge-warning';
+                
+                html += `
+                    <div class="mot-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">Test Date: ${test.test_date || 'Unknown'}</h6>
+                            <span class="badge ${badgeClass}">${test.result || 'Unknown'}</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">Mileage: ${test.mileage || 'Not recorded'}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Expiry: ${test.expiry_date || 'Unknown'}</small>
+                            </div>
                         </div>
                     </div>
                 `;
+            });
+            
+            motContainer.innerHTML = html;
+        }
+        
+        function displayMileageHistory(mileageData) {
+            const mileageContainer = document.getElementById('mileage-history');
+            
+            if (!mileageData || !mileageData.mileage_records || mileageData.mileage_records.length === 0) {
+                mileageContainer.innerHTML = '<p class="text-muted">No mileage history available</p>';
+                return;
             }
             
-            // Build mileage history section
-            let mileageHistoryHtml = '';
-            if (vehicleData.mileage_history && vehicleData.mileage_history.mileage_records && vehicleData.mileage_history.mileage_records.length > 0) {
-                const mileageRecords = vehicleData.mileage_history.mileage_records.slice(0, 5); // Show first 5 records
-                mileageHistoryHtml = `
-                    <div class="mt-3">
-                        <h6><i class="fas fa-tachometer-alt"></i> Mileage History</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Mileage</th>
-                                        <th>Source</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${mileageRecords.map(record => `
-                                        <tr>
-                                            <td>${record.date || 'N/A'}</td>
-                                            <td>${record.mileage || 'N/A'}</td>
-                                            <td>${record.source || 'N/A'}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+            let html = '';
+            mileageData.mileage_records.forEach(record => {
+                html += `
+                    <div class="mileage-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Date: ${record.date || 'Unknown'}</h6>
+                                <small class="text-muted">Source: ${record.source || 'MOT Test'}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="h5 mb-0">${record.mileage || 'Unknown'} miles</span>
+                            </div>
                         </div>
                     </div>
                 `;
-            }
+            });
             
-            results.innerHTML = `
-                <div class="alert alert-success">
-                    <h6><i class="fas fa-check-circle"></i> Vehicle Found</h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Registration:</strong> ${vehicleData.registration || 'N/A'}<br>
-                            <strong>Make:</strong> ${vehicleData.make || 'N/A'}<br>
-                            <strong>Model:</strong> ${vehicleData.model || 'N/A'}<br>
-                            <strong>Year:</strong> ${vehicleData.year || 'N/A'}<br>
-                            <strong>Color:</strong> ${vehicleData.color || 'N/A'}<br>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Fuel Type:</strong> ${vehicleData.fuel_type || 'N/A'}<br>
-                            <strong>Engine Size:</strong> ${vehicleData.engine_size || 'N/A'}<br>
-                            <strong>Transmission:</strong> ${vehicleData.transmission || 'N/A'}<br>
-                            <strong>Body Style:</strong> ${vehicleData.body_style || 'N/A'}<br>
-                            ${vehicleData.cached ? '<span class="badge bg-info">Cached Data</span>' : '<span class="badge bg-success">Fresh Data</span>'}
-                        </div>
-                    </div>
-                    ${motHistoryHtml}
-                    ${mileageHistoryHtml}
-                </div>
-            `;
-        } else {
-            results.innerHTML = `
-                <div class="alert alert-danger">
-                    <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
-                    <p>${data.error}</p>
-                </div>
-            `;
+            mileageContainer.innerHTML = html;
         }
-    } catch (error) {
-        loading.style.display = 'none';
-        results.style.display = 'block';
-        results.innerHTML = `
-            <div class="alert alert-danger">
-                <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
-                <p>An error occurred while searching. Please try again.</p>
-            </div>
-        `;
-    }
-});
-
-// Load recent searches
-async function loadRecentSearches() {
-    try {
-        const response = await fetch('/api/search-history');
-        const data = await response.json();
-        
-        const container = document.getElementById('recentSearches');
-        if (data.length > 0) {
-            container.innerHTML = data.slice(0, 5).map(search => `
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span>${search.registration}</span>
-                    <span class="badge ${search.success ? 'bg-success' : 'bg-danger'}">
-                        ${search.success ? 'Success' : 'Failed'}
-                    </span>
-                </div>
-            `).join('');
-        }
-    } catch (error) {
-        console.error('Error loading recent searches:', error);
-    }
-}
-
-// Load recent searches on page load
-loadRecentSearches();
-</script>
-{% endblock %}
+    </script>
+</body>
+</html>

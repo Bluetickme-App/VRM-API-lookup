@@ -70,7 +70,6 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/')
-@require_auth
 def index():
     """Main page with vehicle lookup form"""
     return render_template('index.html')
