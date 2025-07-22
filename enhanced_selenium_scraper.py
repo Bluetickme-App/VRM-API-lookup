@@ -1007,6 +1007,11 @@ class EnhancedSeleniumScraper:
                 
                 return mot_tests
             
+            # If no MOT wrappers found, try direct XPath extraction
+            if not mot_tests:
+                logger.info("No MOT wrappers found, trying direct XPath extraction")
+                mot_tests = self._extract_via_xpath()
+            
             # Fallback to table-based extraction if MOT wrappers not found
             table_selectors = [
                 'table',
@@ -1086,6 +1091,75 @@ class EnhancedSeleniumScraper:
             logger.error(f"Error extracting MOT test table: {e}")
         
         return mot_tests
+    
+    def _extract_via_xpath(self) -> list:
+        """Extract MOT/mileage data using specific XPath selectors provided by user"""
+        extracted_data = []
+        
+        try:
+            # Specific XPath for mileage data from user
+            mileage_xpath = "/html/body/section/div[2]/div/div[4]/div/div[2]/div[2]/div[1]/div[2]/div[2]/p/span[1]"
+            
+            # Try to extract mileage data
+            try:
+                mileage_element = self.driver.find_element(By.XPATH, mileage_xpath)
+                mileage_value = mileage_element.text.strip()
+                if mileage_value:
+                    logger.info(f"Found mileage via XPath: {mileage_value}")
+                    extracted_data.append({
+                        'source': 'xpath_extraction',
+                        'type': 'mileage',
+                        'value': mileage_value,
+                        'xpath': mileage_xpath
+                    })
+            except Exception as e:
+                logger.debug(f"XPath mileage extraction failed: {e}")
+            
+            # Try MOT data XPath from user's earlier hint
+            mot_xpath = "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[3]/div/p[2]/span[1]"
+            try:
+                mot_element = self.driver.find_element(By.XPATH, mot_xpath)
+                mot_value = mot_element.text.strip()
+                if mot_value:
+                    logger.info(f"Found MOT data via XPath: {mot_value}")
+                    extracted_data.append({
+                        'source': 'xpath_extraction',
+                        'type': 'mot_data',
+                        'value': mot_value,
+                        'xpath': mot_xpath
+                    })
+            except Exception as e:
+                logger.debug(f"XPath MOT extraction failed: {e}")
+            
+            # Convert extracted data to MOT test format
+            if extracted_data:
+                test_record = {
+                    'test_date': '',
+                    'result': '',
+                    'mileage': '',
+                    'comments': [],
+                    'xpath_data': extracted_data
+                }
+                
+                for item in extracted_data:
+                    if item['type'] == 'mileage':
+                        test_record['mileage'] = item['value']
+                    elif 'PASS' in item['value'].upper():
+                        test_record['result'] = 'PASSED'
+                    elif 'FAIL' in item['value'].upper():
+                        test_record['result'] = 'FAILED'
+                    else:
+                        test_record['comments'].append({
+                            'text': item['value'],
+                            'type': 'XPATH_DATA'
+                        })
+                
+                return [test_record] if any([test_record['mileage'], test_record['result'], test_record['comments']]) else []
+            
+        except Exception as e:
+            logger.error(f"Error in XPath extraction: {e}")
+        
+        return []
     
     def _extract_mileage_table(self) -> list:
         """Extract mileage records from the current page"""
