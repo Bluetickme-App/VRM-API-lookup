@@ -210,46 +210,46 @@ class EnhancedMOTScraper:
             return []
     
     def _find_individual_test_sections(self) -> List:
-        """Find individual test sections on the MOT history page"""
+        """Find individual test sections on the MOT history page using exact table selectors"""
         try:
-            # Look for patterns that indicate individual test records
-            potential_selectors = [
-                # Target specific test containers
-                "[class*='test']",
-                "[class*='mot']",
-                "div:has-text('Test Date')",  # Modern CSS4 selector
-                "div:contains('Test Date')",  # Alternative
-                # Try structural approach
-                "body > div.container > div > div",
-                "body > div.container > *",
-                # Generic fallback
-                "div",
-                "section"
+            # Use the exact selectors provided by user for MOT history table rows
+            table_row_selectors = [
+                "body > div.container > div.mot-history-wrapper.mot-history-wrapper-pass > div > table > tbody > tr",
+                "body > div.container > div.mot-history-wrapper.mot-history-wrapper-fail > div > table > tbody > tr",
+                "body > div.container > div.mot-history-wrapper > div > table > tbody > tr",
+                # Fallback selectors for different table structures
+                "div.container table tbody tr",
+                "table.mot-history tbody tr",
+                "[class*='mot-history'] table tr",
+                # Generic table row selectors
+                "tbody tr",
+                "table tr"
             ]
             
             test_sections = []
             
-            for selector in potential_selectors:
+            for selector in table_row_selectors:
                 try:
-                    if 'has-text' in selector or 'contains' in selector:
-                        # Skip these selectors as they're not supported by Selenium
-                        continue
-                        
                     elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    logger.info(f"Trying selector: {selector} - Found {len(elements)} elements")
+                    
                     for element in elements:
                         try:
                             element_text = element.text.strip()
-                            # Look for test-related keywords
-                            if any(keyword in element_text.lower() for keyword in 
-                                   ['test date', 'passed', 'failed', 'mileage', 'expiry', 'advisory']):
-                                if len(element_text) > 20:  # Meaningful content
+                            # Check if this is a valid MOT test row (not header)
+                            if element_text and len(element_text) > 10:
+                                # Look for date patterns or test-related content
+                                if any(keyword in element_text.lower() for keyword in 
+                                       ['20', 'pass', 'fail', 'mile', 'test', 'expir', 'advis']):
                                     test_sections.append(element)
+                                    logger.debug(f"Added test section with text: {element_text[:50]}...")
                                     
                         except Exception as e:
+                            logger.debug(f"Error processing element: {e}")
                             continue
                     
                     if test_sections:
-                        logger.info(f"Found test sections using selector: {selector}")
+                        logger.info(f"Found {len(test_sections)} test sections using selector: {selector}")
                         break
                         
                 except Exception as e:
@@ -276,13 +276,82 @@ class EnhancedMOTScraper:
             return []
     
     def _parse_individual_test_section(self, section) -> Optional[Dict[str, Any]]:
-        """Parse an individual test section element"""
+        """Parse an individual MOT test table row"""
         try:
+            # Try to extract data from table cells (td elements)
+            cells = section.find_elements(By.TAG_NAME, 'td')
+            
+            if len(cells) >= 3:  # Minimum expected columns
+                test_record = {
+                    'source': 'mot_history_table_row',
+                    'test_date': '',
+                    'result': 'UNKNOWN',
+                    'mileage': '',
+                    'expiry_date': '',
+                    'comments': [],
+                    'raw_text': section.text.strip()[:200]
+                }
+                
+                # Extract data from table cells
+                for i, cell in enumerate(cells):
+                    try:
+                        cell_text = cell.text.strip()
+                        if not cell_text:
+                            continue
+                            
+                        # Date patterns (usually first or second column)
+                        date_patterns = [
+                            r'\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\b',
+                            r'\b(\d{1,2}\s+\w+\s+\d{4})\b',
+                            r'\b(\w+\s+\d{1,2},?\s+\d{4})\b'
+                        ]
+                        
+                        for pattern in date_patterns:
+                            date_match = re.search(pattern, cell_text)
+                            if date_match:
+                                test_record['test_date'] = date_match.group(1)
+                                break
+                        
+                        # Result patterns
+                        if 'pass' in cell_text.lower() and 'fail' not in cell_text.lower():
+                            test_record['result'] = 'PASSED'
+                        elif 'fail' in cell_text.lower():
+                            test_record['result'] = 'FAILED'
+                        
+                        # Mileage patterns
+                        mileage_patterns = [
+                            r'(\d{1,6}(?:,\d{3})*)\s*(?:miles?|mi)',
+                            r'(\d{1,6}(?:,\d{3})*)\s*$'
+                        ]
+                        
+                        for pattern in mileage_patterns:
+                            mileage_match = re.search(pattern, cell_text, re.IGNORECASE)
+                            if mileage_match:
+                                test_record['mileage'] = mileage_match.group(1).replace(',', '')
+                                break
+                        
+                        # Advisory/comment patterns
+                        if any(keyword in cell_text.lower() for keyword in ['advisory', 'minor', 'major', 'dangerous', 'fail']):
+                            if len(cell_text) > 10:  # Meaningful comment
+                                test_record['comments'].append({
+                                    'text': cell_text,
+                                    'type': 'ADVISORY' if 'advisory' in cell_text.lower() else 'COMMENT'
+                                })
+                                
+                    except Exception as e:
+                        logger.debug(f"Error processing cell {i}: {e}")
+                        continue
+                
+                # Only return if we extracted meaningful data
+                if test_record['test_date'] or test_record['mileage'] or test_record['result'] != 'UNKNOWN':
+                    logger.info(f"Extracted table row: {test_record['test_date']} - {test_record['result']} - {test_record['mileage']} miles")
+                    return test_record
+            
+            # Fallback: parse as text if table structure parsing failed
             text = section.text.strip()
             if not text:
                 return None
             
-            # Initialize test record
             test_record = {
                 'source': 'mot_history_page_section',
                 'test_date': '',
@@ -290,66 +359,65 @@ class EnhancedMOTScraper:
                 'mileage': '',
                 'expiry_date': '',
                 'comments': [],
-                'raw_text': text[:500]  # Store raw text for debugging
+                'raw_text': text[:200]
             }
             
-            # Extract test date
-            date_match = re.search(r'Test Date[\s\n]*([^\n]+)', text, re.IGNORECASE)
-            if date_match:
-                test_record['test_date'] = date_match.group(1).strip()
+            # Enhanced text parsing with better patterns
+            # Extract test date with multiple formats
+            date_patterns = [
+                r'(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})',
+                r'(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4})',
+                r'(\w+\s+\d{1,2},?\s+\d{4})'
+            ]
             
-            # Extract result (look for status badges)
+            for pattern in date_patterns:
+                date_match = re.search(pattern, text, re.IGNORECASE)
+                if date_match:
+                    test_record['test_date'] = date_match.group(1)
+                    break
+            
+            # Extract result
             text_lower = text.lower()
-            if 'passed' in text_lower and 'failed' not in text_lower:
+            if 'pass' in text_lower and 'fail' not in text_lower:
                 test_record['result'] = 'PASSED'
-            elif 'failed' in text_lower:
+            elif 'fail' in text_lower:
                 test_record['result'] = 'FAILED'
-            elif 'unknown' in text_lower:
-                test_record['result'] = 'UNKNOWN'
             
-            # Extract mileage
-            mileage_match = re.search(r'Mileage[\s\n]*(\d{1,6})', text, re.IGNORECASE)
-            if mileage_match:
-                test_record['mileage'] = mileage_match.group(1)
+            # Extract mileage with better patterns
+            mileage_patterns = [
+                r'(\d{1,6}(?:,\d{3})*)\s*(?:miles?|mi)',
+                r'mileage[:\s]*(\d{1,6}(?:,\d{3})*)',
+                r'(\d{4,6})\s*(?:\n|$|[^\d])'
+            ]
             
-            # Extract expiry date
-            expiry_match = re.search(r'Expiry[\s\n]*([^\n]+)', text, re.IGNORECASE)
-            if expiry_match:
-                test_record['expiry_date'] = expiry_match.group(1).strip()
+            for pattern in mileage_patterns:
+                mileage_match = re.search(pattern, text, re.IGNORECASE)
+                if mileage_match:
+                    test_record['mileage'] = mileage_match.group(1).replace(',', '')
+                    break
             
-            # Extract comments/advisories
+            # Extract comments
             comments = []
+            advisory_patterns = [
+                r'([^.]*(?:advisory|minor|major|dangerous|fail)[^.]*)',
+                r'([^.]*brake[^.]*)',
+                r'([^.]*tyre[^.]*)',
+                r'([^.]*suspension[^.]*)'
+            ]
             
-            # Look for advisory notices
-            advisory_matches = re.findall(r'([^.]+ADVISORY[^.]*)', text, re.IGNORECASE)
-            for advisory in advisory_matches:
-                comments.append({
-                    'text': advisory.strip(),
-                    'type': 'ADVISORY'
-                })
-            
-            # Look for failure reasons
-            fail_matches = re.findall(r'([^.]+FAIL[^.]*)', text, re.IGNORECASE)
-            for fail in fail_matches:
-                comments.append({
-                    'text': fail.strip(),
-                    'type': 'FAILURE'
-                })
-            
-            # Look for general comments
-            if 'no advisory notices' in text_lower:
-                comments.append({
-                    'text': 'Vehicle passed MOT with no advisory notices',
-                    'type': 'CLEAN_PASS'
-                })
+            for pattern in advisory_patterns:
+                advisory_matches = re.findall(pattern, text, re.IGNORECASE)
+                for advisory in advisory_matches[:3]:  # Limit to 3 comments
+                    if advisory.strip():
+                        comments.append({
+                            'text': advisory.strip(),
+                            'type': 'ADVISORY' if 'advisory' in advisory.lower() else 'COMMENT'
+                        })
             
             test_record['comments'] = comments
             
-            # Only return if we have meaningful data
-            if (test_record['test_date'] or 
-                test_record['result'] != 'UNKNOWN' or 
-                test_record['mileage'] or
-                comments):
+            # Return record if we have meaningful data
+            if test_record['test_date'] or test_record['mileage'] or test_record['result'] != 'UNKNOWN':
                 return test_record
             
             return None
