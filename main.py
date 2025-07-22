@@ -5,7 +5,6 @@ Provides web interface for scraping vehicle data from checkcardetails.co.uk
 """
 
 from app import app  # noqa: F401
-import main_routes  # noqa: F401
 
 # Import API blueprints if they exist
 try:

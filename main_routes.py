@@ -2,20 +2,23 @@
 Main routes for the Vehicle Data Scraper application
 """
 
-from flask import render_template, request, jsonify, send_file, session, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, send_file, session, redirect, url_for
 from functools import wraps
 import json
 import csv
 import io
 import os
 from datetime import datetime, timedelta
-from app import app, db
 from models import VehicleData, SearchHistory
 from utils import validate_registration, sanitize_filename
 from api_response_formatter import format_database_vehicle_response
+from final_scraper import FinalScraper
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Create Blueprint
+main_bp = Blueprint('main', __name__)
 
 # Password protection configuration
 FRONTEND_PASSWORD = os.environ.get("FRONTEND_PASSWORD", "admin123")
@@ -25,56 +28,34 @@ def require_auth(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('authenticated'):
-            return redirect(url_for('login'))
+            return redirect(url_for('main.login'))
         return f(*args, **kwargs)
     return decorated_function
 
-# Add security headers to prevent crawling
-@app.after_request
-def add_security_headers(response):
-    """Add security headers to prevent crawling and indexing"""
-    # Allow API documentation to be publicly accessible
-    if not request.path.startswith('/api/docs'):
-        response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive, nosnippet, noimageindex'
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-    
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['Referrer-Policy'] = 'no-referrer'
-    return response
-
-# Add robots.txt route
-@app.route('/robots.txt')
+@main_bp.route('/robots.txt')
 def robots_txt():
     """Serve robots.txt to block crawlers"""
     return "User-agent: *\nDisallow: /", 200, {'Content-Type': 'text/plain'}
 
-@app.route('/login', methods=['GET', 'POST'])
+@main_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page for frontend access"""
     if request.method == 'POST':
         password = request.form.get('password')
         if password == FRONTEND_PASSWORD:
             session['authenticated'] = True
-            return redirect(url_for('index'))
+            return redirect(url_for('main.index'))
         else:
             return render_template('login.html', error='Invalid password')
     return render_template('login.html')
 
-@app.route('/logout')
+@main_bp.route('/logout')
 def logout():
     """Logout and clear session"""
     session.pop('authenticated', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('main.login'))
 
-@app.route('/')
-def index():
-    """Main page with vehicle lookup form"""
-    return render_template('index.html')
-
-@app.route('/api/scrape', methods=['POST'])
+@main_bp.route('/api/scrape', methods=['POST'])
 def scrape_vehicle():
     """API endpoint to scrape vehicle data"""
     try:
