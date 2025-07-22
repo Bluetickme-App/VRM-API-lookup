@@ -136,20 +136,26 @@ Output must be structured JSON using this schema:
 
 def create_analysis_prompt(vehicle_data):
     """
-    Create the analysis prompt with structured vehicle data
+    Create the analysis prompt with structured vehicle data from raw_data
     """
     registration = vehicle_data.get('registration', 'Unknown')
     year = vehicle_data.get('year', 'Unknown')
     make = vehicle_data.get('make', 'Unknown')
     model = vehicle_data.get('model', 'Unknown')
     
-    # MOT History Analysis
+    # MOT History Analysis - data already extracted in intelligent_analysis_api.py
     mot_history = vehicle_data.get('mot_history', {})
-    mot_tests = mot_history.get('mot_tests', [])
-    
-    # Mileage Analysis
     mileage_history = vehicle_data.get('mileage_history', {})
+    
+    mot_tests = mot_history.get('mot_tests', [])
     mileage_records = mileage_history.get('mileage_records', [])
+    
+    print(f"DEBUG: Found {len(mot_tests)} MOT tests for {registration}")
+    if mot_tests:
+        first_test = mot_tests[0]
+        print(f"DEBUG: First test has comments: {bool(first_test.get('comments'))}")
+        if first_test.get('comments'):
+            print(f"DEBUG: Comment type: {type(first_test['comments'])}, Count: {len(first_test['comments']) if isinstance(first_test['comments'], list) else 'N/A'}")
     
     # Current date for age calculation
     current_year = datetime.now().year
@@ -168,24 +174,130 @@ BASIC INFORMATION:
 COMPLETE MOT TEST HISTORY ({len(mot_tests)} authentic DVLA tests):
 """
     
-    # Add MOT test details
-    for i, test in enumerate(mot_tests[:10]):  # Limit to 10 most recent tests
+    # Add complete MOT test details with all defects and advisories
+    for i, test in enumerate(mot_tests[:12]):  # Include more tests for better pattern analysis
         test_date = test.get('test_date', 'Unknown')
         result = test.get('result', 'Unknown')
         mileage = test.get('mileage', 'Unknown')
-        comments = test.get('comments', '')
+        
+        # Extract all defect categories and comments (handle both formats)
+        defects = test.get('defects', [])
+        advisories = test.get('advisories', [])
+        minor_defects = test.get('minor_defects', [])
+        major_defects = test.get('major_defects', [])
+        dangerous_defects = test.get('dangerous_defects', [])
+        
+        # Handle comments - can be string or list of comment objects
+        comments = test.get('comments', [])
+        full_comments = ''
+        comment_details = []
+        
+        if isinstance(comments, list):
+            for comment in comments:
+                if isinstance(comment, dict):
+                    comment_text = comment.get('text', '')
+                    comment_type = comment.get('type', 'UNKNOWN')
+                    comment_details.append(f"{comment_type}: {comment_text}")
+                else:
+                    comment_details.append(str(comment))
+            full_comments = '; '.join(comment_details)
+        else:
+            full_comments = str(comments)
+        
+        test_details = test.get('test_details', '')
+        
+        # Format mileage properly (handle both string and numeric)
+        if isinstance(mileage, (int, float)):
+            mileage_display = f"{mileage:,} miles"
+        else:
+            mileage_display = f"{mileage} miles"
         
         prompt += f"""
 Test {i+1}: {test_date}
 - Result: {result}
-- Mileage: {mileage}
-- Comments/Advisories: {comments[:200]}...
+- Mileage: {mileage_display}
+- Full Test Details: {full_comments}
 """
+        
+        # Add all defect categories with complete information
+        if defects:
+            prompt += f"- General Defects: {'; '.join(defects)}\n"
+        if advisories:
+            prompt += f"- Advisories: {'; '.join(advisories)}\n"
+        if minor_defects:
+            prompt += f"- Minor Defects: {'; '.join(minor_defects)}\n"
+        if major_defects:
+            prompt += f"- Major Defects: {'; '.join(major_defects)}\n"
+        if dangerous_defects:
+            prompt += f"- Dangerous Defects: {'; '.join(dangerous_defects)}\n"
+        if test_details:
+            prompt += f"- Additional Details: {test_details}\n"
     
-    # Add mileage progression
-    prompt += f"\nMILEAGE HISTORY ({len(mileage_records)} records):\n"
-    for record in mileage_records[:8]:  # Limit to 8 most recent
-        prompt += f"- {record.get('date', 'Unknown')}: {record.get('mileage', 'Unknown')} miles\n"
+    # Add comprehensive mileage progression with anomaly detection
+    prompt += f"\nCOMPLETE MILEAGE HISTORY ({len(mileage_records)} authentic DVLA records):\n"
+    
+    # Include mileage summary and analysis if available
+    mileage_summary = mileage_history.get('summary', {})
+    if mileage_summary:
+        prompt += f"MILEAGE SUMMARY:\n"
+        
+        # Format current mileage
+        current_mileage = mileage_summary.get('current_mileage', 'Unknown')
+        if isinstance(current_mileage, (int, float)):
+            current_mileage_str = f"{current_mileage:,}"
+        else:
+            current_mileage_str = str(current_mileage)
+        
+        # Format annual average
+        annual_avg = mileage_summary.get('annual_average', 'Unknown')
+        if isinstance(annual_avg, (int, float)):
+            annual_avg_str = f"{annual_avg:,}"
+        else:
+            annual_avg_str = str(annual_avg)
+        
+        # Format total increase
+        total_increase = mileage_summary.get('total_increase', 'Unknown')
+        if isinstance(total_increase, (int, float)):
+            total_increase_str = f"{total_increase:,}"
+        else:
+            total_increase_str = str(total_increase)
+        
+        prompt += f"- Current Mileage: {current_mileage_str} miles\n"
+        prompt += f"- Annual Average: {annual_avg_str} miles/year\n"
+        prompt += f"- Total Increase: {total_increase_str} miles\n"
+        
+        # Include any mileage warnings or anomalies
+        mileage_warnings = mileage_summary.get('warnings', [])
+        if mileage_warnings:
+            prompt += f"- MILEAGE WARNINGS: {'; '.join(mileage_warnings)}\n"
+        
+        mileage_anomalies = mileage_summary.get('anomalies', [])
+        if mileage_anomalies:
+            prompt += f"- MILEAGE ANOMALIES: {'; '.join(mileage_anomalies)}\n"
+    
+    prompt += f"\nDETAILED MILEAGE PROGRESSION:\n"
+    for i, record in enumerate(mileage_records[:10]):  # Include more records for better analysis
+        date = record.get('date', 'Unknown')
+        mileage = record.get('mileage', 'Unknown')
+        source = record.get('source', 'MOT')
+        
+        # Format mileage with proper number handling
+        if isinstance(mileage, (int, float)):
+            mileage_str = f"{mileage:,}"
+        else:
+            # Try to convert string to int for formatting
+            try:
+                mileage_num = int(str(mileage).replace(',', ''))
+                mileage_str = f"{mileage_num:,}"
+            except (ValueError, TypeError):
+                mileage_str = str(mileage)
+        
+        # Calculate mileage increase if possible
+        if i > 0 and isinstance(mileage, (int, float)) and isinstance(mileage_records[i-1].get('mileage'), (int, float)):
+            increase = mileage - mileage_records[i-1].get('mileage', 0)
+            prompt += f"- {date}: {mileage_str} miles (Source: {source}) [+{increase:,} miles]\n"
+        else:
+            prompt += f"- {date}: {mileage_str} miles (Source: {source})\n"
     
     # Add compliance status
     prompt += f"""

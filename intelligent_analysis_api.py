@@ -38,7 +38,10 @@ def intelligent_vehicle_analysis():
                 'error': f'No vehicle data found for {registration}. Please scrape the vehicle data first.'
             }), 404
         
-        # Convert database record to analysis format
+        # Extract complete data from raw_data field (contains all scraped MOT/mileage data)
+        raw_data = vehicle_record.raw_data or {}
+        
+        # Convert database record to analysis format with complete scraped data
         vehicle_data = {
             'registration': vehicle_record.registration,
             'make': vehicle_record.make,
@@ -52,8 +55,13 @@ def intelligent_vehicle_analysis():
             'tax_status': vehicle_record.tax_status,
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
-            'mot_history': vehicle_record.mot_history or {},
-            'mileage_history': vehicle_record.mileage_history or {}
+            # Use complete scraped data from raw_data field
+            'mot_history': raw_data.get('mot_history', {}),
+            'mileage_history': raw_data.get('mileage_history', {}),
+            # Include all additional scraped information
+            'basic_info': raw_data.get('basic_info', {}),
+            'vehicle_details': raw_data.get('vehicle_details', {}),
+            'summary': raw_data.get('summary', {})
         }
         
         logging.info(f"Performing OpenAI analysis for {registration}")
@@ -111,7 +119,16 @@ def analyze_vehicle_by_registration(registration):
                 'suggestion': f'Use /api/scrape with registration {registration} first'
             }), 404
         
-        # Convert to analysis format
+        # Extract complete data from raw_data field (contains all scraped MOT/mileage data)
+        raw_data = vehicle_record.raw_data or {}
+        
+        # Debug logging to verify data extraction
+        logging.info(f"Raw data keys for {registration}: {list(raw_data.keys())}")
+        if 'mot_history' in raw_data:
+            mot_tests_count = len(raw_data['mot_history'].get('mot_tests', []))
+            logging.info(f"Found {mot_tests_count} MOT tests in raw_data for {registration}")
+        
+        # Convert to analysis format with complete scraped data
         vehicle_data = {
             'registration': vehicle_record.registration,
             'make': vehicle_record.make,
@@ -125,8 +142,13 @@ def analyze_vehicle_by_registration(registration):
             'tax_status': vehicle_record.tax_status,
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
-            'mot_history': vehicle_record.mot_history or {},
-            'mileage_history': vehicle_record.mileage_history or {}
+            # Use complete scraped data from raw_data field
+            'mot_history': raw_data.get('mot_history', {}),
+            'mileage_history': raw_data.get('mileage_history', {}),
+            # Include all additional scraped information
+            'basic_info': raw_data.get('basic_info', {}),
+            'vehicle_details': raw_data.get('vehicle_details', {}),
+            'summary': raw_data.get('summary', {})
         }
         
         # Perform analysis
