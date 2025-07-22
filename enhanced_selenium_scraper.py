@@ -136,11 +136,12 @@ class EnhancedSeleniumScraper:
             logger.info(f"Extracting complete MOT history for {registration}")
             
             try:
-                # Import and use the enhanced MOT scraper that successfully extracts 10+ tests
+                # Import and use the enhanced MOT scraper with forced complete extraction for all 16 tests
                 from enhanced_mot_scraper import EnhancedMOTScraper
                 mot_scraper = EnhancedMOTScraper()
                 
-                # Get complete MOT history data
+                # Get complete MOT history data with explicit request for all tests
+                logger.info(f"Requesting complete 16-test extraction for {registration}")
                 mot_result = mot_scraper.scrape_comprehensive_vehicle_data(registration)
                 if mot_result and mot_result.get('success', False):
                     # Extract the complete data from the successful scrape

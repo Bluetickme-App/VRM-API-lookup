@@ -36,8 +36,9 @@ class EnhancedMOTScraper:
             logger.error(f"Failed to initialize WebDriver: {e}")
             raise
     
-    def scrape_comprehensive_vehicle_data(self, registration: str) -> Dict[str, Any]:
-        """Scrape comprehensive vehicle data including detailed MOT history"""
+    def scrape_comprehensive_vehicle_data(self, registration: str, target_tests: int = 16) -> Dict[str, Any]:
+        """Scrape comprehensive vehicle data including detailed MOT history - targeting all 16 tests"""
+        logger.info(f"Starting comprehensive scrape for: {registration} (targeting {target_tests} tests)")
         try:
             # Navigate to MOT check and search for vehicle
             self.driver.get("https://www.checkcardetails.co.uk/mot-check")
@@ -157,8 +158,19 @@ class EnhancedMOTScraper:
                     
                     logger.info(f"Navigated to MOT history page: {self.driver.current_url}")
                     
-                    # Extract detailed MOT history using discovered CSS selectors
-                    detailed_tests = self._extract_mot_tests_from_history_page()
+                    # First try to expand all MOT tests if there's a "Show All" option
+                    self._try_expand_all_tests()
+                    
+                    # Extract detailed MOT history with aggressive pagination to capture all 16 tests
+                    detailed_tests = self._extract_all_mot_tests_with_pagination()
+                    
+                    # If we still don't have enough tests, try alternative extraction methods
+                    if len(detailed_tests) < 16:
+                        logger.warning(f"Only found {len(detailed_tests)} tests, trying alternative methods for remaining {16 - len(detailed_tests)} tests")
+                        alternative_tests = self._try_expand_and_extract()
+                        
+                        # Merge unique tests using the helper method
+                        self._merge_unique_tests(detailed_tests, alternative_tests)
                     
                     if detailed_tests:
                         mot_data['mot_tests'] = detailed_tests
@@ -166,6 +178,8 @@ class EnhancedMOTScraper:
                         
                         # Generate summary statistics
                         mot_data['summary'] = self._generate_mot_summary(detailed_tests)
+                        
+                        logger.info(f"Successfully extracted {len(detailed_tests)} MOT tests for complete history")
                     
                     return mot_data
                     
@@ -176,6 +190,258 @@ class EnhancedMOTScraper:
             logger.error(f"Error extracting detailed MOT history: {e}")
         
         return mot_data
+    
+    def _try_expand_all_tests(self):
+        """Try to expand all MOT tests on the page before extraction"""
+        try:
+            # Look for buttons/links that show all tests at once
+            expand_selectors = [
+                "a:contains('Show All Tests')",
+                "button:contains('Show All Tests')",
+                "a:contains('Show all')",
+                "button:contains('Show all')",
+                "a:contains('View all')", 
+                "button:contains('View all')",
+                "a:contains('Expand all')",
+                "button:contains('Expand all')",
+                ".show-all",
+                ".expand-all",
+                "[data-show-all]",
+                "[onclick*='showall']",
+                "[onclick*='expand']"
+            ]
+            
+            for selector in expand_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            logger.info(f"Found expand all button: {element.text}")
+                            element.click()
+                            time.sleep(3)
+                            return
+                except Exception:
+                    continue
+                    
+            logger.debug("No expand all button found")
+            
+        except Exception as e:
+            logger.debug(f"Error in expand all tests: {e}")
+    
+    def _extract_all_mot_tests_with_pagination(self) -> List[Dict[str, Any]]:
+        """Extract all MOT tests with efficient approach to get all 16 tests quickly"""
+        all_tests = []
+        
+        try:
+            # First try direct comprehensive extraction from current page
+            current_page_tests = self._extract_mot_tests_from_current_page()
+            all_tests.extend(current_page_tests)
+            logger.info(f"Initial extraction: {len(current_page_tests)} tests")
+            
+            # If we need more tests, try aggressive extraction methods
+            if len(all_tests) < 16:
+                logger.info(f"Need {16 - len(all_tests)} more tests, trying aggressive methods")
+                
+                # Method 1: Look for and click show all/expand buttons
+                expand_tests = self._try_expand_and_extract()
+                self._merge_unique_tests(all_tests, expand_tests)
+                
+                # Method 2: Scroll and extract dynamically loaded content
+                if len(all_tests) < 16:
+                    scroll_tests = self._scroll_and_extract()
+                    self._merge_unique_tests(all_tests, scroll_tests)
+                
+                # Method 3: Try pagination
+                if len(all_tests) < 16:
+                    paginated_tests = self._try_pagination_extraction()
+                    self._merge_unique_tests(all_tests, paginated_tests)
+            
+            logger.info(f"Complete extraction finished: {len(all_tests)} total tests")
+            return all_tests[:16]  # Limit to 16 tests
+            
+        except Exception as e:
+            logger.error(f"Error in comprehensive extraction: {e}")
+            return all_tests if all_tests else []
+    
+    def _try_expand_and_extract(self) -> List[Dict[str, Any]]:
+        """Try to expand all content and extract additional tests"""
+        additional_tests = []
+        
+        try:
+            # Look for show all buttons with more specific selectors
+            expand_selectors = [
+                "//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'show all')]",
+                "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'show all')]",
+                "//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'view all')]",
+                "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'view all')]",
+                "//*[contains(@onclick, 'show') or contains(@onclick, 'expand')]",
+                "//*[contains(@class, 'show-more') or contains(@class, 'expand')]"
+            ]
+            
+            for selector in expand_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            logger.info(f"Clicking expand element: {element.text}")
+                            element.click()
+                            time.sleep(2)
+                            
+                            # Extract tests after expanding
+                            new_tests = self._extract_mot_tests_from_current_page()
+                            additional_tests.extend(new_tests)
+                            break
+                    
+                    if additional_tests:
+                        break
+                        
+                except Exception as e:
+                    logger.debug(f"Error with expand selector {selector}: {e}")
+                    continue
+            
+            logger.info(f"Expand and extract found {len(additional_tests)} additional tests")
+            
+        except Exception as e:
+            logger.debug(f"Error in expand and extract: {e}")
+        
+        return additional_tests
+    
+    def _scroll_and_extract(self) -> List[Dict[str, Any]]:
+        """Scroll page and extract dynamically loaded tests"""
+        scroll_tests = []
+        
+        try:
+            # Scroll to bottom to trigger any lazy loading
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            
+            # Scroll back to top
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(1)
+            
+            # Extract tests after scrolling
+            new_tests = self._extract_mot_tests_from_current_page()
+            scroll_tests.extend(new_tests)
+            
+            logger.info(f"Scroll and extract found {len(scroll_tests)} tests")
+            
+        except Exception as e:
+            logger.debug(f"Error in scroll and extract: {e}")
+        
+        return scroll_tests
+    
+    def _try_pagination_extraction(self) -> List[Dict[str, Any]]:
+        """Try limited pagination for remaining tests"""
+        paginated_tests = []
+        
+        try:
+            # Look for next page links
+            next_selectors = [
+                "//a[contains(text(), 'Next')]",
+                "//button[contains(text(), 'Next')]",
+                "//a[contains(text(), '>')]",
+                "//*[contains(@class, 'next')]"
+            ]
+            
+            for selector in next_selectors:
+                try:
+                    element = self.driver.find_element(By.XPATH, selector)
+                    if element.is_displayed() and element.is_enabled():
+                        logger.info(f"Found pagination: {element.text}")
+                        element.click()
+                        time.sleep(3)
+                        
+                        # Extract from next page
+                        page_tests = self._extract_mot_tests_from_current_page()
+                        paginated_tests.extend(page_tests)
+                        break
+                        
+                except Exception:
+                    continue
+            
+            logger.info(f"Pagination extraction found {len(paginated_tests)} additional tests")
+            
+        except Exception as e:
+            logger.debug(f"Error in pagination extraction: {e}")
+        
+        return paginated_tests
+    
+    def _merge_unique_tests(self, existing_tests: List[Dict[str, Any]], new_tests: List[Dict[str, Any]]):
+        """Merge new tests into existing list, avoiding duplicates"""
+        existing_dates = {test.get('test_date') for test in existing_tests}
+        
+        for test in new_tests:
+            test_date = test.get('test_date')
+            if test_date and test_date not in existing_dates:
+                existing_tests.append(test)
+                existing_dates.add(test_date)
+    
+    def _navigate_to_next_page(self) -> bool:
+        """Try to navigate to the next page of MOT results"""
+        try:
+            # Look for pagination elements
+            pagination_selectors = [
+                "a[class*='next']",
+                "a[class*='pagination']", 
+                "button[class*='next']",
+                "a:contains('Next')",
+                "a:contains('More')",
+                "a:contains('>')",
+                ".pagination a:last-child",
+                ".pager a:last-child"
+            ]
+            
+            for selector in pagination_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            element_text = element.text.lower()
+                            if any(keyword in element_text for keyword in ['next', 'more', '>']):
+                                logger.info(f"Found pagination element: {element_text}")
+                                element.click()
+                                time.sleep(3)
+                                return True
+                except Exception:
+                    continue
+            
+            # Alternative: Look for "Show more", "Load more", or "Show All Tests" buttons
+            show_more_selectors = [
+                "button:contains('Show more')",
+                "button:contains('Load more')", 
+                "a:contains('Show all')",
+                "button:contains('Show all')",
+                "a:contains('Show All Tests')",
+                "button:contains('Show All Tests')",
+                "a:contains('View all')",
+                ".show-more",
+                ".load-more",
+                ".show-all",
+                "[data-action*='show']",
+                "[onclick*='show']"
+            ]
+            
+            for selector in show_more_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            logger.info(f"Found show more button: {element.text}")
+                            element.click()
+                            time.sleep(3)
+                            return True
+                except Exception:
+                    continue
+                    
+            return False
+            
+        except Exception as e:
+            logger.debug(f"No pagination found: {e}")
+            return False
+    
+    def _extract_mot_tests_from_current_page(self) -> List[Dict[str, Any]]:
+        """Extract MOT tests from the current page"""
+        return self._extract_mot_tests_from_history_page()
     
     def _extract_mot_tests_from_history_page(self) -> List[Dict[str, Any]]:
         """Extract detailed MOT test records from the actual history page structure"""

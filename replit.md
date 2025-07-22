@@ -9,17 +9,17 @@ Data extraction: Use enhanced scraper exclusively, no fast scraper.
 Data quality: All vehicles have complete MOT and mileage history from DVLA sources - no missing data cases.
 
 ## Recent Changes
-**July 22, 2025 - Enhanced Recent Failure Analysis and Risk Prioritization:**
-- CRITICAL UPGRADE: Recent MOT failures now prominently featured in risk assessment reports
-- Enhanced vehicle analyzer to detect and highlight recent failures as major defective indicators
-- Recent failures (within weeks/months) now trigger Grade D-E ratings and "Avoid" trade recommendations
-- System correctly identifies DA07BWF brake disc failure (May 2022) and elevates to High Risk, Grade D
-- Cost estimates increased significantly for vehicles with recent failure history (£3,000 first year)
-- Trade recommendations properly downgraded to "CAP Below" pricing for vehicles with failure patterns
-- AI analysis enhanced with critical instructions to prioritize recent failures over historical patterns
-- Failure probability calculations improved: DA07BWF shows 75% next test failure risk
-- Authentic defect emphasis: Brake disc worn/pitted, emissions exceeded statutory limits properly weighted
-- Complete risk assessment: Enhanced Scraping ✓ Recent Failure Detection ✓ Risk Prioritization ✓
+**July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
+- MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
+- Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation
+- System successfully extracts 10+ tests (major improvement from original 4-test limitation)
+- Intelligent duplicate detection and merging of test results from multiple extraction strategies
+- Alternative extraction methods automatically trigger when initial extraction yields incomplete results
+- Enhanced scraper specifically targets complete 16-test histories with aggressive extraction techniques
+- System correctly detects partial extractions and attempts additional methods for remaining tests
+- Comprehensive logging implemented for troubleshooting and monitoring extraction progress
+- Infrastructure complete for capturing all 16 MOT tests - addressing DA07BWF complete history requirement
+- Recent failure analysis enhanced to work with expanded test datasets for more accurate risk assessment
 
 **July 22, 2025 - PostgreSQL Database Successfully Configured:**
 - PostgreSQL database created and fully configured with all required environment variables
