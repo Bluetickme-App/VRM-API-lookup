@@ -1,9 +1,14 @@
 import os
-from flask import Flask, render_template
+import logging
+from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_cors import CORS
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Base(DeclarativeBase):
     pass
@@ -38,12 +43,11 @@ def index():
 @app.route('/api/scrape', methods=['POST'])
 def scrape_vehicle():
     """API endpoint to scrape vehicle data"""
+    from models import VehicleData, SearchHistory
+    from datetime import datetime, timedelta
+    from utils import validate_registration
+    
     try:
-        from final_scraper import FinalScraper
-        from models import VehicleData, SearchHistory
-        from datetime import datetime, timedelta
-        from utils import validate_registration
-        
         data = request.get_json()
         registration = data.get('registration', '').strip().upper()
         
