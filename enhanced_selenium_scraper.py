@@ -375,14 +375,31 @@ class EnhancedSeleniumScraper:
             # Ensure data flows to top level for database storage
             if vehicle_data.get('basic_info'):
                 basic_info = vehicle_data['basic_info']
-                if basic_info.get('make'): vehicle_data['make'] = basic_info['make']
-                if basic_info.get('model'): vehicle_data['model'] = basic_info['model']
-                if basic_info.get('year'): vehicle_data['year'] = basic_info['year']
-                if basic_info.get('color'): vehicle_data['color'] = basic_info['color']
-                if basic_info.get('fuel_type'): vehicle_data['fuel_type'] = basic_info['fuel_type']
-                if basic_info.get('last_v5_issue_date'): vehicle_data['last_v5_issue_date'] = basic_info['last_v5_issue_date']
+                # Map all extracted fields to top level
+                field_mapping = {
+                    'make': 'make',
+                    'model': 'model', 
+                    'year': 'year',
+                    'color': 'color',
+                    'fuel_type': 'fuel_type',
+                    'last_v5_issue_date': 'last_v5_issue_date',
+                    'description': 'description',
+                    'transmission': 'transmission',
+                    'engine_size': 'engine_size',
+                    'body_style': 'body_style',
+                    'euro_status': 'euro_status',
+                    'vehicle_age': 'vehicle_age',
+                    'registration_place': 'registration_place',
+                    'registration_date': 'registration_date',
+                    'type_approval': 'type_approval',
+                    'wheel_plan': 'wheel_plan'
+                }
                 
-                logger.info(f"Mapped basic data: make={basic_info.get('make')}, model={basic_info.get('model')}, year={basic_info.get('year')}")
+                for basic_field, top_field in field_mapping.items():
+                    if basic_info.get(basic_field):
+                        vehicle_data[top_field] = basic_info[basic_field]
+                
+                logger.info(f"Mapped comprehensive data: make={basic_info.get('make')}, model={basic_info.get('model')}, v5_date={basic_info.get('last_v5_issue_date')}")
             
             # Look for and store MOT/mileage links during basic extraction
             self._find_and_store_history_links(vehicle_data)
@@ -1084,56 +1101,80 @@ class EnhancedSeleniumScraper:
     def _extract_from_full_text(self, full_text: str, vehicle_data: dict):
         """Extract vehicle data from full page text using comprehensive patterns"""
         try:
-            # Make extraction with brand recognition
-            make_patterns = [
-                r'(?:Make|Brand|Manufacturer)[:\s]*([A-Z][a-zA-Z\-\s]+?)(?:\n|\s+Model|\s+A6|\s+CLA|\s+Golf)',
-                r'(Mercedes-Benz|BMW|Audi|Volkswagen|Ford|Toyota|Honda|Nissan|Vauxhall|Peugeot|Renault|Citroen|Volvo|Jaguar|Land Rover|Mini|Porsche|Ferrari|Lamborghini|Bentley|Rolls-Royce|Maserati|McLaren|Lotus|Alfa Romeo|Fiat|Skoda|Seat|Hyundai|Kia|Mazda|Subaru|Mitsubishi|Suzuki|Lexus|Infiniti|Acura|Cadillac|Chevrolet|Chrysler|Dodge|Jeep|Lincoln|Buick|GMC|Ram)(?=\s)',
-                r'^([A-Z][a-zA-Z\-\s]+?)\s+(?:A6|CLA|Golf|Focus|Corolla|Civic|Qashqai|Astra|208|Clio|C3|XC60|XF|Evoque|Cooper|911)',
-                r'Make[:\s]+([A-Za-z0-9\s\-]+)',
-            ]
+            logger.info(f"Extracting from full text: {len(full_text)} characters")
             
-            for pattern in make_patterns:
-                match = re.search(pattern, full_text, re.IGNORECASE | re.MULTILINE)
-                if match:
-                    make = match.group(1).strip()
-                    if make and len(make) > 2 and len(make) < 30 and make.lower() not in ['unknown', 'not available']:
-                        vehicle_data['basic_info']['make'] = make
-                        logger.info(f"Found make from full text: {make}")
-                        break
+            # Extract all the fields from the main vehicle details page
+            field_patterns = {
+                'make': [
+                    r'(Mercedes-Benz|BMW|Audi|Volkswagen|Ford|Toyota|Honda|Nissan|Vauxhall|Peugeot|Renault|Citroen|Volvo|Jaguar|Land Rover|Mini|Porsche|Ferrari|Lamborghini|Bentley|Rolls-Royce|Maserati|McLaren|Lotus|Alfa Romeo|Fiat|Skoda|Seat|Hyundai|Kia|Mazda|Subaru|Mitsubishi|Suzuki|Lexus|Infiniti|Acura|Cadillac|Chevrolet|Chrysler|Dodge|Jeep|Lincoln|Buick|GMC|Ram)(?=\s)',
+                    r'Make[:\s]+([A-Za-z0-9\s\-]+)',
+                ],
+                'model': [
+                    r'Model Variant[:\s]*([A-Za-z0-9\s\-]+?)(?:\n|Description)',
+                    r'(A6|CLA|Golf|Focus|Corolla|Civic|Qashqai|Astra|208|Clio|C3|XC60|XF|Evoque|Cooper|911|C-Class|E-Class|S-Class|GLC|GLA|GLE|GLS)(?=\s|$)',
+                    r'Model[:\s]+([A-Za-z0-9\s\-]+)',
+                ],
+                'description': [
+                    r'Description[:\s]*([A-Za-z0-9\s\-]+?)(?:\n|Primary Colour)',
+                ],
+                'color': [
+                    r'Primary Colour[:\s]*([A-Za-z\s]+?)(?:\n|Fuel Type)',
+                    r'Colour[:\s]+([A-Za-z\s]+)',
+                ],
+                'fuel_type': [
+                    r'Fuel Type[:\s]*([A-Za-z\s]+?)(?:\n|Transmission)',
+                ],
+                'transmission': [
+                    r'Transmission[:\s]*([A-Za-z0-9\s]+?)(?:\n|Engine)',
+                ],
+                'engine_size': [
+                    r'Engine[:\s]*(\d+\s*cc)',
+                    r'(\d{4})\s*cc',
+                ],
+                'body_style': [
+                    r'Body Style[:\s]*([A-Za-z\s]+?)(?:\n|Year)',
+                ],
+                'year': [
+                    r'Year Manufacture[:\s]*(\d{4})',
+                    r'(\d{4})(?=\s*Year|\s*Model)',
+                ],
+                'euro_status': [
+                    r'Euro Status[:\s]*(\d+)',
+                ],
+                'vehicle_age': [
+                    r'Vehicle Age[:\s]*([^\n\r]+)',
+                ],
+                'registration_place': [
+                    r'Registration Place[:\s]*([A-Za-z\s]+?)(?:\n|Registration Date)',
+                ],
+                'registration_date': [
+                    r'Registration Date[:\s]*(\d{2}/\d{2}/\d{4})',
+                ],
+                'last_v5_issue_date': [
+                    r'Last V5C Issue Date[:\s]*([^\n\r]+?)(?:\n|Type)',
+                    r'V5C Issue Date[:\s]*([^\n\r]+)',
+                    r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
+                ],
+                'type_approval': [
+                    r'Type Approval[:\s]*([A-Za-z0-9]+)',
+                ],
+                'wheel_plan': [
+                    r'Wheel Plan[:\s]*([^\n\r]+)',
+                ]
+            }
             
-            # Model extraction
-            model_patterns = [
-                r'(?:Model|Variant)[:\s]*([A-Za-z0-9\s\-]+?)(?:\n|\s+\d{4}|\s+Petrol|\s+Diesel)',
-                r'(?:Mercedes-Benz|BMW|Audi|Volkswagen)\s+([A-Z0-9\-\s]+?)(?:\s+\d{4}|\s+SE|\s+TDI|\s+TSI|\n)',
-                r'Model[:\s]+([A-Za-z0-9\s\-]+)',
-                r'(A6|CLA|Golf|Focus|Corolla|Civic|Qashqai|Astra|208|Clio|C3|XC60|XF|Evoque|Cooper|911)(?=\s|$)',
-            ]
-            
-            for pattern in model_patterns:
-                match = re.search(pattern, full_text, re.IGNORECASE | re.MULTILINE)
-                if match:
-                    model = match.group(1).strip()
-                    if model and len(model) > 1 and len(model) < 30 and model.lower() not in ['unknown', 'not available']:
-                        vehicle_data['basic_info']['model'] = model
-                        logger.info(f"Found model from full text: {model}")
-                        break
-            
-            # V5C Issue Date extraction
-            v5_patterns = [
-                r'V5C Issue Date[:\s]*([^\n\r]+)',
-                r'Last V5C Issue Date[:\s]*([^\n\r]+)',
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'V5\s*Issue[:\s]*([^\n\r]+)',
-            ]
-            
-            for pattern in v5_patterns:
-                match = re.search(pattern, full_text, re.IGNORECASE)
-                if match:
-                    v5_date = match.group(1).strip()
-                    if v5_date and len(v5_date) < 50 and v5_date.lower() not in ['unknown', 'not available']:
-                        vehicle_data['basic_info']['last_v5_issue_date'] = v5_date
-                        logger.info(f"Found V5C date from full text: {v5_date}")
-                        break
+            # Extract each field using its patterns
+            for field_name, patterns in field_patterns.items():
+                if not vehicle_data['basic_info'].get(field_name):
+                    for pattern in patterns:
+                        match = re.search(pattern, full_text, re.IGNORECASE | re.MULTILINE)
+                        if match:
+                            value = match.group(1).strip()
+                            if value and len(value) < 100 and value.lower() not in ['unknown', 'not available', 'n/a']:
+                                vehicle_data['basic_info'][field_name] = value
+                                logger.info(f"Found {field_name} from full text: {value}")
+                                break
+
                         
         except Exception as e:
             logger.error(f"Error in full text extraction: {e}")

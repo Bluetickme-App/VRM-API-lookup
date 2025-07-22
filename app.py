@@ -148,6 +148,7 @@ def scrape_vehicle():
                     if v5_date:
                         basic_data['last_v5_issue_date'] = v5_date
                         basic_data['v5_issue_date'] = v5_date
+                        logger.info(f"V5C Issue Date mapped for API response: {v5_date}")
                     
                     # Store raw data for future reference
                     vehicle_record.raw_data = basic_data
