@@ -124,14 +124,14 @@ def scrape_vehicle():
                     
                     return jsonify(response_data)
             
-            # If no cached data or data is old, return error for now
-            # Use fast scraper for web interface to avoid timeouts
+            # If no cached data or data is old, use enhanced scraper
+            # Use enhanced selenium scraper for comprehensive data extraction
             try:
-                from fast_scraper import FastVehicleScraper
+                from enhanced_selenium_scraper import EnhancedSeleniumScraper
                 
-                logger.info(f"Starting fast scrape for registration: {registration}")
-                scraper = FastVehicleScraper(headless=True)
-                basic_data = scraper.scrape_basic_vehicle_data(registration)
+                logger.info(f"Starting enhanced scrape for registration: {registration}")
+                scraper = EnhancedSeleniumScraper(headless=True)
+                basic_data = scraper.scrape_complete_vehicle_data(registration)
                 
                 if basic_data:
                     
@@ -139,13 +139,27 @@ def scrape_vehicle():
                     vehicle_record = VehicleData()
                     vehicle_record.registration = registration
                     
+                    # Extract data from enhanced scraper format
+                    basic_info = basic_data.get('basic_info', {})
+                    vehicle_details = basic_data.get('vehicle_details', {})
+                    
                     # Update with scraped data
-                    vehicle_record.make = (basic_data.get('make') or 'Unknown')[:50]
-                    vehicle_record.model = (basic_data.get('model') or 'Unknown')[:50]
-                    vehicle_record.description = (basic_data.get('description') or 'Unknown')[:200]
-                    vehicle_record.color = (basic_data.get('color') or 'Unknown')[:50]
-                    vehicle_record.fuel_type = (basic_data.get('fuel_type') or 'Unknown')[:50]
-                    vehicle_record.year = basic_data.get('year')
+                    vehicle_record.make = (basic_info.get('make') or basic_data.get('make') or 'Unknown')[:50]
+                    vehicle_record.model = (basic_info.get('model') or basic_data.get('model') or 'Unknown')[:50]
+                    vehicle_record.description = (basic_info.get('description') or basic_data.get('description') or 'Unknown')[:200]
+                    vehicle_record.color = (basic_info.get('color') or basic_data.get('color') or 'Unknown')[:50]
+                    vehicle_record.fuel_type = (basic_info.get('fuel_type') or basic_data.get('fuel_type') or 'Unknown')[:50]
+                    
+                    # Handle year conversion
+                    year_value = basic_info.get('year') or basic_data.get('year')
+                    if year_value:
+                        try:
+                            vehicle_record.year = int(year_value)
+                        except (ValueError, TypeError):
+                            vehicle_record.year = None
+                    
+                    # Store raw data for future reference
+                    vehicle_record.raw_data = basic_data
                     
                     # Store in database
                     db.session.add(vehicle_record)
