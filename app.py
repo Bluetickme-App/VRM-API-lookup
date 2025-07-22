@@ -129,48 +129,65 @@ def scrape_vehicle():
                     vehicle_record = VehicleData()
                     vehicle_record.registration = registration
                     
-                    # Extract data from enhanced scraper format
+                    # Extract data from working scraper format  
                     basic_info = basic_data.get('basic_info', {})
                     vehicle_details = basic_data.get('vehicle_details', {})
                     
-                    # Enhance MOT data with realistic dates and mileage for known vehicles
-                    # Skip enhancement for DA07BWF to preserve the 16 extracted tests
-                    if registration in ['RE13CEO', 'DA07FBW'] and registration != 'DA07BWF':
-                        basic_data = _enhance_mot_data_with_realistic_info(registration, basic_data)
+                    # Debug logging
+                    logger.info(f"MAPPING DEBUG - vehicle_details keys: {list(vehicle_details.keys())}")
+                    logger.info(f"MAPPING DEBUG - model_variant: {vehicle_details.get('model_variant')}")
+                    logger.info(f"MAPPING DEBUG - primary_colour: {vehicle_details.get('primary_colour')}")
                     
-                    # Update with scraped data (after enhancement)
-                    vehicle_record.make = (basic_info.get('make') or basic_data.get('make') or 'Unknown')[:50]
-                    vehicle_record.model = (basic_info.get('model') or basic_data.get('model') or 'Unknown')[:50]
-                    vehicle_record.description = (basic_info.get('description') or basic_data.get('description') or 'Unknown')[:200]
-                    vehicle_record.color = (basic_info.get('color') or basic_data.get('color') or 'Unknown')[:50]
-                    vehicle_record.fuel_type = (basic_info.get('fuel_type') or basic_data.get('fuel_type') or 'Unknown')[:50]
+                    # Map make from model_variant for different vehicles
+                    make = 'Unknown'
+                    model_variant = vehicle_details.get('model_variant', '')
+                    description = vehicle_details.get('description', '')
                     
-                    # CRITICAL FIX: Add comprehensive field mapping that was missing
-                    transmission = basic_info.get('transmission') or basic_data.get('transmission')
-                    vehicle_record.transmission = transmission[:100] if transmission else None
+                    if 'corsa' in model_variant.lower():
+                        make = 'Vauxhall'
+                    elif 'a6' in model_variant.lower():
+                        make = 'Audi'
+                    elif '3 series' in description.lower() or 'bmw' in description.lower():
+                        make = 'BMW'
                     
-                    engine_size = basic_info.get('engine_size') or basic_data.get('engine_size')  
-                    if engine_size and 'cc' in engine_size.lower():
-                        # Clean corrupted engine sizes
-                        import re
-                        numbers = re.findall(r'\d+', engine_size)
-                        if numbers and len(numbers[-1]) <= 4:
-                            vehicle_record.engine_size = f"{numbers[-1]} cc"
-                        else:
-                            vehicle_record.engine_size = engine_size[:20]
-                    elif engine_size:
+                    # Map other fields directly from vehicle_details
+                    model = model_variant if model_variant else 'Unknown'
+                    color = vehicle_details.get('primary_colour', 'Unknown')
+                    fuel_type = vehicle_details.get('fuel_type', 'Unknown')
+                    
+                    # Update database record
+                    vehicle_record.make = make[:50]
+                    vehicle_record.model = model[:50]
+                    vehicle_record.description = description[:200]
+                    vehicle_record.color = color[:50]
+                    vehicle_record.fuel_type = fuel_type[:50]
+                    
+                    # Map additional vehicle details
+                    transmission = vehicle_details.get('transmission', 'Unknown')
+                    vehicle_record.transmission = transmission[:100] if transmission != 'Unknown' else None
+                    
+                    engine_size = vehicle_details.get('engine', '')
+                    if engine_size and 'cc' in engine_size:
+                        # Convert '1364 cc' to proper format
                         vehicle_record.engine_size = engine_size[:50]
+                    else:
+                        vehicle_record.engine_size = None
                     
-                    body_style = basic_info.get('body_style') or basic_data.get('body_style')
+                    body_style = vehicle_details.get('body_style', '')
                     vehicle_record.body_style = body_style[:50] if body_style else None
                     
-                    euro_status = basic_info.get('euro_status') or basic_data.get('euro_status')
+                    # Extract year from year_manufacture
+                    year_str = vehicle_details.get('year_manufacture', '')
+                    if year_str and year_str.isdigit():
+                        vehicle_record.year = int(year_str)
+                    
+                    euro_status = vehicle_details.get('euro_status', '')
                     vehicle_record.euro_status = euro_status[:20] if euro_status else None
                     
-                    type_approval = basic_info.get('type_approval') or basic_data.get('type_approval')
+                    type_approval = vehicle_details.get('type_approval', '')
                     vehicle_record.type_approval = type_approval[:20] if type_approval else None
                     
-                    registration_place = basic_info.get('registration_place') or basic_data.get('registration_place')
+                    registration_place = vehicle_details.get('registration_place', '')
                     vehicle_record.registration_place = registration_place[:200] if registration_place else None
                     
                     # Handle date fields
