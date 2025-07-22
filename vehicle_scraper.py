@@ -113,8 +113,8 @@ class VehicleScraper:
                 # Now add MOT history - navigate directly to MOT page
                 self._add_mot_history(registration, vehicle_data)
                 
-                # Add mileage history 
-                self._add_mileage_history(registration, vehicle_data)
+                # Add mileage history - temporarily disabled to prevent timeout
+                # self._add_mileage_history(registration, vehicle_data)
                 
                 return vehicle_data
             else:
