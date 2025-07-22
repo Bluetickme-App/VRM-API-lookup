@@ -109,6 +109,14 @@ class EnhancedMOTScraper:
         try:
             # Extract make and model using comprehensive patterns
             make_patterns = [
+                (r'FERRARI', 'Ferrari'),
+                (r'LAMBORGHINI', 'Lamborghini'),
+                (r'PORSCHE', 'Porsche'),
+                (r'MASERATI', 'Maserati'),
+                (r'ASTON MARTIN', 'Aston Martin'),
+                (r'MCLAREN', 'McLaren'),
+                (r'BENTLEY', 'Bentley'),
+                (r'ROLLS ROYCE', 'Rolls Royce'),
                 (r'VAUXHALL', 'Vauxhall'),
                 (r'AUDI', 'Audi'),
                 (r'BMW', 'BMW'),
@@ -118,10 +126,41 @@ class EnhancedMOTScraper:
                 (r'TOYOTA', 'Toyota'),
                 (r'NISSAN', 'Nissan'),
                 (r'HONDA', 'Honda'),
-                (r'HYUNDAI', 'Hyundai')
+                (r'HYUNDAI', 'Hyundai'),
+                (r'LAND ROVER', 'Land Rover'),
+                (r'JAGUAR', 'Jaguar'),
+                (r'MINI', 'MINI'),
+                (r'VOLVO', 'Volvo'),
+                (r'PEUGEOT', 'Peugeot'),
+                (r'RENAULT', 'Renault'),
+                (r'CITROEN', 'Citroen'),
+                (r'LEXUS', 'Lexus'),
+                (r'INFINITI', 'Infiniti'),
+                (r'TESLA', 'Tesla')
             ]
             
             model_patterns = [
+                # Ferrari models
+                (r'F430', 'F430'),
+                (r'458', '458'),
+                (r'488', '488'),
+                (r'F8', 'F8'),
+                (r'ROMA', 'Roma'),
+                (r'PORTOFINO', 'Portofino'),
+                (r'CALIFORNIA', 'California'),
+                (r'599', '599'),
+                (r'612', '612'),
+                (r'FF', 'FF'),
+                (r'GTC4LUSSO', 'GTC4Lusso'),
+                (r'LAFERRARI', 'LaFerrari'),
+                # Luxury models
+                (r'GALLARDO', 'Gallardo'),
+                (r'HURACAN', 'Huracan'),
+                (r'AVENTADOR', 'Aventador'),
+                (r'CONTINENTAL', 'Continental'),
+                (r'PHANTOM', 'Phantom'),
+                (r'GHOST', 'Ghost'),
+                # Common models
                 (r'CORSA', 'Corsa'),
                 (r'A6', 'A6'),
                 (r'A4', 'A4'),
