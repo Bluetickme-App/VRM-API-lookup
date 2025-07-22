@@ -124,8 +124,7 @@ def scrape_vehicle():
                     
                     return jsonify(response_data)
             
-            # If no cached data or data is old, use enhanced scraper
-            # Use enhanced selenium scraper for comprehensive data extraction
+            # Always use enhanced scraper for comprehensive data extraction
             try:
                 from enhanced_selenium_scraper import EnhancedSeleniumScraper
                 
@@ -183,7 +182,7 @@ def scrape_vehicle():
                             'mileage_history': basic_data.get('mileage_history')
                         },
                         'source': 'fresh_scrape',
-                        'method': 'enhanced_selenium'
+                        'method': 'enhanced_selenium_only'
                     })
                 
                 else:

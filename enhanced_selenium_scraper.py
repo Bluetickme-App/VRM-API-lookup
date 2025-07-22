@@ -468,12 +468,17 @@ class EnhancedSeleniumScraper:
                         continue
                     
                     # Map labels to our data structure
-                    if 'make' in label and not vehicle_data['basic_info'].get('make'):
+                    if ('make' in label or 'manufacturer' in label or 'brand' in label) and not vehicle_data['basic_info'].get('make'):
                         vehicle_data['basic_info']['make'] = value
                         logger.info(f"Found make via table: {value}")
                     elif 'model' in label and not vehicle_data['basic_info'].get('model'):
                         vehicle_data['basic_info']['model'] = value
                         logger.info(f"Found model via table: {value}")
+                        
+                        # If we found "Cla" as model, we can infer it's Mercedes-Benz
+                        if value.lower() in ['cla', 'c-class', 'e-class', 'a-class', 'b-class', 's-class', 'glc', 'gla', 'gle', 'gls'] and not vehicle_data['basic_info'].get('make'):
+                            vehicle_data['basic_info']['make'] = 'Mercedes-Benz'
+                            logger.info(f"Inferred make from model: Mercedes-Benz (model: {value})")
                     elif 'year' in label and not vehicle_data['basic_info'].get('year'):
                         if re.match(r'^\d{4}$', value):
                             vehicle_data['basic_info']['year'] = value
@@ -502,12 +507,17 @@ class EnhancedSeleniumScraper:
                             if not value or value.lower() in ['unknown', 'n/a', '-', '']:
                                 continue
                             
-                            if 'make' in label and not vehicle_data['basic_info'].get('make'):
+                            if ('make' in label or 'manufacturer' in label or 'brand' in label) and not vehicle_data['basic_info'].get('make'):
                                 vehicle_data['basic_info']['make'] = value
                                 logger.info(f"Found make via element: {value}")
                             elif 'model' in label and not vehicle_data['basic_info'].get('model'):
                                 vehicle_data['basic_info']['model'] = value
                                 logger.info(f"Found model via element: {value}")
+                                
+                                # If we found "Cla" as model, we can infer it's Mercedes-Benz
+                                if value.lower() in ['cla', 'c-class', 'e-class', 'a-class', 'b-class', 's-class', 'glc', 'gla', 'gle', 'gls'] and not vehicle_data['basic_info'].get('make'):
+                                    vehicle_data['basic_info']['make'] = 'Mercedes-Benz'
+                                    logger.info(f"Inferred make from model: Mercedes-Benz (model: {value})")
                             elif 'year' in label and not vehicle_data['basic_info'].get('year'):
                                 if re.match(r'^\d{4}$', value):
                                     vehicle_data['basic_info']['year'] = value

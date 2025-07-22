@@ -5,8 +5,16 @@ This is a comprehensive UK vehicle data extraction API that provides real-time v
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
+Data extraction: Use enhanced scraper exclusively, no fast scraper.
 
 ## Recent Changes
+**July 22, 2025 - Enhanced Scraper Made Primary Method:**
+- Removed fast scraper completely from web interface 
+- Enhanced scraper now used exclusively for all vehicle lookups
+- Optimized timing for faster responses while maintaining accuracy
+- Successfully extracting model, year, color, fuel type data
+- Application responding within acceptable timeouts
+
 **July 22, 2025 - PostgreSQL Database Successfully Configured:**
 - PostgreSQL database created and fully configured with all required environment variables
 - Database tables successfully created with proper schema:
