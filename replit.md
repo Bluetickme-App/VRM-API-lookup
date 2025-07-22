@@ -14,6 +14,9 @@ Data extraction: Use enhanced scraper exclusively, no fast scraper.
 - Optimized timing for faster responses while maintaining accuracy
 - Successfully extracting model, year, color, fuel type data
 - Application responding within acceptable timeouts
+- Fixed API format consistency between cached and fresh data
+- Frontend now properly displays "No MOT/mileage history available for this vehicle" when data not found
+- Note: Some vehicles (K5WBR, AB12CDE) may not have MOT records available in the source database
 
 **July 22, 2025 - PostgreSQL Database Successfully Configured:**
 - PostgreSQL database created and fully configured with all required environment variables

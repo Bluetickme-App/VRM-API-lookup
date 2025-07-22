@@ -333,7 +333,7 @@
             const motContainer = document.getElementById('mot-history');
             
             if (!motData || !motData.mot_tests || motData.mot_tests.length === 0) {
-                motContainer.innerHTML = '<p class="text-muted">No MOT test history available</p>';
+                motContainer.innerHTML = '<p class="text-muted">No MOT test history available for this vehicle</p>';
                 return;
             }
             
@@ -367,7 +367,7 @@
             const mileageContainer = document.getElementById('mileage-history');
             
             if (!mileageData || !mileageData.mileage_records || mileageData.mileage_records.length === 0) {
-                mileageContainer.innerHTML = '<p class="text-muted">No mileage history available</p>';
+                mileageContainer.innerHTML = '<p class="text-muted">No mileage history available for this vehicle</p>';
                 return;
             }
             
