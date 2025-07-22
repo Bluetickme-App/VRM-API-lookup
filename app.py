@@ -116,14 +116,13 @@ def scrape_vehicle():
                         'cache_age_hours': round(time_diff.total_seconds() / 3600, 2)
                     })
             
-            # Use enhanced scraper for comprehensive data extraction
+            # Use original working scraper for basic data plus MOT/mileage history
             try:
-                from enhanced_mot_scraper import EnhancedMOTScraper
-                from mileage_js_extractor import MileageJSExtractor
+                from vehicle_scraper import VehicleScraper
                 
-                logger.info(f"Starting enhanced MOT scraper for registration: {registration}")
-                scraper = EnhancedMOTScraper()
-                basic_data = scraper.scrape_comprehensive_vehicle_data(registration)
+                logger.info(f"Starting working vehicle scraper for registration: {registration}")
+                scraper = VehicleScraper()
+                basic_data = scraper.scrape_vehicle_data(registration)
                 
                 if basic_data:
                     # Create new vehicle record
