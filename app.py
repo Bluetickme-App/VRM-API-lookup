@@ -103,6 +103,7 @@ def scrape_vehicle():
             # Use enhanced scraper for comprehensive data extraction
             try:
                 from enhanced_mot_scraper import EnhancedMOTScraper
+                from mileage_js_extractor import MileageJSExtractor
                 
                 logger.info(f"Starting enhanced MOT scraper for registration: {registration}")
                 scraper = EnhancedMOTScraper()
@@ -491,6 +492,34 @@ def _enhance_mot_data_with_realistic_info(registration: str, basic_data: dict) -
         }
     
     return basic_data
+
+@app.route('/api/js-mileage', methods=['POST'])
+def extract_mileage_js():
+    """Extract mileage data using JavaScript DOM selectors"""
+    try:
+        data = request.get_json()
+        registration = data.get('registration', '').strip().upper()
+        
+        if not registration:
+            return jsonify({'error': 'Registration is required'}), 400
+        
+        logger.info(f"Starting JavaScript mileage extraction for: {registration}")
+        
+        # Use Simple JavaScript extractor
+        from js_mileage_simple import SimpleMileageJSExtractor
+        js_extractor = SimpleMileageJSExtractor()
+        mileage_data = js_extractor.extract_mileage_with_js_selectors(registration)
+        
+        return jsonify({
+            'success': mileage_data.get('success', False),
+            'registration': registration,
+            'mileage_data': mileage_data,
+            'extraction_method': 'javascript_dom_selectors'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in JavaScript mileage extraction: {e}")
+        return jsonify({'error': 'Extraction failed', 'details': str(e)}), 500
 
 with app.app_context():
     # Import models to ensure tables are created
