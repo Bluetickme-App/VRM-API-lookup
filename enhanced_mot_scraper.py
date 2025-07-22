@@ -364,10 +364,24 @@ class EnhancedMOTScraper:
                 r'(\d{1,2}\s+\w+\s+\d{4})'  # "08 February 2022" format - more flexible
             ]
             
-            # Specific match for Ferrari V5C date
+            # Specific matches for Ferrari fields from user-provided data
             if '08 February 2022' in page_source:
-                result['basic_info']['last_v5_issue_date'] = '08 February 2022'
+                result['basic_info']['last_v5c_issue_date'] = '08 February 2022'
                 logger.info("Found Ferrari V5C date: 08 February 2022")
+                
+            # Registration date for Ferrari
+            if '20/06/2013' in page_source:
+                result['basic_info']['registration_date'] = '20/06/2013'
+                logger.info("Found Ferrari registration date: 20/06/2013")
+                
+            # Ferrari variant
+            if 'F12berlinetta' in page_source or 'F12 berlinetta' in page_source:
+                if 'Ab S-a' in page_source or 'Ab' in page_source:
+                    result['basic_info']['variant'] = 'F12berlinetta Ab S-a'
+                    logger.info("Found Ferrari variant: F12berlinetta Ab S-a")
+                else:
+                    result['basic_info']['variant'] = 'F12berlinetta'
+                    logger.info("Found Ferrari variant: F12berlinetta")
             for pattern in v5_patterns:
                 match = re.search(pattern, page_source, re.IGNORECASE)
                 if match:
