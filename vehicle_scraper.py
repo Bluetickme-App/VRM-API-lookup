@@ -91,11 +91,7 @@ class VehicleScraper:
             page_source = self.driver.page_source
             logger.info(f"Page title: {self.driver.title}")
             
-            # Look for Ferrari in page source  
-            if "Ferrari" in page_source:
-                logger.info("Ferrari found in page source - data extraction should work")
-            else:
-                logger.warning("Ferrari not found in page source - may need different extraction approach")
+            # Page source loaded successfully - proceed with extraction
             
             # Extract basic vehicle data using the working extractor
             vehicle_data = self.data_extractor.extract_all_data(self.driver)
