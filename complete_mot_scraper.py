@@ -23,21 +23,38 @@ class CompleteMOTScraper:
         
     def setup_driver(self):
         """Setup Firefox driver with headless configuration"""
-        options = Options()
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--window-size=1920,1080')
-        
-        from selenium.webdriver.firefox.service import Service
-        service = Service(GeckoDriverManager().install())
-        self.driver = webdriver.Firefox(service=service, options=options)
-        self.driver.implicitly_wait(10)
+        try:
+            options = Options()
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            options.add_argument('--window-size=1920,1080')
+            
+            from selenium.webdriver.firefox.service import Service
+            service = Service(GeckoDriverManager().install())
+            self.driver = webdriver.Firefox(service=service, options=options)
+            self.driver.implicitly_wait(10)
+            logger.info("WebDriver initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize WebDriver: {e}")
+            self.driver = None
+            raise
         
     def scrape_complete_mot_history(self, registration: str) -> Dict[str, Any]:
         """Scrape complete MOT history with all 16 tests"""
         try:
             self.setup_driver()
+            
+            # Check if driver was successfully initialized
+            if self.driver is None:
+                logger.error("WebDriver initialization failed")
+                return {
+                    'registration': registration.upper(),
+                    'mot_tests': [],
+                    'total_tests_found': 0,
+                    'error': 'WebDriver initialization failed'
+                }
             
             # Navigate to checkcardetails.co.uk
             url = f"https://www.checkcardetails.co.uk/carcheck/{registration}"
@@ -48,6 +65,16 @@ class CompleteMOTScraper:
             # Look for MOT history section
             mot_link = None
             try:
+                # Check driver is still available
+                if self.driver is None:
+                    logger.error("WebDriver is None, cannot proceed")
+                    return {
+                        'registration': registration.upper(),
+                        'mot_tests': [],
+                        'total_tests_found': 0,
+                        'error': 'WebDriver lost connection'
+                    }
+                    
                 # Find MOT history link
                 mot_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'MOT')]")
                 for element in mot_elements:
@@ -132,6 +159,8 @@ class CompleteMOTScraper:
             
             for selector in show_all_selectors:
                 try:
+                    if self.driver is None:
+                        return
                     element = self.driver.find_element(By.XPATH, selector)
                     if element.is_displayed():
                         logger.info(f"Found show all button: {element.text}")
@@ -148,6 +177,9 @@ class CompleteMOTScraper:
         """Extract MOT tests from current page content"""
         tests = []
         
+        if self.driver is None:
+            return tests
+            
         try:
             # Look for table rows containing MOT data
             table_selectors = [
@@ -159,6 +191,8 @@ class CompleteMOTScraper:
             
             for selector in table_selectors:
                 try:
+                    if self.driver is None:
+                        break
                     rows = self.driver.find_elements(By.XPATH, selector)
                     logger.info(f"Found {len(rows)} potential test rows with selector: {selector}")
                     
@@ -236,6 +270,8 @@ class CompleteMOTScraper:
         tests = []
         
         try:
+            if self.driver is None:
+                return tests
             page_text = self.driver.page_source
             
             # Look for date patterns in text
@@ -266,6 +302,9 @@ class CompleteMOTScraper:
         """Try to extract tests with pagination"""
         tests = []
         page = 1
+        
+        if self.driver is None:
+            return tests
         
         while page <= 3:  # Max 3 pages
             try:
