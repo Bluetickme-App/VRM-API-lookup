@@ -162,34 +162,31 @@ class VehicleScraper:
                     except:
                         logger.debug("Both JS selector and ID selector failed, trying other methods")
                 
-                # Look for any element containing "MOT" text that might be clickable
-                elements_with_mot = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'MOT') or contains(text(), 'mot')]")
-                
+                # Method 3: Look for specific MOT links (avoid /cars/listing URLs)
                 if not mot_clicked:
-                    for element in elements_with_mot:
+                    mot_links = self.driver.find_elements(By.XPATH, "//a[contains(text(), 'MOT') or contains(text(), 'mot')]")
+                    
+                    for link in mot_links:
                         try:
-                            # Check if element is clickable (link or button)
-                            if element.tag_name in ['a', 'button'] or 'click' in element.get_attribute('onclick') or '':
-                                logger.info(f"Found clickable MOT element: {element.text[:50]}")
-                                element.click()
-                                time.sleep(4)
-                                mot_clicked = True
-                                break
+                            link_text = link.text.strip()
+                            link_href = link.get_attribute('href') or ''
+                            logger.info(f"Found MOT link: '{link_text}' -> {link_href}")
+                            
+                            # Only click valid MOT links, avoid /cars/listing
+                            if link_text and 'view' in link_text.lower() and 'mot' in link_text.lower():
+                                if '/cars/listing' not in link_href and link_href:
+                                    if link.is_displayed() and link.is_enabled():
+                                        logger.info(f"Clicking valid MOT link: {link_text}")
+                                        self.driver.execute_script("arguments[0].click();", link)
+                                        time.sleep(4)
+                                        mot_clicked = True
+                                        break
                         except Exception as e:
                             continue
                 
-                # If clicking didn't work, try the URL approach but navigate properly
+                # If clicking didn't work, the page may not have MOT data
                 if not mot_clicked:
-                    logger.info("No clickable MOT link found - using direct URL navigation")
-                    # Use the proper URL format that maintains session/registration context
-                    current_url = self.driver.current_url
-                    if '/cardetails/' in current_url:
-                        # Extract the base URL and append mot-history
-                        base_url = current_url.split('?')[0]  # Remove any query parameters
-                        mot_url = f"{base_url}/mot-history"
-                        logger.info(f"Navigating to MOT history: {mot_url}")
-                        self.driver.get(mot_url)
-                        time.sleep(4)
+                    logger.info("No clickable MOT link found - staying on current page to extract available data")
                     
             except Exception as e:
                 logger.debug(f"Error in MOT navigation: {e}")
