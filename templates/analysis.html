@@ -367,6 +367,31 @@
             // Ownership Analysis
             const ownershipAnalysis = analysis.ownership_analysis || {};
             let ownershipHtml = '';
+            
+            // Add V5C Issue Date prominently
+            if (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) {
+                ownershipHtml += `<div class="mb-3">
+                    <strong>Last V5C Issue Date:</strong> 
+                    <span class="badge bg-info ms-2">${vehicleData.vehicle_details.last_v5c_issue_date}</span>
+                </div>`;
+            }
+            
+            // Add estimated number of owners
+            if (ownershipAnalysis.estimated_previous_owners) {
+                ownershipHtml += `<div class="mb-3">
+                    <strong>Estimated Previous Owners:</strong> 
+                    <span class="badge bg-warning ms-2">${ownershipAnalysis.estimated_previous_owners}</span>
+                </div>`;
+            }
+            
+            // Add registration place
+            if (vehicleData.vehicle_details && vehicleData.vehicle_details.registration_place) {
+                ownershipHtml += `<div class="mb-3">
+                    <strong>Registration Place:</strong> 
+                    <span class="badge bg-secondary ms-2">${vehicleData.vehicle_details.registration_place}</span>
+                </div>`;
+            }
+            
             if (ownershipAnalysis.v5_changes_detected !== undefined) {
                 ownershipHtml += `<p><strong>V5 Changes Detected:</strong> ${ownershipAnalysis.v5_changes_detected ? 'Yes' : 'No'}</p>`;
             }

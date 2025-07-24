@@ -143,6 +143,9 @@ Output must be structured JSON using this schema:
     "profit_potential": "High|Medium|Low"
   },
   "ownership_analysis": {
+    "v5_issue_date": "07 August 2024",
+    "registration_place": "Chester/Glasgow/Birmingham", 
+    "estimated_previous_owners": "2-3 owners",
     "v5_changes_detected": "boolean",
     "trading_indicators": ["string"],
     "auction_risk_factors": ["string"]
