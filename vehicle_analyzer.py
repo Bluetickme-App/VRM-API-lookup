@@ -72,6 +72,20 @@ def get_system_prompt():
 
 CRITICAL ASSESSMENT PRIORITY: Recent MOT failures (within 2-4 weeks/months) indicate HIGH DEFECTIVE RISK. If a vehicle fails MOT within days/weeks of previous test, this is a MAJOR RED FLAG indicating serious mechanical problems and poor reliability.
 
+VEHICLE-SPECIFIC COST ANALYSIS: Provide realistic repair costs based on vehicle make/model:
+- Audi A6: Mid-range luxury costs (£300-800 typical repairs, £1200-2500 major work)
+- Ferrari: Premium costs (£2000-8000 typical repairs, £5000-15000 major work)  
+- Vauxhall Corsa: Budget costs (£150-400 typical repairs, £600-1200 major work)
+- BMW/Mercedes: Premium costs similar to Audi but slightly higher
+- Ford/Vauxhall mainstream: Budget to mid-range costs
+
+OWNERSHIP & V5C ANALYSIS REQUIREMENTS:
+- Always include V5C issue date from last_v5c_issue_date field
+- Calculate number of previous owners from V5C pattern analysis
+- Identify trading patterns from V5C change frequency
+- Include registration place/region from vehicle_details
+- Assess compliance status (MOT/Tax expiry vs current date)
+
 IMPORTANT: All vehicles will have complete MOT and mileage history from DVLA sources. There are no cases of missing data.
 
 Your analysis tasks:
@@ -256,6 +270,31 @@ Test {i+1}: {test_date}
             prompt += f"- Dangerous Defects: {'; '.join(dangerous_defects)}\n"
         if test_details:
             prompt += f"- Additional Details: {test_details}\n"
+    
+    # Extract V5C and ownership information
+    vehicle_details = vehicle_data.get('vehicle_details', {})
+    basic_info = vehicle_data.get('basic_info', {})
+    
+    v5c_date = vehicle_details.get('last_v5c_issue_date', 'Not available')
+    registration_place = vehicle_details.get('registration_place', 'Unknown')
+    mot_expiry = vehicle_data.get('mot_expiry', 'Unknown')
+    
+    # Add ownership and compliance information
+    prompt += f"""
+OWNERSHIP & V5C INFORMATION:
+- Last V5C Issue Date: {v5c_date}
+- Registration Place: {registration_place}
+- MOT Expiry: {mot_expiry}
+- Current MOT Status: {vehicle_data.get('mot_status', 'Unknown')}
+- Current Tax Status: {vehicle_data.get('tax_status', 'Unknown')}
+
+COST ANALYSIS REQUIREMENTS:
+- Apply {make} {model}-specific repair costs
+- Use realistic UK garage pricing for {year} vehicle age
+- Consider parts availability and labor complexity for this make/model
+- Factor in depreciation and trade value impact for {make} {model}
+
+"""
     
     # Add comprehensive mileage progression with anomaly detection
     prompt += f"\nCOMPLETE MILEAGE HISTORY ({len(mileage_records)} authentic DVLA records):\n"
