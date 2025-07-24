@@ -223,7 +223,7 @@ class CompleteMOTScraper:
         try:
             row_text = row.text.strip()
             if not row_text or len(row_text) < 10:
-                return None
+                return {}
             
             # Look for date patterns (YYYY-MM-DD or DD/MM/YYYY)
             date_patterns = [
@@ -240,7 +240,7 @@ class CompleteMOTScraper:
                     break
             
             if not test_date:
-                return None
+                return {}
             
             # Extract result
             result = 'UNKNOWN'
@@ -263,7 +263,7 @@ class CompleteMOTScraper:
             
         except Exception as e:
             logger.debug(f"Error parsing row: {e}")
-            return None
+            return {}
     
     def _extract_from_text(self) -> List[Dict[str, Any]]:
         """Extract MOT tests from page text content"""
@@ -334,6 +334,9 @@ class CompleteMOTScraper:
         """Direct table extraction"""
         tests = []
         
+        if self.driver is None:
+            return tests
+        
         try:
             tables = self.driver.find_elements(By.TAG_NAME, "table")
             
@@ -342,7 +345,7 @@ class CompleteMOTScraper:
                 
                 for row in rows:
                     test_data = self._parse_mot_row(row)
-                    if test_data:
+                    if test_data and test_data.get('test_date'):
                         tests.append(test_data)
         
         except Exception as e:
