@@ -1227,20 +1227,25 @@
             .catch(function(error) {
                 analyzeBtn.disabled = false;
                 analyzeBtn.textContent = '🧠 Get AI Analysis';
-                alert('Analysis failed. Please try again.');
-                console.error('Error:', error);
+                console.error('Analysis Error:', error);
+                alert('Analysis failed: ' + error.message || 'Network error. Please try again.');
             });
         }
         function displayIntelligentAnalysis(analysisData) {
-            var html = '<div class="intelligent-analysis-results">';
-            
-            // Traffic Light System - Main Dashboard
-            if (analysisData.traffic_light_system) {
+            try {
+                console.log('Analysis Data:', analysisData);
+                var html = '<div class="intelligent-analysis-results">';
+                
+                // Access the ai_analysis data correctly
+                var ai = analysisData.ai_analysis || analysisData;
+                
+                // Traffic Light System - Main Dashboard
+                if (ai.traffic_light_system) {
                 html += '<div class="traffic-light-dashboard">';
                 html += '<h3>🚦 Quick Assessment Dashboard</h3>';
                 html += '<div class="traffic-lights">';
                 
-                var tls = analysisData.traffic_light_system;
+                var tls = ai.traffic_light_system;
                 
                 // Purchase Recommendation
                 html += '<div class="traffic-light-item">';
@@ -1577,8 +1582,8 @@
             }
             
             // Market Analysis
-            if (analysisData.market_analysis) {
-                var market = analysisData.market_analysis;
+            if (ai.market_analysis) {
+                var market = ai.market_analysis;
                 var marketScore = ((market.market_demand.score || 5) + (market.reliability_rating.score || 5)) / 2;
                 var marketColor = getColorByRating(marketScore, 10);
                 html += '<div class="analysis-section colored-box" style="' + marketColor + '">';
@@ -1605,6 +1610,10 @@
                     existingAnalysis.remove();
                 }
                 vehicleCard.insertAdjacentHTML('afterend', html);
+            }
+            } catch (error) {
+                console.error('Display Error:', error);
+                alert('Failed to display analysis results: ' + error.message);
             }
         }
         // Color grading functions
