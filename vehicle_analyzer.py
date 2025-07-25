@@ -111,12 +111,23 @@ OWNERSHIP ANALYSIS GUIDELINES:
 
 Focus on recurring advisories (brakes, tyres, suspension) and escalating faults. Consider vehicle age, mileage appropriateness, and compliance status in your assessment.
 
-CRITICAL: For mileage_analysis.current_mileage, use the EXACT mileage number from the most recent MOT test (e.g. if MOT shows "116639 miles", use 116639 not 116).
+CRITICAL MILEAGE ANALYSIS REQUIREMENTS:
+- For mileage_analysis.current_mileage, use the EXACT mileage number from the most recent MOT test (e.g. if MOT shows "116639 miles", use 116639 not 116)
+- Analyze COMPLETE mileage progression from all available sources (dedicated mileage history + MOT test readings)
+- Detect mileage anomalies: sudden drops, unrealistic increases, missing periods, clocking patterns
+- Calculate annual mileage averages and identify periods of high/low usage
+- Flag any mileage inconsistencies or potential tampering indicators
+- Include mileage_pattern_analysis with: progression_consistency, annual_averages, anomaly_flags, tampering_risk
 
-IMPORTANT: In mot_pattern_analysis.recent_failures, include ALL failed MOT tests from the last 3 years with:
-- Exact test date
-- Exact mileage at time of failure  
-- Main failure reason/defect
+COMPREHENSIVE MOT & DEFECT ANALYSIS:
+- In mot_pattern_analysis.recent_failures, include ALL failed MOT tests from the last 3 years with:
+  - Exact test date
+  - Exact mileage at time of failure  
+  - Main failure reason/defect
+  - All advisories and defects from that test
+- Analyze recurring advisory patterns across multiple years
+- Identify escalating defects (advisory → minor → major progression)
+- Track component-specific failure patterns (brakes, suspension, emissions, etc.)
 
 Output must be structured JSON using this schema:
 {
@@ -129,7 +140,11 @@ Output must be structured JSON using this schema:
   "mileage_analysis": {
     "current_mileage": "number",
     "annual_average": "number",
+    "total_mileage_readings": "number",
+    "mileage_progression": ["string"],
     "mileage_anomalies": ["string"],
+    "tampering_risk": "Low|Moderate|High",
+    "usage_patterns": "string",
     "mileage_risk": "Low|Moderate|High"
   },
   "mot_pattern_analysis": {
@@ -256,11 +271,46 @@ V5C & OWNERSHIP INFORMATION:
 - Registration Place: {registration_place or 'Not Available'}
 - AUTHENTIC TOTAL KEEPERS: {total_keepers if total_keepers is not None else 'Not Available from DVLA'}
 
+COMPLETE MILEAGE PROGRESSION ANALYSIS:
+"""
+    
+    # Add comprehensive mileage data from both dedicated mileage history and MOT tests
+    if mileage_records:
+        prompt += f"""
+DEDICATED MILEAGE HISTORY ({len(mileage_records)} readings):"""
+        for i, mileage_record in enumerate(mileage_records[:10]):
+            date = mileage_record.get('date', 'Unknown')
+            mileage = mileage_record.get('mileage', 'Unknown')
+            source = mileage_record.get('source', 'MOT')
+            if isinstance(mileage, (int, float)):
+                mileage_display = f"{mileage:,} miles"
+            else:
+                mileage_display = f"{mileage} miles"
+            prompt += f"""
+Reading {i+1}: {date} - {mileage_display} (Source: {source})"""
+    
+    # Extract mileage progression from MOT tests
+    if mot_tests:
+        prompt += f"""
+MILEAGE PROGRESSION FROM MOT TESTS ({len(mot_tests)} readings):"""
+        for i, test in enumerate(mot_tests[:15]):
+            test_date = test.get('date', test.get('test_date', 'Unknown'))
+            test_mileage = test.get('mileage', 'Unknown')
+            if test_mileage and test_mileage != 'Unknown':
+                if isinstance(test_mileage, (int, float)):
+                    mileage_display = f"{test_mileage:,} miles"
+                else:
+                    mileage_display = f"{test_mileage} miles"
+                prompt += f"""
+MOT {i+1}: {test_date} - {mileage_display}"""
+
+    prompt += f"""
+
 COMPLETE MOT TEST HISTORY ({len(mot_tests)} authentic DVLA tests):
 """
     
     # Add complete MOT test details with all defects and advisories
-    for i, test in enumerate(mot_tests[:12]):  # Include more tests for better pattern analysis
+    for i, test in enumerate(mot_tests[:15]):  # Include more tests for comprehensive analysis
         test_date = test.get('date', test.get('test_date', 'Unknown'))  # Handle both field names
         result = test.get('result', 'Unknown')
         mileage = test.get('mileage', 'Unknown')

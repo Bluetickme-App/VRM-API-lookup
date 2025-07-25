@@ -316,6 +316,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - FAILURE POINT HIGHLIGHTING: Specific highlighting for failure points that caused MOT failures
 - ADVISORY PROMINENCE: Clear distinction between advisories and actual defects with appropriate visual styling
 
+**July 25, 2025 - COMPREHENSIVE MILEAGE DATA INTEGRATION FOR OPENAI ANALYSIS:**
+- ENHANCED MILEAGE FLOW: All mileage data from both dedicated mileage history and MOT test readings now sent to OpenAI
+- COMPREHENSIVE PROGRESSION ANALYSIS: Added complete mileage progression analysis with up to 15 MOT readings for pattern detection
+- ANOMALY DETECTION: Enhanced OpenAI prompt with specific instructions for mileage tampering detection and usage pattern analysis
+- DETAILED MILEAGE SCHEMA: Expanded JSON schema to include total_mileage_readings, mileage_progression, tampering_risk, and usage_patterns
+- DUAL-SOURCE INTEGRATION: System now processes both dedicated mileage_history records and MOT-based mileage readings for comprehensive analysis
+- ENHANCED ANALYSIS INSTRUCTIONS: Updated system prompt with critical mileage analysis requirements including anomaly detection and clocking pattern identification
+
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
 - Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation
