@@ -198,15 +198,15 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - SEMANTIC LABELING: Updated labels to "Last V5C Change Date" with clarifying text "When current V5C was issued"
 - PRODUCTION MOBILE READY: Complete V5C change date functionality operational with mobile-optimized display
 
-**July 25, 2025 - MERCEDES-BENZ MAKE DETECTION CRITICAL FIX COMPLETE:**
-- CRITICAL SUCCESS: Fixed Mercedes-Benz CLA make field showing "Mercedes-Benz" instead of "Unknown" in database
-- ENHANCED PATTERN MATCHING: Added CLA pattern to app.py make detection logic alongside DataExtractor improvements
-- DATABASE VALIDATION: K5WBR now correctly displays as "Mercedes-Benz CLA" with complete vehicle data
-- DUAL-LAYER DETECTION: Both enhanced DataExtractor and app.py mapping now recognize Mercedes-Benz CLA patterns
-- API INTEGRATION SUCCESS: Vehicle data API correctly returns "Mercedes-Benz" make field for CLA vehicles
-- COMPREHENSIVE DEBUGGING: Added extensive logging to track make/model mapping from extraction to database storage
-- PRODUCTION READY: Complete Mercedes-Benz identification system operational across all data extraction layers
-- USER PRIORITY RESOLVED: Vehicle make field accuracy restored for proper luxury vehicle identification
+**July 25, 2025 - MILEAGE DATA OPTIMIZATION AND ANALYSIS CACHING COMPLETE:**
+- CRITICAL OPTIMIZATION: Mileage data now processed and sent to OpenAI API only on first extraction, not every request
+- ANALYSIS CACHING SUCCESS: Added analysis_data, analysis_completed, analysis_timestamp fields to vehicle_data table
+- DATABASE ENHANCEMENT: PostgreSQL schema updated to store cached OpenAI analysis results for efficiency
+- API EFFICIENCY: First request processes fresh mileage data with OpenAI, subsequent requests use cached analysis
+- PERFORMANCE IMPROVEMENT: Eliminated redundant OpenAI API calls - second requests show "Source: cached" instead of fresh processing
+- COST OPTIMIZATION: Significant reduction in OpenAI API usage by caching analysis results in database
+- USER REQUIREMENT: System now saves mileage data on first extraction only as requested by user
+- PRODUCTION READY: Complete caching system operational with intelligent first-time vs cached request handling
 
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories

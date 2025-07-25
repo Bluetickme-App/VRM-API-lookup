@@ -73,6 +73,11 @@ class VehicleData(db.Model):
     mot_history = db.Column(JSON)
     mileage_history = db.Column(JSON)
     
+    # Analysis cache to avoid redundant OpenAI API calls
+    analysis_data = db.Column(JSON)
+    analysis_completed = db.Column(db.Boolean, default=False)
+    analysis_timestamp = db.Column(db.DateTime)
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

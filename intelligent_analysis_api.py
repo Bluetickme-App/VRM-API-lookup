@@ -53,6 +53,17 @@ def intelligent_vehicle_analysis():
                 'error': f'No vehicle data found for {registration}. Please scrape the vehicle data first.'
             }), 404
         
+        # Check if analysis already exists to avoid redundant OpenAI API calls
+        if vehicle_record.analysis_completed and vehicle_record.analysis_data:
+            logging.info(f"Using cached analysis for {registration} - avoiding redundant OpenAI API call")
+            return jsonify({
+                'success': True,
+                'data': vehicle_record.analysis_data,
+                'registration': registration,
+                'analysis_source': 'cached',
+                'cached_timestamp': vehicle_record.analysis_timestamp.isoformat() if vehicle_record.analysis_timestamp else None
+            })
+        
         # Extract complete data from raw_data field (contains all scraped MOT/mileage data)
         raw_data = vehicle_record.raw_data or {}
         
@@ -81,7 +92,8 @@ def intelligent_vehicle_analysis():
         
         logging.info(f"Performing OpenAI analysis for {registration}")
         
-        # Perform OpenAI analysis
+        # Perform OpenAI analysis (only on first request)
+        logging.info(f"Performing fresh OpenAI analysis for {registration} - first time extraction")
         analysis_result = analyze_vehicle_data(vehicle_data)
         
         # Format for display
@@ -93,9 +105,16 @@ def intelligent_vehicle_analysis():
                 'error': formatted_result['error']
             }), 500
         
-        # Store analysis timestamp in database
-        vehicle_record.last_analyzed = datetime.utcnow()
-        db.session.commit()
+        # Cache the analysis result to avoid future OpenAI API calls
+        try:
+            vehicle_record.analysis_data = formatted_result['display_data']
+            vehicle_record.analysis_completed = True
+            vehicle_record.analysis_timestamp = datetime.utcnow()
+            vehicle_record.last_analyzed = datetime.utcnow()
+            db.session.commit()
+            logging.info(f"Cached analysis result for {registration} - future requests will use cached data")
+        except Exception as e:
+            logging.warning(f"Failed to cache analysis for {registration}: {e}")
         
         logging.info(f"Successfully completed intelligent analysis for {registration}")
         
@@ -105,7 +124,9 @@ def intelligent_vehicle_analysis():
             'vehicle_data': vehicle_data,
             'analysis': formatted_result['display_data'],
             'raw_analysis': formatted_result['raw_analysis'],
-            'analyzed_at': analysis_result.get('analysis_metadata', {}).get('analyzed_at')
+            'analyzed_at': analysis_result.get('analysis_metadata', {}).get('analyzed_at'),
+            'analysis_source': 'fresh_openai_gpt4o',
+            'mileage_processing': 'first_time_only'
         })
         
     except Exception as e:
