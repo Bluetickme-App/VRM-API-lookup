@@ -238,7 +238,7 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - AUTOMATIC POPULATION: Updated create_vehicle_record() and update_vehicle_record() functions to automatically calculate MOT fields
 - FIELD MAPPING: Enhanced API responses to include mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues in mot_summary section
 - DATA MIGRATION: Created update_mot_fields.py script to populate existing records with calculated MOT field values
-- K5WBR VALIDATION: Successfully populated K5WBR with mot_days_left=-854 (expired), last_mot_mileage=103225, mileage_issues=No
+- K5WBR VALIDATION: Successfully updated K5WBR as Mercedes-Benz CLA 2015 with 8 MOT tests, expiry -201 days (expired), last mileage 116,639 miles
 - DA07BWF SUCCESS: Created complete record with 16 authentic MOT tests - expiry 2025-06-03 (129 days), mileage 113,202, no issues
 - ENHANCED DASHBOARD: Updated templates to display MOT expiry date, last MOT mileage, and mileage issues indicators
 - EXTRACTION SUCCESS: Scraper successfully extracted all 16 MOT tests from DVLA data (04/06/2024 to 30/04/2010)
