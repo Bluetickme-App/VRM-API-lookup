@@ -744,9 +744,27 @@
             var motClass = 'status-danger';
             var motStatus = 'No MOT';
             var motDetail = 'MOT required';
-            // Check for MOT data in multiple locations
-            var motExpiryDate = data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date);
+            // Check for MOT data in multiple locations with enhanced debugging
+            var motExpiryDate = data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date) || data.mot_expiry;
             var motDaysLeft = data.mot_days_left || (data.mot_summary && data.mot_summary.mot_days_left);
+            
+            // If no top-level MOT expiry, extract from MOT history
+            if (!motExpiryDate && data.mot_history && data.mot_history.tests && data.mot_history.tests.length > 0) {
+                // Find the most recent PASSED test with an expiry date
+                for (var i = 0; i < data.mot_history.tests.length; i++) {
+                    var test = data.mot_history.tests[i];
+                    if (test.result && test.result.toUpperCase() === 'PASSED' && test.expiry_date) {
+                        motExpiryDate = test.expiry_date;
+                        console.log('MOT Debug - Extracted expiry from history:', motExpiryDate);
+                        break;
+                    }
+                }
+            }
+            
+            // Debug logging to see what MOT data we have
+            console.log('MOT Debug - Final motExpiryDate:', motExpiryDate);
+            console.log('MOT Debug - motDaysLeft:', motDaysLeft);
+            console.log('MOT Debug - data.mot_summary:', data.mot_summary);
             // Calculate MOT test statistics
             var motTestStats = '';
             var motTests = (data.mot_history && data.mot_history.tests) || 
@@ -782,15 +800,42 @@
                     motTestStats += ', ' + advisoryCount + ' advisories';
                 }
             }
-            if (motExpiryDate && motExpiryDate !== 'None' && motExpiryDate !== null) {
-                var formattedDate = motExpiryDate.split('-').reverse().join('/');
+            if (motExpiryDate && motExpiryDate !== 'None' && motExpiryDate !== null && motExpiryDate !== 'Not Available' && motExpiryDate !== '') {
+                var formattedDate = '';
+                // Handle different date formats
+                if (motExpiryDate.includes('-')) {
+                    formattedDate = motExpiryDate.split('-').reverse().join('/');
+                } else if (motExpiryDate.includes('/')) {
+                    formattedDate = motExpiryDate;
+                } else {
+                    formattedDate = motExpiryDate;
+                }
+                
                 // Use mot_days_left if available, otherwise calculate
                 var diffDays = motDaysLeft;
-                if (diffDays === null || diffDays === undefined) {
-                    var motDate = new Date(motExpiryDate);
-                    var today = new Date();
-                    var diffTime = motDate - today;
-                    diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays === null || diffDays === undefined || isNaN(diffDays)) {
+                    try {
+                        var motDate;
+                        // Handle DD/MM/YYYY format (like "09/06/2025")
+                        if (motExpiryDate.includes('/') && motExpiryDate.split('/').length === 3) {
+                            var parts = motExpiryDate.split('/');
+                            // Create date from DD/MM/YYYY -> new Date(YYYY, MM-1, DD)
+                            motDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                        } else {
+                            // Handle other formats
+                            motDate = new Date(motExpiryDate);
+                        }
+                        
+                        var today = new Date();
+                        today.setHours(0, 0, 0, 0); // Reset time for accurate day calculation
+                        motDate.setHours(0, 0, 0, 0);
+                        var diffTime = motDate - today;
+                        diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        console.log('MOT Debug - Calculated diffDays:', diffDays, 'from date:', motExpiryDate, 'parsed as:', motDate);
+                    } catch (e) {
+                        console.error('MOT Debug - Date parsing error:', e);
+                        diffDays = null;
+                    }
                 }
                 if (diffDays >= 180) { // 6+ months (approximately 180 days)
                     motClass = 'status-good';
@@ -814,20 +859,32 @@
                     if (motTestStats) motDetail += ' • ' + motTestStats;
                 }
             } else {
-                // Check if we have MOT history data
+                // Check if we have MOT history data - if we do, likely expired
                 var motTests = (data.mot_history && data.mot_history.tests) || 
                               (data.complete_mot_history && data.complete_mot_history.tests) || [];
                 if (motTests.length > 0) {
+                    // If we have MOT tests but no expiry date, assume expired
                     motClass = 'status-danger';
-                    motStatus = 'Check Required';
-                    motDetail = 'MOT status unclear';
+                    motStatus = 'EXPIRED';
+                    motDetail = 'MOT likely expired - check required';
                     if (motTestStats) motDetail += ' • ' + motTestStats;
+                    console.log('MOT Debug - No expiry date but have tests, setting to EXPIRED');
                 } else {
                     // Vehicle might be too new or exempt
                     motClass = 'status-good';
                     motStatus = 'Exempt';
                     motDetail = 'May be exempt';
+                    console.log('MOT Debug - No MOT data, setting to Exempt');
                 }
+            }
+            
+            // Additional check: if mot_days_left is negative, force EXPIRED
+            if (motDaysLeft && motDaysLeft < 0) {
+                motClass = 'status-danger';
+                motStatus = 'EXPIRED';
+                motDetail = 'Expired ' + Math.abs(motDaysLeft) + ' days ago';
+                if (motTestStats) motDetail += ' • ' + motTestStats;
+                console.log('MOT Debug - Negative days left detected, forcing EXPIRED');
             }
             html += '<div class="status-box ' + motClass + '" onclick="toggleDropdown(\'mot\')" style="cursor: pointer;">';
             html += '<div class="status-title">MOT Status</div>';
