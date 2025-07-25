@@ -443,7 +443,7 @@
         document.getElementById('vehicleForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const registration = document.getElementById('registration').value.trim().toUpperCase();
+            var registration = document.getElementById('registration').value.trim().toUpperCase();
             if (!registration) {
                 showError('Please enter a vehicle registration number');
                 return;
@@ -452,29 +452,30 @@
             analyzeVehicle(registration);
         });
         
-        async function analyzeVehicle(registration) {
+        function analyzeVehicle(registration) {
             showLoading();
             
-            try {
-                const response = await fetch('/api/scrape', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ registration: registration })
-                });
-                
-                const data = await response.json();
-                
+            fetch('/api/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ registration: registration })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
                 if (data.success) {
                     displayResults(data.data, data.source);
                 } else {
                     showError(data.error || 'Failed to analyze vehicle data');
                 }
-            } catch (error) {
+            })
+            .catch(function(error) {
                 console.error('Error:', error);
                 showError('Network error occurred. Please try again.');
-            }
+            });
         }
         
         function displayResults(vehicleData, source) {
@@ -490,7 +491,7 @@
             displayMileageAnalysis(vehicleData.mileage_history);
             
             // Show and setup OpenAI analysis button to show analysis inline
-            const analyzeBtn = document.getElementById('analyzeWithAI');
+            var analyzeBtn = document.getElementById('analyzeWithAI');
             analyzeBtn.style.display = 'block';
             analyzeBtn.onclick = function() {
                 performInlineAnalysis(vehicleData.registration);
@@ -498,10 +499,10 @@
             
             // Add source indicator
             if (source === 'cache') {
-                const cacheIndicator = document.createElement('div');
+                var cacheIndicator = document.createElement('div');
                 cacheIndicator.className = 'alert alert-info alert-custom';
                 cacheIndicator.innerHTML = '<i data-feather="database"></i> Data retrieved from cache (updated within 24 hours)';
-                document.getElementById('resultsSection').prepend(cacheIndicator);
+                document.getElementById('resultsSection').insertBefore(cacheIndicator, document.getElementById('resultsSection').firstChild);
                 feather.replace();
             }
             
@@ -510,39 +511,42 @@
         }
         
         function displayVehicleInfo(vehicleData) {
-            const vehicleDetails = document.getElementById('vehicleDetails');
+            var vehicleDetails = document.getElementById('vehicleDetails');
+            var v5cDate = vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || 'Not Available';
+            if (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) {
+                v5cDate = vehicleData.vehicle_details.last_v5c_issue_date;
+            }
             
-            vehicleDetails.innerHTML = `
-                <div class="info-row">
-                    <span class="info-label">Registration</span>
-                    <span class="info-value">${vehicleData.registration || 'Unknown'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Make</span>
-                    <span class="info-value">${vehicleData.make || 'Unknown'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Model</span>
-                    <span class="info-value">${vehicleData.model || 'Unknown'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Year</span>
-                    <span class="info-value">${vehicleData.year || 'Unknown'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Color</span>
-                    <span class="info-value">${vehicleData.color || 'Unknown'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Fuel Type</span>
-                    <span class="info-value">${vehicleData.fuel_type || 'Unknown'}</span>
-                </div>
-                <div class="info-row highlight-v5c">
-                    <span class="info-label"><i data-feather="credit-card"></i> Last V5C Change Date</span>
-                    <span class="info-value">${vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) || 'Not Available'}</span>
-                    <small class="text-muted d-block">When current V5C was issued</small>
-                </div>
-            `;
+            vehicleDetails.innerHTML = 
+                '<div class="info-row">' +
+                    '<span class="info-label">Registration</span>' +
+                    '<span class="info-value">' + (vehicleData.registration || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Make</span>' +
+                    '<span class="info-value">' + (vehicleData.make || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Model</span>' +
+                    '<span class="info-value">' + (vehicleData.model || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Year</span>' +
+                    '<span class="info-value">' + (vehicleData.year || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Color</span>' +
+                    '<span class="info-value">' + (vehicleData.color || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Fuel Type</span>' +
+                    '<span class="info-value">' + (vehicleData.fuel_type || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row highlight-v5c">' +
+                    '<span class="info-label"><i data-feather="credit-card"></i> Last V5C Change Date</span>' +
+                    '<span class="info-value">' + v5cDate + '</span>' +
+                    '<small class="text-muted d-block">When current V5C was issued</small>' +
+                '</div>';
         }
         
         function displayMOTHistory(motHistory) {
@@ -752,37 +756,40 @@
             document.getElementById('errorSection').style.display = 'none';
         }
         
-        async function performInlineAnalysis(registration) {
+        function performInlineAnalysis(registration) {
             // Change button to loading state
-            const analyzeBtn = document.getElementById('analyzeWithAI');
-            const originalText = analyzeBtn.innerHTML;
+            var analyzeBtn = document.getElementById('analyzeWithAI');
+            var originalText = analyzeBtn.innerHTML;
             analyzeBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Analyzing with AI...';
             analyzeBtn.disabled = true;
             
-            try {
-                const response = await fetch('/api/intelligent-analysis', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({registration: registration})
-                });
-                
-                const data = await response.json();
-                
+            fetch('/api/intelligent-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({registration: registration})
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
                 if (data.success && data.analysis) {
                     displayInlineAnalysis(data.analysis, data.analysis_source);
                 } else {
                     showError(data.error || 'Analysis failed');
                 }
-            } catch (error) {
-                console.error('Analysis error:', error);
-                showError('Failed to perform analysis. Please try again.');
-            } finally {
-                // Restore button
+                // Restore button on success
                 analyzeBtn.innerHTML = originalText;
                 analyzeBtn.disabled = false;
-            }
+            })
+            .catch(function(error) {
+                console.error('Analysis error:', error);
+                showError('Failed to perform analysis. Please try again.');
+                // Restore button on error
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+            });
         }
         
         function displayInlineAnalysis(analysis, source) {
@@ -790,32 +797,32 @@
             document.getElementById('aiAnalysisSection').style.display = 'block';
             
             // Display ownership analysis with V5C change date prominently
-            const ownershipAnalysis = analysis.ownership_analysis || {};
-            let ownershipHtml = '';
+            var ownershipAnalysis = analysis.ownership_analysis || {};
+            var ownershipHtml = '';
             
             // V5C Change Date and Owner Count - prominent display
             if (ownershipAnalysis.last_v5c_change_date || ownershipAnalysis.estimated_previous_owners) {
                 ownershipHtml += '<div class="row mb-4">';
                 
                 if (ownershipAnalysis.last_v5c_change_date) {
-                    ownershipHtml += `<div class="col-md-6 mb-3">
-                        <div class="p-3 bg-primary text-white rounded border">
-                            <span class="badge bg-light text-primary fs-5 mb-2">V5C Changes Detected: Yes</span><br>
-                            <strong class="fs-4">Last V5C Change Date:</strong><br>
-                            <span class="fs-2 fw-bold">${ownershipAnalysis.last_v5c_change_date}</span><br>
-                            <small>When current V5C was issued</small>
-                        </div>
-                    </div>`;
+                    ownershipHtml += '<div class="col-md-6 mb-3">' +
+                        '<div class="p-3 bg-primary text-white rounded border">' +
+                            '<span class="badge bg-light text-primary fs-5 mb-2">V5C Changes Detected: Yes</span><br>' +
+                            '<strong class="fs-4">Last V5C Change Date:</strong><br>' +
+                            '<span class="fs-2 fw-bold">' + ownershipAnalysis.last_v5c_change_date + '</span><br>' +
+                            '<small>When current V5C was issued</small>' +
+                        '</div>' +
+                    '</div>';
                 }
                 
                 if (ownershipAnalysis.estimated_previous_owners) {
-                    ownershipHtml += `<div class="col-md-6 mb-3">
-                        <div class="p-3 bg-warning text-dark rounded border">
-                            <span class="badge bg-dark text-warning fs-5 mb-2">Estimated Previous Owners:</span><br>
-                            <span class="fs-1 fw-bold">${ownershipAnalysis.estimated_previous_owners}</span><br>
-                            <small>Based on V5C history analysis</small>
-                        </div>
-                    </div>`;
+                    ownershipHtml += '<div class="col-md-6 mb-3">' +
+                        '<div class="p-3 bg-warning text-dark rounded border">' +
+                            '<span class="badge bg-dark text-warning fs-5 mb-2">Estimated Previous Owners:</span><br>' +
+                            '<span class="fs-1 fw-bold">' + ownershipAnalysis.estimated_previous_owners + '</span><br>' +
+                            '<small>Based on V5C history analysis</small>' +
+                        '</div>' +
+                    '</div>';
                 }
                 
                 ownershipHtml += '</div>';
