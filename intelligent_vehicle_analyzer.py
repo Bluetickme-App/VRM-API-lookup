@@ -33,12 +33,30 @@ class IntelligentVehicleAnalyzer:
                 # Ensure market research is always available - create fallback data
                 market_data = self._create_market_research_fallback(vehicle_data)
             
+            # Fix vehicle identification in the response
+            make = vehicle_data.get('make', 'Unknown')
+            model = vehicle_data.get('model', 'Unknown')
+            
+            # Apply Ford Focus fix to final output
+            if 'focus' in model.lower() and make == 'Unknown':
+                make = 'Ford'
+            elif 'fiesta' in model.lower() and make == 'Unknown':
+                make = 'Ford'
+            elif 'mondeo' in model.lower() and make == 'Unknown':
+                make = 'Ford'
+            elif 'corsa' in model.lower() and make == 'Unknown':
+                make = 'Vauxhall'
+            elif 'golf' in model.lower() and make == 'Unknown':
+                make = 'Volkswagen'
+            elif ('a3' in model.lower() or 'a4' in model.lower() or 'a6' in model.lower()) and make == 'Unknown':
+                make = 'Audi'
+            
             # Combine all analysis results
             comprehensive_report = {
                 'vehicle_info': {
                     'registration': vehicle_data.get('registration'),
-                    'make': vehicle_data.get('make'),
-                    'model': vehicle_data.get('model'),
+                    'make': make,
+                    'model': model,
                     'year': vehicle_data.get('year'),
                     'analysis_timestamp': datetime.now().isoformat()
                 },
@@ -320,9 +338,28 @@ Provide specific, actionable insights based on the vehicle's actual history and 
             # Get CAP valuation data
             cap_valuation = self._get_cap_based_valuation(analysis_data['basic_info'])
 
+            # Fix vehicle identification for display
+            make = analysis_data['basic_info']['make'] or 'Unknown'
+            model = analysis_data['basic_info']['model'] or 'Unknown'
+            
+            # Apply Ford Focus fix in analyzer 
+            if 'focus' in model.lower() and make == 'Unknown':
+                make = 'Ford'
+            elif 'fiesta' in model.lower() and make == 'Unknown':
+                make = 'Ford'
+            elif 'mondeo' in model.lower() and make == 'Unknown':
+                make = 'Ford'
+            elif 'corsa' in model.lower() and make == 'Unknown':
+                make = 'Vauxhall'
+            elif 'golf' in model.lower() and make == 'Unknown':
+                make = 'Volkswagen'
+            elif 'a3' in model.lower() or 'a4' in model.lower() or 'a6' in model.lower():
+                if make == 'Unknown':
+                    make = 'Audi'
+            
             user_prompt = f"""Analyze this UK vehicle for TRADE PURCHASE ASSESSMENT:
 
-VEHICLE: {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} ({analysis_data['basic_info']['year']})
+VEHICLE: {make} {model} ({analysis_data['basic_info']['year']})
 REGISTRATION: {analysis_data['basic_info'].get('registration', 'Unknown')}
 
 CAP VALUATION DATA: {json.dumps(cap_valuation, indent=2)}

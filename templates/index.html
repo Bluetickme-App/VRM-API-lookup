@@ -444,70 +444,165 @@
             document.getElementById('motHistory').innerHTML = motHtml;
         }
 
-        // Navigate to detailed analysis page
+        // Perform AI analysis
         function performAnalysis(registration) {
-            window.location.href = '/analysis/' + registration;
+            // Show loading for analysis
+            document.getElementById('analysisContent').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Analyzing vehicle data...</div>';
+            document.getElementById('analysisResults').style.display = 'block';
+            
+            fetch('/api/intelligent-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ registration: registration })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success && data.analysis) {
+                    displayAnalysisResults(data.analysis);
+                } else {
+                    document.getElementById('analysisContent').innerHTML = 
+                        '<div class="alert alert-danger">Analysis failed: ' + (data.error || 'Unknown error') + '</div>';
+                }
+            })
+            .catch(function(error) {
+                console.error('Analysis error:', error);
+                document.getElementById('analysisContent').innerHTML = 
+                    '<div class="alert alert-danger">Network error during analysis. Please try again.</div>';
+            });
         }
 
         // Display analysis results
         function displayAnalysisResults(analysis) {
             var analysisHtml = '<div class="row">';
             
-            // Ownership analysis
-            if (analysis.ownership_analysis) {
-                var ownership = analysis.ownership_analysis;
-                analysisHtml += '<div class="col-md-6 mb-3">' +
-                    '<h5>Ownership Analysis</h5>' +
-                    '<p><strong>Estimated Owners:</strong> ' + (ownership.estimated_previous_owners || 'Unknown') + '</p>' +
-                    '<p><strong>Confidence:</strong> ' + (ownership.ownership_confidence || 'Unknown') + '</p>' +
-                '</div>';
-            }
-            
-            // MOT predictions
-            if (analysis.mot_predictions) {
-                var predictions = analysis.mot_predictions;
-                analysisHtml += '<div class="col-md-6 mb-3">' +
-                    '<h5>MOT Predictions</h5>' +
-                    '<p><strong>Failure Risk:</strong> ' + (predictions.failure_probability || 'Unknown') + '%</p>' +
-                    '<p><strong>Next MOT:</strong> ' + (predictions.next_mot_due || 'Unknown') + '</p>' +
-                '</div>';
-            }
-            
-            // Cost breakdown
-            if (analysis.cost_breakdown) {
-                var costs = analysis.cost_breakdown;
+            // Display vehicle identification from analysis metadata
+            if (analysis.metadata) {
+                var vehicle = analysis.metadata.vehicle || 'Unknown Vehicle';
+                // Fix vehicle identification display
+                if (vehicle.includes('Unknown Focus')) {
+                    vehicle = vehicle.replace('Unknown Focus', 'Ford Focus');
+                } else if (vehicle.includes('Unknown Fiesta')) {
+                    vehicle = vehicle.replace('Unknown Fiesta', 'Ford Fiesta');
+                } else if (vehicle.includes('Unknown Corsa')) {
+                    vehicle = vehicle.replace('Unknown Corsa', 'Vauxhall Corsa');
+                } else if (vehicle.includes('Unknown Golf')) {
+                    vehicle = vehicle.replace('Unknown Golf', 'Volkswagen Golf');
+                }
+                
                 analysisHtml += '<div class="col-12 mb-3">' +
-                    '<h5>Cost Estimates</h5>' +
-                    '<div class="row">';
+                    '<div class="alert alert-info">' +
+                        '<h4><i class="fas fa-car"></i> ' + vehicle + '</h4>' +
+                        '<p class="mb-0">Registration: ' + (analysis.metadata.registration || 'Unknown') + '</p>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Trade recommendation
+            if (analysis.trade_purchase_recommendation) {
+                var trade = analysis.trade_purchase_recommendation;
+                var badgeClass = trade.recommendation === 'BUY' ? 'bg-success' : 
+                               trade.recommendation === 'AVOID' ? 'bg-danger' : 'bg-warning';
                 
-                if (costs.annual_maintenance) {
-                    analysisHtml += '<div class="col-md-4">' +
-                        '<div class="text-center p-3 bg-light rounded">' +
-                            '<h4>£' + costs.annual_maintenance + '</h4>' +
-                            '<small>Annual Maintenance</small>' +
-                        '</div>' +
-                    '</div>';
+                analysisHtml += '<div class="col-12 mb-3">' +
+                    '<div class="alert alert-light border">' +
+                        '<h5><i class="fas fa-shopping-cart"></i> Trade Recommendation</h5>' +
+                        '<span class="badge ' + badgeClass + ' fs-6 me-2">' + trade.recommendation + '</span>' +
+                        '<span class="badge bg-secondary fs-6">' + (trade.suggested_trade_price_tier || 'Unknown') + '</span>' +
+                        '<p class="mt-2 mb-0">' + (trade.reasoning || 'No reasoning provided') + '</p>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // MOT analysis and predictions
+            if (analysis.mot_history_analysis || analysis.prediction) {
+                analysisHtml += '<div class="col-md-6 mb-3">' +
+                    '<h5><i class="fas fa-clipboard-check"></i> MOT Analysis</h5>';
+                
+                if (analysis.mot_history_analysis) {
+                    var mot = analysis.mot_history_analysis;
+                    analysisHtml += '<p><strong>Total Tests:</strong> ' + (mot.total_tests || 0) + '</p>' +
+                                  '<p><strong>Failure Rate:</strong> ' + ((mot.failure_rate || 0) * 100).toFixed(1) + '%</p>';
                 }
                 
-                if (costs.estimated_repairs) {
-                    analysisHtml += '<div class="col-md-4">' +
-                        '<div class="text-center p-3 bg-light rounded">' +
-                            '<h4>£' + costs.estimated_repairs + '</h4>' +
-                            '<small>Estimated Repairs</small>' +
-                        '</div>' +
-                    '</div>';
+                if (analysis.prediction) {
+                    var pred = analysis.prediction;
+                    analysisHtml += '<p><strong>Next Failure Risk:</strong> ' + ((pred.mot_failure_probability || 0) * 100).toFixed(1) + '%</p>' +
+                                  '<p><strong>Likely Issues:</strong> ' + (pred.likely_failure_points ? pred.likely_failure_points.join(', ') : 'None identified') + '</p>';
                 }
                 
-                if (costs.total_first_year) {
+                analysisHtml += '</div>';
+            }
+            
+            // Mileage analysis
+            if (analysis.mileage_analysis) {
+                var mileage = analysis.mileage_analysis;
+                analysisHtml += '<div class="col-md-6 mb-3">' +
+                    '<h5><i class="fas fa-tachometer-alt"></i> Mileage Analysis</h5>' +
+                    '<p><strong>Current Mileage:</strong> ' + (mileage.current_mileage ? mileage.current_mileage.toLocaleString() : 'Unknown') + ' miles</p>' +
+                    '<p><strong>Annual Average:</strong> ' + (mileage.annual_average ? mileage.annual_average.toLocaleString() : 'Unknown') + ' miles</p>' +
+                    '<p><strong>Usage Category:</strong> ' + (mileage.usage_category || 'Unknown') + '</p>' +
+                    '<p><strong>Tampering Detected:</strong> ' + (mileage.mileage_tampering_detected ? 'Yes' : 'No') + '</p>' +
+                '</div>';
+            }
+            
+            // Cost estimates
+            if (analysis.prediction && analysis.prediction.estimated_maintenance_costs) {
+                var cost = analysis.prediction.estimated_maintenance_costs;
+                analysisHtml += '<div class="col-12 mb-3">' +
+                    '<h5><i class="fas fa-pound-sign"></i> Cost Estimates</h5>' +
+                    '<div class="row">' +
+                        '<div class="col-md-4">' +
+                            '<div class="text-center p-3 bg-light rounded">' +
+                                '<h4>£' + cost + '</h4>' +
+                                '<small>Estimated Maintenance</small>' +
+                            '</div>' +
+                        '</div>';
+                
+                // Add CAP valuation if available
+                if (analysis.metadata && analysis.metadata.cap_valuation_data) {
+                    var cap = analysis.metadata.cap_valuation_data;
                     analysisHtml += '<div class="col-md-4">' +
-                        '<div class="text-center p-3 bg-primary text-white rounded">' +
-                            '<h4>£' + costs.total_first_year + '</h4>' +
-                            '<small>Total First Year</small>' +
+                            '<div class="text-center p-3 bg-info text-white rounded">' +
+                                '<h4>£' + (cap.trade_value || cap.cap_estimate || 0) + '</h4>' +
+                                '<small>Trade Value</small>' +
+                            '</div>' +
                         '</div>' +
-                    '</div>';
+                        '<div class="col-md-4">' +
+                            '<div class="text-center p-3 bg-success text-white rounded">' +
+                                '<h4>£' + (cap.retail_high || cap.cap_estimate || 0) + '</h4>' +
+                                '<small>Retail Value</small>' +
+                            '</div>' +
+                        '</div>';
                 }
                 
                 analysisHtml += '</div></div>';
+            }
+            
+            // System flags and ownership
+            if (analysis.ownership_compliance || analysis.system_flags) {
+                analysisHtml += '<div class="col-12 mb-3">' +
+                    '<h5><i class="fas fa-flag"></i> Vehicle Status</h5>';
+                
+                if (analysis.ownership_compliance) {
+                    var owner = analysis.ownership_compliance;
+                    analysisHtml += '<p><strong>Total Keepers:</strong> ' + (owner.total_keepers || 'Unknown') + '</p>' +
+                                  '<p><strong>Last V5C Change:</strong> ' + (owner.last_v5c_change || 'Unknown') + '</p>' +
+                                  '<p><strong>Registration Place:</strong> ' + (owner.registration_place || 'Unknown') + '</p>';
+                }
+                
+                if (analysis.system_flags) {
+                    var flags = analysis.system_flags;
+                    analysisHtml += '<p><strong>Mechanical Risk:</strong> <span class="badge bg-' + 
+                                  (flags.mechanical_risk_band === 'High' ? 'danger' : 
+                                   flags.mechanical_risk_band === 'Moderate' ? 'warning' : 'success') + '">' + 
+                                  (flags.mechanical_risk_band || 'Unknown') + '</span></p>';
+                }
+                
+                analysisHtml += '</div>';
             }
             
             analysisHtml += '</div>';
