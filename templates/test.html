@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Test Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { background: white; border-radius: 15px; margin-top: 2rem; padding: 2rem; }
+        .highlight { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 1rem; margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vehicle Data Test</h1>
+        
+        <form id="testForm">
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="text" id="regInput" class="form-control" placeholder="Enter Registration (e.g., SJ57PGV)" maxlength="8">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Search Vehicle</button>
+                </div>
+            </div>
+        </form>
+        
+        <div id="loading" style="display: none;" class="text-center mt-4">
+            <div class="spinner-border text-primary"></div>
+            <p>Loading vehicle data...</p>
+        </div>
+        
+        <div id="results" style="display: none;" class="mt-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Vehicle Information</h5>
+                </div>
+                <div class="card-body" id="vehicleInfo">
+                    <!-- Vehicle info will appear here -->
+                </div>
+            </div>
+            
+            <button id="analyzeButton" class="btn btn-success btn-lg w-100 mt-3" style="display: none;">
+                Analyze with AI
+            </button>
+            
+            <div id="analysis" style="display: none;" class="mt-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>Analysis Results</h5>
+                    </div>
+                    <div class="card-body" id="analysisContent">
+                        <!-- Analysis will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="error" style="display: none;" class="alert alert-danger mt-4">
+            <h5>Error</h5>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript without modern features
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var reg = document.getElementById('regInput').value.trim().toUpperCase();
+            if (!reg) {
+                showError('Please enter a registration number');
+                return;
+            }
+            searchVehicle(reg);
+        });
+        
+        function searchVehicle(registration) {
+            hideAll();
+            document.getElementById('loading').style.display = 'block';
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/scrape', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            showVehicleData(data.data);
+                        } else {
+                            showError(data.error || 'Failed to get vehicle data');
+                        }
+                    } else {
+                        showError('Network error: ' + xhr.status);
+                    }
+                }
+            };
+            
+            xhr.send(JSON.stringify({registration: registration}));
+        }
+        
+        function showVehicleData(vehicle) {
+            hideAll();
+            
+            var v5cDate = vehicle.v5_issue_date || vehicle.last_v5_issue_date || 'Not Available';
+            if (vehicle.vehicle_details && vehicle.vehicle_details.last_v5c_issue_date) {
+                v5cDate = vehicle.vehicle_details.last_v5c_issue_date;
+            }
+            
+            document.getElementById('vehicleInfo').innerHTML = 
+                '<div class="row">' +
+                    '<div class="col-md-6">' +
+                        '<p><strong>Registration:</strong> ' + (vehicle.registration || 'Unknown') + '</p>' +
+                        '<p><strong>Make:</strong> ' + (vehicle.make || 'Unknown') + '</p>' +
+                        '<p><strong>Model:</strong> ' + (vehicle.model || 'Unknown') + '</p>' +
+                        '<p><strong>Year:</strong> ' + (vehicle.year || 'Unknown') + '</p>' +
+                    '</div>' +
+                    '<div class="col-md-6">' +
+                        '<p><strong>Color:</strong> ' + (vehicle.color || 'Unknown') + '</p>' +
+                        '<p><strong>Fuel Type:</strong> ' + (vehicle.fuel_type || 'Unknown') + '</p>' +
+                        '<div class="highlight">' +
+                            '<strong>Last V5C Change Date:</strong><br>' +
+                            '<span class="fs-5 text-primary">' + v5cDate + '</span><br>' +
+                            '<small class="text-muted">When current V5C was issued</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('analyzeButton').style.display = 'block';
+            
+            // Set up analysis button
+            document.getElementById('analyzeButton').onclick = function() {
+                performAnalysis(vehicle.registration);
+            };
+        }
+        
+        function performAnalysis(registration) {
+            document.getElementById('analyzeButton').innerHTML = 'Analyzing...';
+            document.getElementById('analyzeButton').disabled = true;
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intelligent-analysis', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    document.getElementById('analyzeButton').innerHTML = 'Analyze with AI';
+                    document.getElementById('analyzeButton').disabled = false;
+                    
+                    if (xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            showAnalysis(data.data);
+                        } else {
+                            showError(data.error || 'Analysis failed');
+                        }
+                    } else {
+                        showError('Analysis network error: ' + xhr.status);
+                    }
+                }
+            };
+            
+            xhr.send(JSON.stringify({registration: registration}));
+        }
+        
+        function showAnalysis(analysis) {
+            var ownership = analysis.ownership_analysis || {};
+            var motPredictions = analysis.mot_predictions || {};
+            var costBreakdown = analysis.cost_breakdown || {};
+            
+            var html = '<div class="row">';
+            
+            // V5C and Ownership
+            if (ownership.last_v5c_change_date || ownership.estimated_previous_owners) {
+                html += '<div class="col-md-6 mb-3">' +
+                    '<div class="p-3 bg-primary text-white rounded">' +
+                        '<h6>V5C Change Date</h6>' +
+                        '<h4>' + (ownership.last_v5c_change_date || 'Not Available') + '</h4>' +
+                    '</div>' +
+                '</div>';
+                
+                html += '<div class="col-md-6 mb-3">' +
+                    '<div class="p-3 bg-warning text-dark rounded">' +
+                        '<h6>Estimated Previous Owners</h6>' +
+                        '<h4>' + (ownership.estimated_previous_owners || 'Not Available') + '</h4>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // MOT Predictions
+            if (motPredictions.failure_probability !== undefined) {
+                var riskClass = motPredictions.failure_probability > 60 ? 'danger' : 
+                               (motPredictions.failure_probability > 30 ? 'warning' : 'success');
+                
+                html += '<div class="col-md-4 mb-3">' +
+                    '<div class="p-3 bg-light rounded text-center">' +
+                        '<h6>Failure Risk</h6>' +
+                        '<h3 class="text-' + riskClass + '">' + motPredictions.failure_probability + '%</h3>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Cost Analysis
+            if (costBreakdown.total_first_year) {
+                html += '<div class="col-md-4 mb-3">' +
+                    '<div class="p-3 bg-info text-white rounded text-center">' +
+                        '<h6>Total First Year Cost</h6>' +
+                        '<h3>£' + costBreakdown.total_first_year + '</h3>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('analysisContent').innerHTML = html;
+            document.getElementById('analysis').style.display = 'block';
+            
+            // Scroll to analysis
+            document.getElementById('analysis').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showError(message) {
+            hideAll();
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+        
+        function hideAll() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('analysis').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+        }
+        
+        // Auto-format input
+        document.getElementById('regInput').addEventListener('input', function(e) {
+            var value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            if (value.length > 8) value = value.substring(0, 8);
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
