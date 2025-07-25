@@ -84,18 +84,61 @@
         .search-container {
             max-width: 600px;
             margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .search-container form {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container .btn-primary {
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            .search-container .form-control {
+                font-size: 1rem;
+                padding: 0.875rem;
+            }
         }
 
         .form-control {
             border-radius: 10px;
             padding: 1rem;
             font-size: 1.1rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #adb5bd;
+            font-size: 1rem;
         }
 
         .btn-primary {
             border-radius: 10px;
             padding: 1rem 2rem;
             font-size: 1.1rem;
+            background: #007bff;
+            border: 2px solid #007bff;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
         }
 
         .loading {
@@ -152,8 +195,12 @@
             <div class="search-container">
                 <form id="vehicleForm" class="d-flex gap-3">
                     <input type="text" id="registration" class="form-control" 
-                           placeholder="Enter registration (e.g., K5WBR)" 
-                           maxlength="8" required>
+                           placeholder="Enter UK registration number (e.g., K5WBR, SJ57PGV)" 
+                           maxlength="8" 
+                           title="Please enter a valid UK vehicle registration number"
+                           pattern="[A-Za-z0-9]{2,8}"
+                           autocomplete="off"
+                           required>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Search
                     </button>
@@ -247,19 +294,36 @@
             e.preventDefault();
             var registration = document.getElementById('registration').value.trim().toUpperCase();
             
-            if (!registration) {
-                showError('Please enter a vehicle registration number');
+            if (!registration || registration.length < 2) {
+                showError('Please enter a valid UK vehicle registration number (e.g., K5WBR, SJ57PGV)');
+                document.getElementById('registration').focus();
                 return;
             }
             
             searchVehicle(registration);
         });
 
-        // Auto-format registration input
+        // Auto-format registration input with validation
         document.getElementById('registration').addEventListener('input', function(e) {
             var value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
             if (value.length > 8) value = value.substring(0, 8);
             e.target.value = value;
+            
+            // Clear custom validity message when user starts typing
+            e.target.setCustomValidity('');
+            e.target.style.borderColor = value.length >= 2 ? '#28a745' : '#e9ecef';
+        });
+
+        // Enhanced form validation
+        document.getElementById('registration').addEventListener('invalid', function(e) {
+            var value = e.target.value.trim();
+            if (!value) {
+                e.target.setCustomValidity('Please enter a UK vehicle registration number (e.g., K5WBR, SJ57PGV)');
+            } else if (value.length < 2) {
+                e.target.setCustomValidity('Registration must be at least 2 characters long');
+            } else {
+                e.target.setCustomValidity('Please enter a valid UK registration format');
+            }
         });
 
         // Main search function
