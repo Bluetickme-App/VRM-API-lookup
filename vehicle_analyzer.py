@@ -98,6 +98,13 @@ Your analysis tasks:
 
 Focus on recurring advisories (brakes, tyres, suspension) and escalating faults. Consider vehicle age, mileage appropriateness, and compliance status in your assessment.
 
+CRITICAL: For mileage_analysis.current_mileage, use the EXACT mileage number from the most recent MOT test (e.g. if MOT shows "116639 miles", use 116639 not 116).
+
+IMPORTANT: In mot_pattern_analysis.recent_failures, include ALL failed MOT tests from the last 3 years with:
+- Exact test date
+- Exact mileage at time of failure  
+- Main failure reason/defect
+
 Output must be structured JSON using this schema:
 {
   "vehicle_summary": {
@@ -115,6 +122,7 @@ Output must be structured JSON using this schema:
   "mot_pattern_analysis": {
     "repeated_advisories": ["string"],
     "failure_patterns": ["string"],
+    "recent_failures": [{"date": "string", "mileage": "number", "reason": "string"}],
     "wear_indicators": ["string"],
     "compliance_status": "Current|Expired|Unknown"
   },

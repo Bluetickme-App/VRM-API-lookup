@@ -372,8 +372,22 @@
             document.getElementById('mileageAnalysis').innerHTML = mileageHtml || '<p class="text-muted">No mileage analysis available.</p>';
             
             // MOT Patterns
-            const motPatterns = analysis.pattern_analysis || {};
+            const motPatterns = analysis.pattern_analysis || analysis.mot_pattern_analysis || {};
             let patternsHtml = '';
+            
+            // Recent Failures Section
+            if (motPatterns.recent_failures && motPatterns.recent_failures.length > 0) {
+                patternsHtml += '<div class="alert alert-warning"><h6><i class="fas fa-exclamation-triangle me-2"></i>Recent MOT Failures:</h6>';
+                motPatterns.recent_failures.forEach(failure => {
+                    const mileageDisplay = failure.mileage ? failure.mileage.toLocaleString() : 'Unknown';
+                    patternsHtml += `<div class="mb-2">
+                        <strong>${failure.date}</strong> - ${mileageDisplay} miles<br>
+                        <small class="text-dark">${failure.reason}</small>
+                    </div>`;
+                });
+                patternsHtml += '</div>';
+            }
+            
             if (motPatterns.repeated_advisories?.length) {
                 patternsHtml += `<p><strong>Repeated Advisories:</strong></p><ul>`;
                 motPatterns.repeated_advisories.forEach(advisory => {
