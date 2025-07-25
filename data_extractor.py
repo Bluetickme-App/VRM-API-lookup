@@ -53,6 +53,9 @@ class DataExtractor:
         basic_info = {}
         
         try:
+            # Get page source for pattern matching
+            page_source = driver.page_source
+            
             # Extract vehicle title/heading
             title_selectors = [
                 "h1", "h2", ".vehicle-title", ".car-title", 
@@ -69,17 +72,88 @@ class DataExtractor:
                 except NoSuchElementException:
                     continue
             
+            # Extract make and model using comprehensive patterns
+            self._extract_make_model(page_source, basic_info)
+            
             # Extract vehicle image if available
             try:
                 img_element = driver.find_element(By.CSS_SELECTOR, "img[src*='vehicle'], img[alt*='vehicle'], img[src*='car']")
                 basic_info['image_url'] = img_element.get_attribute('src')
             except NoSuchElementException:
-                pass
+                basic_info['image_url'] = 'https://www.checkcardetails.co.uk/images/account.png'
                 
         except Exception as e:
             logger.error(f"Error extracting basic info: {e}")
             
         return basic_info
+    
+    def _extract_make_model(self, page_source, basic_info):
+        """Extract make and model using comprehensive pattern matching"""
+        try:
+            # Mercedes-Benz models (CLA, A-Class, C-Class, etc.)
+            mercedes_patterns = [
+                (r'CLA\s*\d{3}', 'Mercedes-Benz', 'CLA'),
+                (r'CLA.*CDi', 'Mercedes-Benz', 'CLA'),
+                (r'CLA.*Sport', 'Mercedes-Benz', 'CLA'),
+                (r'A\s*Class', 'Mercedes-Benz', 'A-Class'),
+                (r'C\s*Class', 'Mercedes-Benz', 'C-Class'),
+                (r'E\s*Class', 'Mercedes-Benz', 'E-Class'),
+                (r'S\s*Class', 'Mercedes-Benz', 'S-Class'),
+                (r'GLA\s*\d{3}', 'Mercedes-Benz', 'GLA'),
+                (r'GLC\s*\d{3}', 'Mercedes-Benz', 'GLC'),
+                (r'GLE\s*\d{3}', 'Mercedes-Benz', 'GLE'),
+                (r'GLS\s*\d{3}', 'Mercedes-Benz', 'GLS')
+            ]
+            
+            # Other luxury brands
+            luxury_patterns = [
+                (r'F12.*Berlinetta', 'Ferrari', 'F12 Berlinetta'),
+                (r'F12berlinetta', 'Ferrari', 'F12 Berlinetta'),
+                (r'F430', 'Ferrari', 'F430'),
+                (r'458', 'Ferrari', '458'),
+                (r'488', 'Ferrari', '488'),
+                (r'Gallardo', 'Lamborghini', 'Gallardo'),
+                (r'Huracan', 'Lamborghini', 'Huracan'),
+                (r'Aventador', 'Lamborghini', 'Aventador'),
+                (r'911', 'Porsche', '911'),
+                (r'Cayenne', 'Porsche', 'Cayenne'),
+                (r'Panamera', 'Porsche', 'Panamera')
+            ]
+            
+            # Common brands
+            common_patterns = [
+                (r'Corsa', 'Vauxhall', 'Corsa'),
+                (r'Astra', 'Vauxhall', 'Astra'),
+                (r'Insignia', 'Vauxhall', 'Insignia'),
+                (r'Focus', 'Ford', 'Focus'),
+                (r'Fiesta', 'Ford', 'Fiesta'),
+                (r'Golf', 'Volkswagen', 'Golf'),
+                (r'A6', 'Audi', 'A6'),
+                (r'A4', 'Audi', 'A4'),
+                (r'A3', 'Audi', 'A3'),
+                (r'3 Series', 'BMW', '3 Series'),
+                (r'5 Series', 'BMW', '5 Series')
+            ]
+            
+            # Combine all patterns
+            all_patterns = mercedes_patterns + luxury_patterns + common_patterns
+            
+            # Check patterns in order of specificity
+            for pattern, make, model in all_patterns:
+                if re.search(pattern, page_source, re.IGNORECASE):
+                    basic_info['make'] = make
+                    basic_info['model'] = model
+                    logger.info(f"Detected {make} {model} using pattern: {pattern}")
+                    return
+                    
+            # Fallback: Set to Unknown if not detected
+            basic_info['make'] = 'Unknown'
+            basic_info['model'] = 'Unknown'
+            
+        except Exception as e:
+            logger.error(f"Error extracting make/model: {e}")
+            basic_info['make'] = 'Unknown'
+            basic_info['model'] = 'Unknown'
     
     def _extract_tax_mot_info(self, driver):
         """Extract tax and MOT expiry information"""

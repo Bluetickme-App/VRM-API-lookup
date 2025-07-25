@@ -227,8 +227,14 @@ class EnhancedSeleniumScraper:
                     
                     # Update all fields with scraped data
                     basic_info = vehicle_data.get('basic_info', {})
-                    vehicle_record.make = basic_info.get('make') or vehicle_data.get('make')
-                    vehicle_record.model = basic_info.get('model') or vehicle_data.get('model')
+                    
+                    # Debug logging for make/model values
+                    make_value = basic_info.get('make') or vehicle_data.get('make') or 'Unknown'
+                    model_value = basic_info.get('model') or vehicle_data.get('model') or 'Unknown'
+                    logger.info(f"MAKE/MODEL MAPPING DEBUG: basic_info.make='{basic_info.get('make')}', vehicle_data.make='{vehicle_data.get('make')}', final_make='{make_value}'")
+                    
+                    vehicle_record.make = make_value
+                    vehicle_record.model = model_value
                     vehicle_record.year = basic_info.get('year') or vehicle_data.get('year')
                     vehicle_record.color = basic_info.get('color') or vehicle_data.get('color')
                     vehicle_record.fuel_type = basic_info.get('fuel_type') or vehicle_data.get('fuel_type')

@@ -152,6 +152,8 @@ def scrape_vehicle():
                         make = 'Vauxhall'
                     elif 'a6' in model_variant.lower():
                         make = 'Audi'
+                    elif 'cla' in model_variant.lower() or 'cla' in description.lower():
+                        make = 'Mercedes-Benz'
                     elif '3 series' in description.lower() or 'bmw' in description.lower():
                         make = 'BMW'
                     elif 'f12berlinetta' in model_variant.lower() or 'f12' in model_variant.lower() or 'berlinetta' in model_variant.lower() or 'berlinetta' in description.lower():

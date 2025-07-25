@@ -198,6 +198,16 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - SEMANTIC LABELING: Updated labels to "Last V5C Change Date" with clarifying text "When current V5C was issued"
 - PRODUCTION MOBILE READY: Complete V5C change date functionality operational with mobile-optimized display
 
+**July 25, 2025 - MERCEDES-BENZ MAKE DETECTION CRITICAL FIX COMPLETE:**
+- CRITICAL SUCCESS: Fixed Mercedes-Benz CLA make field showing "Mercedes-Benz" instead of "Unknown" in database
+- ENHANCED PATTERN MATCHING: Added CLA pattern to app.py make detection logic alongside DataExtractor improvements
+- DATABASE VALIDATION: K5WBR now correctly displays as "Mercedes-Benz CLA" with complete vehicle data
+- DUAL-LAYER DETECTION: Both enhanced DataExtractor and app.py mapping now recognize Mercedes-Benz CLA patterns
+- API INTEGRATION SUCCESS: Vehicle data API correctly returns "Mercedes-Benz" make field for CLA vehicles
+- COMPREHENSIVE DEBUGGING: Added extensive logging to track make/model mapping from extraction to database storage
+- PRODUCTION READY: Complete Mercedes-Benz identification system operational across all data extraction layers
+- USER PRIORITY RESOLVED: Vehicle make field accuracy restored for proper luxury vehicle identification
+
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
 - Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation
