@@ -49,13 +49,18 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    """Render the dashboard interface for iframe integration"""
-    return render_template('dashboard.html')
+    """Render the simple dashboard interface for iframe integration"""
+    return render_template('simple_dashboard.html')
 
 @app.route('/classic')
 def classic_index():
     """Render the classic frontend interface"""
     return render_template('index.html')
+
+@app.route('/full-dashboard')
+def full_dashboard():
+    """Render the full dashboard interface"""
+    return render_template('dashboard.html')
 
 @app.route('/analysis/<registration>')
 def analysis_page(registration):
