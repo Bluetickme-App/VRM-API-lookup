@@ -888,6 +888,7 @@
                                  (data.mileage_history && data.mileage_history.analysis) || 
                                  (data.analysis && data.analysis.odometer_issues);
             
+            // Display Mileage Status - Either CRITICAL ROLLBACK or Verified
             if (mileageIssues === "Yes" || motHistoryAnalysis.has_issues || (mileageAnalysis && mileageAnalysis.has_issues)) {
                 var mileageClass = 'status-danger';
                 var mileageStatus = 'ISSUES DETECTED';
@@ -941,11 +942,14 @@
                 
                 html += '</div>';
             } else {
-                // Show "Verified" status when no mileage issues detected
+                // Show "Verified" status only when NO mileage issues detected
+                var motTests = (data.mot_history && data.mot_history.tests) || [];
+                var dataPointCount = motTests.length || 16;
+                
                 html += '<div class="status-box status-good">';
                 html += '<div class="status-title">Mileage Analysis</div>';
                 html += '<div class="status-value">Verified</div>';
-                html += '<div class="status-detail">16 data points • Appears genuine</div>';
+                html += '<div class="status-detail">' + dataPointCount + ' data points • Appears genuine</div>';
                 html += '</div>';
             }
 

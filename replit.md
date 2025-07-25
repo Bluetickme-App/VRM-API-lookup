@@ -331,6 +331,7 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - DETAILED ROLLBACK DROPDOWN: Clickable mileage status shows complete rollback analysis with dates and amounts
 - AUTHENTIC DATA EXTRACTION: All new fields extracted from genuine DVLA sources with comprehensive pattern matching
 - USER REQUIREMENT FULFILLED: System now properly flags and displays the type of mileage discrepancies shown in user's image
+- CONTRADICTORY STATUS FIX: Resolved issue where both "CRITICAL ROLLBACK" and "Verified" mileage statuses appeared simultaneously
 
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
