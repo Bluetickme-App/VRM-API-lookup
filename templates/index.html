@@ -847,7 +847,7 @@
                     <div class="col-md-4">
                         <h6>Failure Probability</h6>
                         <div class="text-center">
-                            <span class="display-6 fw-bold text-${motPredictions.failure_probability > 60 ? 'danger' : motPredictions.failure_probability > 30 ? 'warning' : 'success'}">${motPredictions.failure_probability}%</span>
+                            <span class="display-6 fw-bold ${getFailureProbabilityClass(motPredictions.failure_probability)}">${motPredictions.failure_probability}%</span>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -918,6 +918,12 @@
             document.getElementById('aiAnalysisSection').scrollIntoView({ behavior: 'smooth' });
             
             feather.replace();
+        }
+        
+        function getFailureProbabilityClass(probability) {
+            if (probability > 60) return 'text-danger';
+            if (probability > 30) return 'text-warning';
+            return 'text-success';
         }
         
         // Auto-format registration input
