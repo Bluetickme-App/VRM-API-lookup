@@ -300,14 +300,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - EFFICIENT DEFECT DISPLAY: Compact badge system for defect types with condensed text formatting
 - SPACE OPTIMIZATION: Maximized content density while maintaining readability and professional appearance
 
-**July 25, 2025 - V5C TIMING-BASED OWNERSHIP RISK ASSESSMENT:**
+**July 25, 2025 - UPDATED MOT RISK THRESHOLDS AND OWNERSHIP TIMING:**
 - OWNERSHIP RISK LOGIC: Red (<3 months since V5C), Orange (3-9 months), Green (9+ months) based on last keeper change timing
 - V5C DATE ANALYSIS: Calculates months since last V5C issue date to determine recent keeper change risk
-- DYNAMIC RISK MESSAGING: "Recent keeper change", "Keeper change X months ago", "No recent changes" with V5C date display
-- FALLBACK SYSTEM: Uses keeper count when V5C date unavailable (≤2 owners=Green, 3-4=Orange, 5+=Red)
-- MOT STATUS: Green "Current" with expiry date and days remaining - Orange for <30 days, Red for expired
-- MILEAGE ANALYSIS: Shows data points available, updates to tampering risk after AI analysis
-- PROFESSIONAL RISK INDICATORS: Clear visual hierarchy with appropriate color coding and detailed explanations
+- MOT STATUS UPDATED: Red (no MOT or <3 months), Orange (3-6 months), Green (6+ months) with precise month/day display
+- MOT RISK CATEGORIES: "No MOT/Urgent" (Red), "Renewal Due" (Orange), "Current" (Green), "Exempt" for new vehicles
+- DYNAMIC MESSAGING: Shows formatted expiry dates with months/days remaining for clear visual assessment
+- FALLBACK SYSTEM: Uses keeper count when V5C date unavailable, MOT history analysis when expiry unavailable
+- PROFESSIONAL RISK INDICATORS: Aligned with user-specified timing thresholds for accurate vehicle assessment
 
 **July 25, 2025 - DASHBOARD REDESIGN FOR TRADEANDCONNECT IFRAME INTEGRATION:**
 - IFRAME-OPTIMIZED DESIGN: Created new dashboard interface matching Trade Dashboard aesthetic for seamless iframe integration
