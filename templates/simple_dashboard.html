@@ -319,6 +319,108 @@
             color: #495057;
         }
 
+        .mot-detailed-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .mot-test-detailed {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #fafbfc;
+        }
+
+        .mot-test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mot-test-info {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .cert-number, .test-number {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .mot-expiry {
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .mot-comments {
+            margin-top: 12px;
+        }
+
+        .comment-categories {
+            margin-top: 8px;
+        }
+
+        .comment-group {
+            margin-bottom: 12px;
+        }
+
+        .comment-type-header {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .comment-item {
+            padding: 6px 12px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .comment-item.failure {
+            background: #f8d7da;
+            border-left: 3px solid #dc3545;
+            color: #721c24;
+        }
+
+        .comment-item.major {
+            background: #fff3cd;
+            border-left: 3px solid #fd7e14;
+            color: #856404;
+        }
+
+        .comment-item.minor {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            color: #664d03;
+        }
+
+        .comment-item.advisory {
+            background: #d1ecf1;
+            border-left: 3px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        .comment-item.note {
+            background: #e2e3e5;
+            border-left: 3px solid #6c757d;
+            color: #383d41;
+        }
+
         .analyze-btn {
             background: #9b59b6;
             color: white;
@@ -659,29 +761,134 @@
             html += '<div class="status-detail">' + motDetail + '</div>';
             html += '</div>';
             
-            // Add hidden MOT dropdown
+            // Add hidden MOT dropdown with detailed advisory and failure data
             html += '<div id="mot-dropdown" class="dropdown-content" style="display: none;">';
-            html += '<h4>MOT History</h4>';
+            html += '<h4>Complete MOT History</h4>';
             var motTests = (data.mot_history && data.mot_history.tests) || 
                           (data.complete_mot_history && data.complete_mot_history.tests) || [];
             if (motTests.length > 0) {
                 html += '<p><strong>Total Tests:</strong> ' + motTests.length + '</p>';
-                html += '<div class="mot-history-list">';
-                for (var i = 0; i < Math.min(motTests.length, 5); i++) { // Show first 5 tests
+                html += '<div class="mot-detailed-history">';
+                
+                // Show all MOT tests with full details
+                for (var i = 0; i < motTests.length; i++) {
                     var test = motTests[i];
                     var resultClass = test.result && test.result.toLowerCase().includes('pass') ? 'pass' : 'fail';
-                    html += '<div class="mot-test-item">';
-                    html += '<span class="mot-date">' + test.date + '</span>';
+                    
+                    html += '<div class="mot-test-detailed">';
+                    html += '<div class="mot-test-header">';
+                    html += '<span class="mot-date"><strong>' + test.date + '</strong></span>';
                     html += '<span class="mot-result ' + resultClass + '">' + test.result + '</span>';
                     if (test.mileage) {
                         html += '<span class="mot-mileage">' + parseInt(test.mileage).toLocaleString() + ' miles</span>';
                     }
                     html += '</div>';
+                    
+                    // Add certificate number and test number if available
+                    if (test.certificate_number || test.test_number) {
+                        html += '<div class="mot-test-info">';
+                        if (test.certificate_number) {
+                            html += '<span class="cert-number">Cert: ' + test.certificate_number + '</span>';
+                        }
+                        if (test.test_number) {
+                            html += '<span class="test-number">Test: ' + test.test_number + '</span>';
+                        }
+                        html += '</div>';
+                    }
+                    
+                    // Add expiry date if available
+                    if (test.expiry_date) {
+                        html += '<div class="mot-expiry">Expires: ' + test.expiry_date + '</div>';
+                    }
+                    
+                    // Add detailed comments/advisories/failures
+                    if (test.comments && test.comments.length > 0) {
+                        html += '<div class="mot-comments">';
+                        html += '<strong>Details:</strong>';
+                        html += '<div class="comment-categories">';
+                        
+                        // Group comments by type
+                        var failures = [];
+                        var majors = [];
+                        var minors = [];
+                        var advisories = [];
+                        var notes = [];
+                        
+                        for (var j = 0; j < test.comments.length; j++) {
+                            var comment = test.comments[j];
+                            var commentText = typeof comment === 'string' ? comment : comment.text || comment.comment || '';
+                            
+                            if (commentText.toLowerCase().includes('fail') || commentText.toLowerCase().includes('dangerous')) {
+                                failures.push(commentText);
+                            } else if (commentText.toLowerCase().includes('major')) {
+                                majors.push(commentText);
+                            } else if (commentText.toLowerCase().includes('minor')) {
+                                minors.push(commentText);
+                            } else if (commentText.toLowerCase().includes('advisory') || commentText.toLowerCase().includes('monitor')) {
+                                advisories.push(commentText);
+                            } else {
+                                notes.push(commentText);
+                            }
+                        }
+                        
+                        // Display failures
+                        if (failures.length > 0) {
+                            html += '<div class="comment-group failure-group">';
+                            html += '<div class="comment-type-header">🔴 Failures (' + failures.length + ')</div>';
+                            for (var k = 0; k < failures.length; k++) {
+                                html += '<div class="comment-item failure">' + failures[k] + '</div>';
+                            }
+                            html += '</div>';
+                        }
+                        
+                        // Display major defects
+                        if (majors.length > 0) {
+                            html += '<div class="comment-group major-group">';
+                            html += '<div class="comment-type-header">🟠 Major Defects (' + majors.length + ')</div>';
+                            for (var k = 0; k < majors.length; k++) {
+                                html += '<div class="comment-item major">' + majors[k] + '</div>';
+                            }
+                            html += '</div>';
+                        }
+                        
+                        // Display minor defects
+                        if (minors.length > 0) {
+                            html += '<div class="comment-group minor-group">';
+                            html += '<div class="comment-type-header">🟡 Minor Defects (' + minors.length + ')</div>';
+                            for (var k = 0; k < minors.length; k++) {
+                                html += '<div class="comment-item minor">' + minors[k] + '</div>';
+                            }
+                            html += '</div>';
+                        }
+                        
+                        // Display advisories
+                        if (advisories.length > 0) {
+                            html += '<div class="comment-group advisory-group">';
+                            html += '<div class="comment-type-header">🔵 Advisories (' + advisories.length + ')</div>';
+                            for (var k = 0; k < advisories.length; k++) {
+                                html += '<div class="comment-item advisory">' + advisories[k] + '</div>';
+                            }
+                            html += '</div>';
+                        }
+                        
+                        // Display other notes
+                        if (notes.length > 0) {
+                            html += '<div class="comment-group notes-group">';
+                            html += '<div class="comment-type-header">📝 Notes (' + notes.length + ')</div>';
+                            for (var k = 0; k < notes.length; k++) {
+                                html += '<div class="comment-item note">' + notes[k] + '</div>';
+                            }
+                            html += '</div>';
+                        }
+                        
+                        html += '</div>'; // comment-categories
+                        html += '</div>'; // mot-comments
+                    }
+                    
+                    html += '</div>'; // mot-test-detailed
                 }
-                if (motTests.length > 5) {
-                    html += '<p><em>... and ' + (motTests.length - 5) + ' more tests</em></p>';
-                }
-                html += '</div>';
+                
+                html += '</div>'; // mot-detailed-history
             } else {
                 html += '<p>No MOT history available</p>';
             }
