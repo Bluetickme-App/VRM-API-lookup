@@ -881,18 +881,25 @@
                 html += '</div>';
             }
 
-            // Enhanced Mileage Analysis - Analyze MOT history for rollbacks
+            // Enhanced Mileage Analysis - Single consolidated status box
             var motHistoryAnalysis = analyzeMOTMileageRollbacks(data.mot_history);
             var mileageIssues = data.mileage_issues;
             var mileageAnalysis = motHistoryAnalysis || 
                                  (data.mileage_history && data.mileage_history.analysis) || 
                                  (data.analysis && data.analysis.odometer_issues);
             
-            // Display Mileage Status - Either CRITICAL ROLLBACK or Verified
+            // Single Mileage Analysis Status Box
+            var mileageClass = 'status-good';
+            var mileageStatus = 'Verified';
+            var mileageDetail = 'Appears genuine';
+            var hasMileageIssues = false;
+            
+            // Check for issues
             if (mileageIssues === "Yes" || motHistoryAnalysis.has_issues || (mileageAnalysis && mileageAnalysis.has_issues)) {
-                var mileageClass = 'status-danger';
-                var mileageStatus = 'ISSUES DETECTED';
-                var mileageDetail = 'Mileage discrepancies found';
+                hasMileageIssues = true;
+                mileageClass = 'status-danger';
+                mileageStatus = 'ISSUES DETECTED';
+                mileageDetail = 'Mileage discrepancies found';
                 
                 // Check for critical rollbacks
                 if (mileageAnalysis && mileageAnalysis.rollbacks) {
@@ -906,17 +913,25 @@
                         mileageDetail = 'Rollback: ' + maxRollback.toLocaleString() + ' miles';
                     }
                 }
-                
-                html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
-                html += '<div class="status-title">Mileage Status</div>';
-                html += '<div class="status-value">' + mileageStatus + '</div>';
-                html += '<div class="status-detail">' + mileageDetail + '</div>';
-                html += '</div>';
-                
-                // Add hidden mileage dropdown with rollback details
-                html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
-                html += '<h4>Mileage Analysis</h4>';
-                
+            } else {
+                // No issues - show data points
+                var motTests = (data.mot_history && data.mot_history.tests) || [];
+                var dataPointCount = motTests.length || 16;
+                mileageDetail = dataPointCount + ' data points • Appears genuine';
+            }
+            
+            html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
+            html += '<div class="status-title">Mileage Analysis</div>';
+            html += '<div class="status-value">' + mileageStatus + '</div>';
+            html += '<div class="status-detail">' + mileageDetail + '</div>';
+            html += '</div>';
+            
+            // Add hidden mileage dropdown with complete analysis
+            html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
+            html += '<h4>Complete Mileage Analysis</h4>';
+            
+            if (hasMileageIssues) {
+                // Show rollback details
                 if (mileageAnalysis && mileageAnalysis.rollbacks) {
                     html += '<div style="margin-bottom: 16px;"><strong>Rollbacks Detected:</strong></div>';
                     for (var i = 0; i < mileageAnalysis.rollbacks.length; i++) {
@@ -939,19 +954,28 @@
                         html += '<div style="color: #dc3545; font-weight: bold; margin: 8px 0;">' + mileageAnalysis.suspicious_patterns[j] + '</div>';
                     }
                 }
+            }
+            
+            // Always show complete mileage records from MOT tests
+            var motTests = (data.mot_history && data.mot_history.tests) || [];
+            if (motTests.length > 0) {
+                html += '<div style="margin-top: 16px;"><strong>Complete Mileage Records:</strong></div>';
+                html += '<div style="max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px;">';
                 
-                html += '</div>';
-            } else {
-                // Show "Verified" status only when NO mileage issues detected
-                var motTests = (data.mot_history && data.mot_history.tests) || [];
-                var dataPointCount = motTests.length || 16;
+                for (var k = 0; k < motTests.length; k++) {
+                    var test = motTests[k];
+                    if (test.date && test.mileage) {
+                        html += '<div style="padding: 4px 0; border-bottom: 1px solid #f1f3f4; display: flex; justify-content: space-between;">';
+                        html += '<span>' + test.date + '</span>';
+                        html += '<span><strong>' + parseInt(test.mileage).toLocaleString() + ' miles</strong></span>';
+                        html += '</div>';
+                    }
+                }
                 
-                html += '<div class="status-box status-good">';
-                html += '<div class="status-title">Mileage Analysis</div>';
-                html += '<div class="status-value">Verified</div>';
-                html += '<div class="status-detail">' + dataPointCount + ' data points • Appears genuine</div>';
                 html += '</div>';
             }
+            
+            html += '</div>';
 
             // MOT Status - Updated thresholds: Red (<3 months), Orange (3-6 months), Green (6+ months)
             var motClass = 'status-danger';
@@ -1195,73 +1219,7 @@
             }
             html += '</div>';
 
-            // Mileage Analysis Status - Show based on data points available and mileage issues
-            var mileageClass = 'status-good';
-            var mileageStatus = 'Low Risk';
-            var mileageDetail = 'Appears genuine';
-            
-            // Check for mileage issues from database
-            var mileageIssues = data.mileage_issues || (data.mot_summary && data.mot_summary.mileage_issues);
-            var lastMotMileage = data.last_mot_mileage || (data.mot_summary && data.mot_summary.last_mot_mileage);
-            
-            // Count data points from various sources
-            var dataPoints = 0;
-            var motTests = (data.mot_history && data.mot_history.tests) || 
-                          (data.complete_mot_history && data.complete_mot_history.tests) || [];
-            dataPoints = motTests.length;
-            
-            if (data.mileage_history && data.mileage_history.length > 0) {
-                dataPoints += data.mileage_history.length;
-            }
-            
-            // Set status based on mileage issues and data availability
-            if (mileageIssues && mileageIssues !== 'No' && mileageIssues !== null) {
-                mileageClass = 'status-danger';
-                mileageStatus = 'Issues Found';
-                mileageDetail = mileageIssues;
-            } else if (dataPoints > 0) {
-                mileageClass = 'status-good';
-                mileageStatus = 'Verified';
-                if (lastMotMileage) {
-                    mileageDetail = dataPoints + ' data points • Last: ' + parseInt(lastMotMileage).toLocaleString() + ' miles';
-                } else {
-                    mileageDetail = dataPoints + ' data points • Appears genuine';
-                }
-            } else {
-                mileageDetail = 'Insufficient data';
-                mileageClass = 'status-warning';
-                mileageStatus = 'Limited Data';
-            }
-            html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
-            html += '<div class="status-title">Mileage Analysis</div>';
-            html += '<div class="status-value">' + mileageStatus + '</div>';
-            html += '<div class="status-detail">' + mileageDetail + '</div>';
-            html += '</div>';
-            
-            // Add hidden mileage dropdown
-            html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
-            html += '<h4>Mileage Data Points</h4>';
-            if (motTests.length > 0) {
-                html += '<p><strong>Data Sources:</strong> ' + motTests.length + ' MOT tests</p>';
-                html += '<div class="mileage-progression">';
-                html += '<table class="mileage-table">';
-                html += '<thead><tr><th>Date</th><th>Mileage</th><th>Source</th></tr></thead><tbody>';
-                for (var i = 0; i < Math.min(motTests.length, 8); i++) {
-                    var test = motTests[i];
-                    if (test.mileage) {
-                        html += '<tr>';
-                        html += '<td>' + test.date + '</td>';
-                        html += '<td>' + parseInt(test.mileage).toLocaleString() + '</td>';
-                        html += '<td>MOT Test</td>';
-                        html += '</tr>';
-                    }
-                }
-                html += '</tbody></table>';
-                html += '</div>';
-            } else {
-                html += '<p>No mileage data available</p>';
-            }
-            html += '</div>';
+
             
             html += '</div>';
 
