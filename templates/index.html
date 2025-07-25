@@ -822,8 +822,21 @@
                 '</div>';
             }
             
-            // Estimated Previous Owners
-            if (ownershipAnalysis.estimated_previous_owners) {
+            // Total Keepers (actual data)
+            if (vehicleData.total_keepers || ownershipAnalysis.total_keepers) {
+                var totalKeepers = vehicleData.total_keepers || ownershipAnalysis.total_keepers;
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h6 class="mb-0">Total Keepers</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h3 class="text-warning fw-bold">' + totalKeepers + '</h3>' +
+                            '<small class="text-muted">Authentic DVLA data</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            } else if (ownershipAnalysis.estimated_previous_owners) {
                 ownershipHtml += '<div class="col-md-4 mb-3">' +
                     '<div class="card border-warning">' +
                         '<div class="card-header bg-warning text-dark text-center">' +
@@ -921,16 +934,16 @@
             // Add trading indicators and registration place
             if (ownershipAnalysis.trading_indicators && ownershipAnalysis.trading_indicators.length) {
                 ownershipHtml += '<div class="mb-3"><strong>Trading Indicators:</strong><ul class="mt-2">';
-                ownershipAnalysis.trading_indicators.forEach(indicator => {
-                    ownershipHtml += `<li><span class="badge bg-info">${indicator}</span></li>`;
+                ownershipAnalysis.trading_indicators.forEach(function(indicator) {
+                    ownershipHtml += '<li><span class="badge bg-info">' + indicator + '</span></li>';
                 });
                 ownershipHtml += '</ul></div>';
             }
             
             if (ownershipAnalysis.registration_place) {
-                ownershipHtml += `<div class="mb-3">
-                    <strong>Registration Place:</strong> <span class="badge bg-secondary">${ownershipAnalysis.registration_place}</span>
-                </div>`;
+                ownershipHtml += '<div class="mb-3">' +
+                    '<strong>Registration Place:</strong> <span class="badge bg-secondary">' + ownershipAnalysis.registration_place + '</span>' +
+                '</div>';
             }
             
             document.getElementById('ownershipAnalysisMain').innerHTML = ownershipHtml || '<p class="text-muted">No ownership analysis available.</p>';
@@ -963,15 +976,15 @@
                         '<div class="card-body">' +
                             '<h6>Likely Failure Areas:</h6>' +
                             '<div class="mb-3">' +
-                                (motPredictions.likely_failures || []).map(area => 
-                                    '<span class="badge bg-danger me-1 mb-1">' + area + '</span>'
-                                ).join('') +
+                                (motPredictions.likely_failures || []).map(function(area) {
+                                    return '<span class="badge bg-danger me-1 mb-1">' + area + '</span>';
+                                }).join('') +
                             '</div>' +
                             '<h6>Recommended Work:</h6>' +
                             '<div>' +
-                                (motPredictions.recommended_work || []).map(work => 
-                                    '<span class="badge bg-warning text-dark me-1 mb-1">' + work + '</span>'
-                                ).join('') +
+                                (motPredictions.recommended_work || []).map(function(work) {
+                                    return '<span class="badge bg-warning text-dark me-1 mb-1">' + work + '</span>';
+                                }).join('') +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -1086,7 +1099,7 @@
             
             // Add source indicator
             if (source === 'cached') {
-                const sourceIndicator = document.createElement('div');
+                var sourceIndicator = document.createElement('div');
                 sourceIndicator.className = 'alert alert-info mt-3';
                 sourceIndicator.innerHTML = '<i data-feather="database"></i> Analysis data retrieved from cache';
                 document.getElementById('aiAnalysisSection').appendChild(sourceIndicator);
@@ -1106,7 +1119,7 @@
         
         // Auto-format registration input
         document.getElementById('registration').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            var value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
             if (value.length > 8) value = value.substring(0, 8);
             e.target.value = value;
         });

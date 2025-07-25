@@ -39,8 +39,32 @@ class DataExtractor:
             # Extract safety ratings
             vehicle_data['safety'] = self._extract_safety_ratings(driver)
             
-            # Extract additional information
+            # Extract additional information including total keepers
             vehicle_data['additional'] = self._extract_additional_info(driver)
+            
+            # Extract total keepers using specific XPath
+            try:
+                total_keepers_element = driver.find_element(By.XPATH, "/html/body/section/div[2]/div/div[4]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]")
+                total_keepers_text = total_keepers_element.text.strip()
+                if total_keepers_text and total_keepers_text.isdigit():
+                    if 'additional' not in vehicle_data:
+                        vehicle_data['additional'] = {}
+                    vehicle_data['additional']['total_keepers'] = int(total_keepers_text)
+                    logger.info(f"Extracted total keepers: {total_keepers_text}")
+            except Exception as e:
+                logger.debug(f"Total keepers XPath extraction failed: {e}")
+                
+                # Try alternative extraction from page text
+                try:
+                    page_text = driver.page_source.lower()
+                    keepers_match = re.search(r'total keepers[:\s]*(\d+)', page_text, re.IGNORECASE)
+                    if keepers_match:
+                        if 'additional' not in vehicle_data:
+                            vehicle_data['additional'] = {}
+                        vehicle_data['additional']['total_keepers'] = int(keepers_match.group(1))
+                        logger.info(f"Extracted total keepers from text: {keepers_match.group(1)}")
+                except Exception as e2:
+                    logger.debug(f"Text-based total keepers extraction failed: {e2}")
             
             return vehicle_data
             

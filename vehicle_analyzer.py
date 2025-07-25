@@ -97,14 +97,17 @@ Your analysis tasks:
 6. Analyze mileage progression for anomalies or tampering signs
 
 OWNERSHIP ANALYSIS GUIDELINES:
-- Recent V5C change (within 12 months) = likely ownership change
-- V5C date close to registration date = potentially first owner still
-- Vehicle age vs V5C date analysis for ownership estimation
-- For vehicle age 5+ years with recent V5C: estimate 2-4 owners
-- For vehicle age 10+ years with old V5C: estimate 3-6 owners  
-- For vehicle age 15+ years: estimate 4-8 owners
-- Always provide ownership_reasoning explaining the logic
-- Use ownership_confidence based on available data quality
+- CRITICAL: If AUTHENTIC TOTAL KEEPERS is available from DVLA, use this EXACT number instead of estimates
+- When AUTHENTIC TOTAL KEEPERS is provided, use it as the definitive ownership count
+- If no authentic data available, then estimate based on V5C patterns:
+  - Recent V5C change (within 12 months) = likely ownership change
+  - V5C date close to registration date = potentially first owner still
+  - Vehicle age vs V5C date analysis for ownership estimation
+  - For vehicle age 5+ years with recent V5C: estimate 2-4 owners
+  - For vehicle age 10+ years with old V5C: estimate 3-6 owners  
+  - For vehicle age 15+ years: estimate 4-8 owners
+- Always provide ownership_reasoning explaining the logic (authentic data vs estimation)
+- Use ownership_confidence: High (authentic DVLA data), Medium (strong V5C patterns), Low (limited data)
 
 Focus on recurring advisories (brakes, tyres, suspension) and escalating faults. Consider vehicle age, mileage appropriateness, and compliance status in your assessment.
 
@@ -231,8 +234,12 @@ def create_analysis_prompt(vehicle_data):
     v5c_date = vehicle_details.get('last_v5c_issue_date', '') or basic_info.get('last_v5c_issue_date', '') or summary.get('last_v5c_issue_date', '')
     registration_place = vehicle_details.get('registration_place', '') or basic_info.get('registration_place', '') or summary.get('registration_place', '')
     
+    # Extract authentic total keepers data from database
+    total_keepers = vehicle_data.get('total_keepers', None)
+    
     print(f"DEBUG ANALYZER: V5C Date from data: {v5c_date}")
     print(f"DEBUG ANALYZER: Registration Place from data: {registration_place}")
+    print(f"DEBUG ANALYZER: Authentic Total Keepers: {total_keepers}")
 
     prompt = f"""
 AUTHENTIC DVLA VEHICLE DATA FOR ANALYSIS:
@@ -247,6 +254,7 @@ BASIC INFORMATION:
 V5C & OWNERSHIP INFORMATION:
 - Last V5C Issue Date: {v5c_date or 'Not Available'}
 - Registration Place: {registration_place or 'Not Available'}
+- AUTHENTIC TOTAL KEEPERS: {total_keepers if total_keepers is not None else 'Not Available from DVLA'}
 
 COMPLETE MOT TEST HISTORY ({len(mot_tests)} authentic DVLA tests):
 """
