@@ -493,9 +493,10 @@
                     <span class="info-label">Fuel Type</span>
                     <span class="info-value">${vehicleData.fuel_type || 'Unknown'}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Last V5C Issue Date</span>
+                <div class="info-row highlight-v5c">
+                    <span class="info-label"><i class="fas fa-id-card me-1"></i>Last V5C Change Date</span>
                     <span class="info-value">${vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) || 'Not Available'}</span>
+                    <small class="text-muted d-block">When current V5C was issued</small>
                 </div>
             `;
         }

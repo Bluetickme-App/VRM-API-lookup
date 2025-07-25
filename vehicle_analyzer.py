@@ -144,6 +144,7 @@ Output must be structured JSON using this schema:
   },
   "ownership_analysis": {
     "v5_issue_date": "07 August 2024",
+    "last_v5c_change_date": "07 August 2024",
     "registration_place": "Chester/Glasgow/Birmingham", 
     "estimated_previous_owners": "2-3 owners",
     "v5_changes_detected": "boolean",

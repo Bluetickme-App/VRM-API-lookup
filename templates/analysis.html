@@ -390,33 +390,45 @@
             const ownershipAnalysis = analysis.ownership_analysis || {};
             let ownershipHtml = '';
             
-            // Add V5C Issue Date prominently
+            // Add V5C Change Date prominently
             const v5Date = (window.vehicleData && window.vehicleData.v5_issue_date) || 
                           (window.vehicleData && window.vehicleData.last_v5_issue_date) || 
                           (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.last_v5c_issue_date);
             if (v5Date) {
-                ownershipHtml += `<div class="mb-3">
-                    <strong>Last V5C Issue Date:</strong> 
-                    <span class="badge bg-info ms-2">${v5Date}</span>
+                ownershipHtml += `<div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <strong>Last V5C Change Date:</strong><br>
+                        <span class="badge bg-primary fs-6">${v5Date}</span>
+                    </div>
+                    <div class="col-12 col-md-6 mt-2 mt-md-0">
+                        <small class="text-muted">Date when current V5C was issued</small>
+                    </div>
                 </div>`;
             }
             
-            // Add estimated number of owners
-            if (ownershipAnalysis.estimated_previous_owners) {
-                ownershipHtml += `<div class="mb-3">
-                    <strong>Estimated Previous Owners:</strong> 
-                    <span class="badge bg-warning ms-2">${ownershipAnalysis.estimated_previous_owners}</span>
-                </div>`;
-            }
-            
-            // Add registration place
+            // Add ownership details in mobile-friendly format
+            const ownersEstimate = ownershipAnalysis.estimated_previous_owners;
             const regPlace = (window.vehicleData && window.vehicleData.registration_place) || 
                            (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.registration_place);
-            if (regPlace) {
-                ownershipHtml += `<div class="mb-3">
-                    <strong>Registration Place:</strong> 
-                    <span class="badge bg-secondary ms-2">${regPlace}</span>
-                </div>`;
+            
+            if (ownersEstimate || regPlace) {
+                ownershipHtml += `<div class="row mb-3">`;
+                
+                if (ownersEstimate) {
+                    ownershipHtml += `<div class="col-12 col-md-6 mb-2">
+                        <strong>Estimated Previous Owners:</strong><br>
+                        <span class="badge bg-warning fs-6">${ownersEstimate}</span>
+                    </div>`;
+                }
+                
+                if (regPlace) {
+                    ownershipHtml += `<div class="col-12 col-md-6 mb-2">
+                        <strong>Registration Place:</strong><br>
+                        <span class="badge bg-secondary fs-6">${regPlace}</span>
+                    </div>`;
+                }
+                
+                ownershipHtml += `</div>`;
             }
             
             if (ownershipAnalysis.v5_changes_detected !== undefined) {

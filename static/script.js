@@ -345,10 +345,11 @@ function displayVehicleSummary(data) {
                         <div class="vehicle-info-value">${escapeHtml(engineSize)}</div>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="vehicle-info-item">
-                        <div class="vehicle-info-label">Last V5C Issue Date</div>
-                        <div class="vehicle-info-value">${escapeHtml(data.v5_issue_date || data.last_v5_issue_date || 'Not Available')}</div>
+                <div class="col-12 col-md-6">
+                    <div class="vehicle-info-item highlight-mobile">
+                        <div class="vehicle-info-label"><i class="fas fa-id-card me-1"></i>Last V5C Change Date</div>
+                        <div class="vehicle-info-value text-primary fw-bold">${escapeHtml(data.v5_issue_date || data.last_v5_issue_date || 'Not Available')}</div>
+                        <small class="text-muted">When current V5C was issued</small>
                     </div>
                 </div>
             </div>
