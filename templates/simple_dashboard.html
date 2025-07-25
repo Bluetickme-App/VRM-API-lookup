@@ -716,8 +716,7 @@
                 // No V5C date available, use keeper count as fallback
                 if (data.total_keepers) {
                     var keepersCount = parseInt(data.total_keepers);
-                    var previousOwners = keepersCount - 1; // Current owner isn't "previous"
-                    ownershipDetail = previousOwners + ' previous owners • ' + keepersCount + ' total keepers';
+                    ownershipDetail = keepersCount + ' owners • ' + 'Authentic DVLA data';
                     
                     if (keepersCount <= 2) {
                         ownershipClass = 'status-good';
@@ -791,7 +790,7 @@
                 } else { // Expired
                     motClass = 'status-danger';
                     motStatus = 'EXPIRED';
-                    motDetail = 'Expired ' + Math.abs(diffDays) + ' days ago';
+                    motDetail = 'EXPIRED ' + Math.abs(diffDays) + ' days ago';
                 }
             } else {
                 // Check if we have MOT history data

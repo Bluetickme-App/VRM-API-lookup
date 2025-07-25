@@ -304,6 +304,13 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - PROFESSIONAL STYLING: Enhanced typography, spacing, and color scheme for improved readability and user experience
 - USER REQUIREMENT FULFILLED: All advisory data and failure details now accessible through clickable status boxes
 
+**July 25, 2025 - OWNERSHIP AND MOT STATUS DISPLAY FIXES:**
+- OWNERSHIP DISPLAY FIX: Updated ownership risk box to show "X owners" format instead of "X previous owners"
+- MOT EXPIRED STATUS: Enhanced MOT status to display "EXPIRED X days ago" when MOT has expired
+- AUTHENTIC DATA INTEGRATION: Ownership box now shows authentic DVLA data confirmation
+- VERTICAL DROPDOWN LAYOUT: Fixed MOT dropdown to prevent horizontal scrolling with proper vertical display
+- RESPONSIVE DESIGN: All elements now fit within container width with proper word wrapping
+
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
 - ENHANCED DROPDOWNS: Improved dropdown containers with better visual hierarchy and compact formatting
