@@ -423,6 +423,27 @@
         }
         .comment-item.note {
             background: #e2e3e5;
+        }
+        .analysis-section {
+            margin: 16px 0;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #007bff;
+        }
+        .analysis-section h4 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        .analysis-section p {
+            margin-bottom: 8px;
+        }
+        .analysis-section ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        .analysis-section li {
+            margin-bottom: 4px;
             border-left: 3px solid #6c757d;
             color: #383d41;
         }
@@ -1305,7 +1326,108 @@
                     html += '</div>';
                 }
                 
-                // Purchase Recommendations
+                // Trade Purchase Recommendation
+                if (ai.trade_purchase_recommendation) {
+                    var trade = ai.trade_purchase_recommendation;
+                    var recommendation = trade.recommendation || 'UNKNOWN';
+                    var tradeColor = recommendation.toUpperCase() === 'BUY' ? 'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;' :
+                                   recommendation.toUpperCase() === 'AVOID' ? 'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
+                                   'background: linear-gradient(135deg, #f39c12, #e67e22); color: white;';
+                    
+                    html += '<div class="analysis-section colored-box" style="' + tradeColor + '">';
+                    html += '<h4>🚗 Trade Purchase Recommendation</h4>';
+                    html += '<p><strong>Recommendation:</strong> ' + recommendation + '</p>';
+                    
+                    if (trade.suggested_trade_price_tier) {
+                        html += '<p><strong>CAP Price Tier:</strong> ' + trade.suggested_trade_price_tier + '</p>';
+                    }
+                    if (trade.reasoning) {
+                        html += '<p><strong>Reasoning:</strong> ' + trade.reasoning + '</p>';
+                    }
+                    if (trade.current_retail_price_range) {
+                        html += '<p><strong>Retail Price Range:</strong> ' + trade.current_retail_price_range + '</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // Critical Mileage Analysis
+                if (ai.mileage && (ai.mileage.mileage_tampering_detected || ai.mileage.mileage_anomalies)) {
+                    var mileageColor = ai.mileage.mileage_tampering_detected ? 
+                        'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
+                        'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;';
+                    
+                    html += '<div class="analysis-section colored-box" style="' + mileageColor + '">';
+                    html += '<h4>📊 Mileage Analysis</h4>';
+                    
+                    if (ai.mileage.mileage_tampering_detected) {
+                        html += '<p><strong>⚠️ CRITICAL ROLLBACK DETECTED</strong></p>';
+                        if (ai.mileage.mileage_anomalies && ai.mileage.mileage_anomalies.length > 0) {
+                            html += '<p><strong>Anomalies:</strong></p>';
+                            html += '<ul>';
+                            for (var i = 0; i < Math.min(3, ai.mileage.mileage_anomalies.length); i++) {
+                                html += '<li>' + ai.mileage.mileage_anomalies[i] + '</li>';
+                            }
+                            html += '</ul>';
+                        }
+                    } else {
+                        html += '<p><strong>Status:</strong> Verified mileage progression</p>';
+                    }
+                    
+                    if (ai.mileage.confidence_score) {
+                        html += '<p><strong>Confidence:</strong> ' + (ai.mileage.confidence_score * 100).toFixed(1) + '%</p>';
+                    }
+                    html += '</div>';
+                }
+
+                // Market Analysis with Internet Research
+                if (ai.market_analysis) {
+                    var market = ai.market_analysis;
+                    var demandLevel = market.market_demand || 'Unknown';
+                    var marketColor = demandLevel.toLowerCase().includes('high') ? 
+                        'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;' :
+                        demandLevel.toLowerCase().includes('low') ? 
+                        'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
+                        'background: linear-gradient(135deg, #f39c12, #e67e22); color: white;';
+                    
+                    html += '<div class="analysis-section colored-box" style="' + marketColor + '">';
+                    html += '<h4>📈 Market Analysis</h4>';
+                    
+                    if (market.price_range) {
+                        html += '<p><strong>Price Range:</strong> ' + market.price_range + '</p>';
+                    }
+                    if (market.market_demand) {
+                        html += '<p><strong>Market Demand:</strong> ' + market.market_demand + '</p>';
+                    }
+                    if (market.reliability_rating) {
+                        html += '<p><strong>Reliability Rating:</strong> ' + market.reliability_rating + '</p>';
+                    }
+                    html += '</div>';
+                }
+
+                // Grading Scores
+                if (ai.grading_scores) {
+                    var grades = ai.grading_scores;
+                    var mechRisk = grades.mechanical_risk_band || 'Unknown';
+                    var riskColor = mechRisk.toLowerCase().includes('low') ? 
+                        'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;' :
+                        mechRisk.toLowerCase().includes('high') ? 
+                        'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
+                        'background: linear-gradient(135deg, #f39c12, #e67e22); color: white;';
+                    
+                    html += '<div class="analysis-section colored-box" style="' + riskColor + '">';
+                    html += '<h4>⚡ Risk Assessment</h4>';
+                    html += '<p><strong>Mechanical Risk:</strong> ' + mechRisk + '</p>';
+                    
+                    if (grades.overall_grade) {
+                        html += '<p><strong>Overall Grade:</strong> ' + grades.overall_grade + '</p>';
+                    }
+                    if (grades.purchase_confidence) {
+                        html += '<p><strong>Purchase Confidence:</strong> ' + (grades.purchase_confidence * 100).toFixed(1) + '%</p>';
+                    }
+                    html += '</div>';
+                }
+
+                // Purchase Recommendations (Legacy Support)
                 if (ai.PURCHASE_RECOMMENDATIONS) {
                     var valueRating = parseInt(ai.PURCHASE_RECOMMENDATIONS.value_for_money_rating) || 5;
                     var purchaseColor = getColorByRating(valueRating, 10);
