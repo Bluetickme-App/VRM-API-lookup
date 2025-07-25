@@ -23,6 +23,7 @@ try:
     import pytesseract
     TESSERACT_AVAILABLE = True
 except ImportError:
+    pytesseract = None
     TESSERACT_AVAILABLE = False
     logging.warning("Tesseract not available - OCR functionality limited")
 
@@ -50,10 +51,18 @@ class NumberPlateOCR:
             if is_base64:
                 image = self._decode_base64_image(image_data)
             else:
-                image = Image.open(image_data)
+                try:
+                    image = Image.open(image_data)
+                except Exception as e:
+                    logger.error(f"Failed to open image file: {e}")
+                    return {'error': 'Invalid image file format'}
             
             if image is None:
                 return {'error': 'Failed to load image'}
+            
+            # Convert to RGB if needed (handle different formats)
+            if image.mode in ('RGBA', 'P'):
+                image = image.convert('RGB')
             
             # Preprocess image for better OCR
             processed_image = self._preprocess_image(image)
@@ -64,11 +73,16 @@ class NumberPlateOCR:
             # Find potential number plates
             plates = self._find_number_plates(extracted_text)
             
+            # Try multiple OCR configurations if first attempt fails
+            if not plates and extracted_text.strip():
+                plates = self._try_alternative_ocr(processed_image)
+            
             return {
                 'success': True,
                 'extracted_text': extracted_text,
                 'potential_plates': plates,
-                'best_match': plates[0] if plates else None
+                'best_match': plates[0] if plates else None,
+                'debug_info': f"Extracted: '{extracted_text}'" if not plates else None
             }
             
         except Exception as e:
@@ -107,8 +121,11 @@ class NumberPlateOCR:
             # Find the 5th and 95th percentiles
             p5, p95 = np.percentile(img_array, (5, 95))
             
-            # Scale the image to use the full range
-            img_array = np.clip((img_array - p5) * 255 / (p95 - p5), 0, 255).astype(np.uint8)
+            # Scale the image to use the full range (avoid division by zero)
+            if p95 > p5:
+                img_array = np.clip((img_array - p5) * 255 / (p95 - p5), 0, 255).astype(np.uint8)
+            else:
+                img_array = img_array.astype(np.uint8)
             
             # Convert back to PIL Image
             processed_image = Image.fromarray(img_array)
@@ -121,11 +138,17 @@ class NumberPlateOCR:
     def _extract_text(self, image):
         """Extract text from preprocessed image using Tesseract"""
         try:
+            if not TESSERACT_AVAILABLE:
+                return ""
+            
             # Configure Tesseract for better number plate recognition
             config = '--oem 3 --psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
             
             # Extract text
-            text = pytesseract.image_to_string(image, config=config)
+            if TESSERACT_AVAILABLE:
+                text = pytesseract.image_to_string(image, config=config)
+            else:
+                return ""
             
             # Clean up extracted text
             cleaned_text = re.sub(r'[^A-Z0-9\s]', '', text.upper())
@@ -136,12 +159,45 @@ class NumberPlateOCR:
             logger.error(f"Tesseract extraction error: {e}")
             return ""
     
+    def _try_alternative_ocr(self, image):
+        """Try alternative OCR configurations for better recognition"""
+        try:
+            if not TESSERACT_AVAILABLE:
+                return []
+            
+            # Alternative configurations
+            configs = [
+                '--oem 3 --psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+                '--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+                '--oem 3 --psm 13 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            ]
+            
+            for config in configs:
+                try:
+                    if TESSERACT_AVAILABLE:
+                        text = pytesseract.image_to_string(image, config=config)
+                    else:
+                        continue
+                    cleaned_text = re.sub(r'[^A-Z0-9\s]', '', text.upper()).strip()
+                    if cleaned_text:
+                        plates = self._find_number_plates(cleaned_text)
+                        if plates:
+                            return plates
+                except:
+                    continue
+            
+            return []
+            
+        except Exception as e:
+            logger.error(f"Alternative OCR error: {e}")
+            return []
+    
     def _find_number_plates(self, text):
         """Find potential UK number plates in extracted text"""
         plates = []
         
         # Remove excessive whitespace
-        cleaned_text = re.sub(r'\s+', ' ', text)
+        cleaned_text = re.sub(r'\s+', ' ', text.strip())
         
         # Try each pattern
         for pattern in self.uk_patterns:
@@ -150,13 +206,26 @@ class NumberPlateOCR:
                 # Clean up the match
                 clean_match = re.sub(r'\s+', '', match)
                 if len(clean_match) >= 4:  # Minimum realistic plate length
-                    plates.append(clean_match)
+                    # Validate the format more strictly
+                    if self.validate_uk_plate(clean_match):
+                        plates.append(clean_match)
         
         # Remove duplicates and sort by length (longer matches are often better)
         unique_plates = list(set(plates))
         unique_plates.sort(key=len, reverse=True)
         
-        return unique_plates
+        # Filter out substrings of longer matches
+        filtered_plates = []
+        for plate in unique_plates:
+            is_substring = False
+            for other_plate in unique_plates:
+                if plate != other_plate and plate in other_plate:
+                    is_substring = True
+                    break
+            if not is_substring:
+                filtered_plates.append(plate)
+        
+        return filtered_plates
     
     def validate_uk_plate(self, plate_text):
         """Validate if text looks like a valid UK plate"""
