@@ -1348,14 +1348,26 @@
                     html += '<h4>🚗 Trade Purchase Recommendation</h4>';
                     html += '<p><strong>Recommendation:</strong> ' + recommendation + '</p>';
                     
-                    if (trade.suggested_trade_price_tier) {
-                        html += '<p><strong>CAP Price Tier:</strong> ' + trade.suggested_trade_price_tier + '</p>';
+                    if (trade.CAP_price_tier || trade.suggested_trade_price_tier) {
+                        var capTier = trade.CAP_price_tier || trade.suggested_trade_price_tier;
+                        html += '<p><strong>CAP Price Tier:</strong> ' + capTier + '</p>';
                     }
                     if (trade.reasoning) {
                         html += '<p><strong>Reasoning:</strong> ' + trade.reasoning + '</p>';
                     }
                     if (trade.current_retail_price_range) {
                         html += '<p><strong>Retail Price Range:</strong> ' + trade.current_retail_price_range + '</p>';
+                    }
+                    
+                    // Add system flags if available
+                    if (ai.system_flags) {
+                        html += '<p><strong>System Flags:</strong></p>';
+                        if (ai.system_flags.mileage_tampering_detected) {
+                            html += '<p>• ⚠️ Mileage tampering detected</p>';
+                        }
+                        if (ai.system_flags.critical_rollback) {
+                            html += '<p>• ⚠️ Critical rollback confirmed</p>';
+                        }
                     }
                     html += '</div>';
                 }
@@ -1377,16 +1389,23 @@
                     
                     if (hasCriticalRollback) {
                         html += '<p><strong>⚠️ CRITICAL ROLLBACK DETECTED</strong></p>';
-                        if (ai.trade_purchase_recommendation && ai.trade_purchase_recommendation.reasoning) {
+                        
+                        // Display detailed rollback information from mileage anomalies
+                        if (ai.mileage && ai.mileage.mileage_anomalies && ai.mileage.mileage_anomalies.length > 0) {
+                            var anomaly = ai.mileage.mileage_anomalies[0];
+                            if (anomaly.date_from && anomaly.date_to && anomaly.rollback_amount) {
+                                html += '<p><strong>Rollback Details:</strong></p>';
+                                html += '<p>• <strong>' + anomaly.rollback_amount.toLocaleString() + ' miles</strong> reduction</p>';
+                                html += '<p>• From: <strong>' + anomaly.date_from + '</strong> (' + anomaly.mileage_from.toLocaleString() + ' miles)</p>';
+                                html += '<p>• To: <strong>' + anomaly.date_to + '</strong> (' + anomaly.mileage_to.toLocaleString() + ' miles)</p>';
+                                html += '<p>• Severity: <strong>' + anomaly.severity + '</strong></p>';
+                            }
+                        } else if (ai.trade_purchase_recommendation && ai.trade_purchase_recommendation.reasoning) {
                             html += '<p><strong>Details:</strong> ' + ai.trade_purchase_recommendation.reasoning.split('.')[0] + '</p>';
                         }
-                        if (ai.mileage && ai.mileage.mileage_anomalies && ai.mileage.mileage_anomalies.length > 0) {
-                            html += '<p><strong>Anomalies:</strong></p>';
-                            html += '<ul>';
-                            for (var i = 0; i < Math.min(3, ai.mileage.mileage_anomalies.length); i++) {
-                                html += '<li>' + ai.mileage.mileage_anomalies[i] + '</li>';
-                            }
-                            html += '</ul>';
+                        
+                        if (ai.system_flags && ai.system_flags.critical_rollback) {
+                            html += '<p><strong>⚠️ System Flag:</strong> Critical rollback confirmed</p>';
                         }
                     } else {
                         html += '<p><strong>Status:</strong> Verified mileage progression</p>';
@@ -1398,9 +1417,10 @@
                     html += '</div>';
                 }
 
-                // Market Analysis with Internet Research
-                if (ai.market_analysis) {
-                    var market = ai.market_analysis;
+                // Market Analysis with CAP Pricing Data
+                if (ai.market_analysis || ai.market_context) {
+                    var market = ai.market_analysis || {};
+                    var marketContext = ai.market_context || {};
                     var demandLevel = market.market_demand || 'Unknown';
                     var marketColor = demandLevel.toLowerCase().includes('high') ? 
                         'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;' :
@@ -1411,6 +1431,27 @@
                     html += '<div class="analysis-section colored-box" style="' + marketColor + '">';
                     html += '<h4>📈 Market Analysis</h4>';
                     
+                    // CAP Valuation Data
+                    if (marketContext.CAP_valuation_data) {
+                        var cap = marketContext.CAP_valuation_data;
+                        html += '<p><strong>CAP Valuation:</strong></p>';
+                        html += '<p>• Trade Value: <strong>£' + cap.trade_value.toLocaleString() + '</strong></p>';
+                        html += '<p>• CAP Estimate: <strong>£' + cap.cap_estimate.toLocaleString() + '</strong></p>';
+                        html += '<p>• Retail Range: <strong>£' + cap.retail_low.toLocaleString() + ' - £' + cap.retail_high.toLocaleString() + '</strong></p>';
+                        if (cap.confidence) {
+                            html += '<p>• Confidence: <strong>' + cap.confidence.charAt(0).toUpperCase() + cap.confidence.slice(1) + '</strong></p>';
+                        }
+                    }
+                    
+                    // Current Market Prices
+                    if (marketContext.current_market_prices) {
+                        var prices = marketContext.current_market_prices;
+                        html += '<p><strong>Current Market:</strong></p>';
+                        html += '<p>• Average: <strong>£' + prices.average.toLocaleString() + '</strong></p>';
+                        html += '<p>• Range: <strong>£' + prices.low.toLocaleString() + ' - £' + prices.high.toLocaleString() + '</strong></p>';
+                    }
+                    
+                    // Legacy market analysis
                     if (market.price_range) {
                         html += '<p><strong>Price Range:</strong> ' + market.price_range + '</p>';
                     }
@@ -1419,6 +1460,42 @@
                     }
                     if (market.reliability_rating) {
                         html += '<p><strong>Reliability Rating:</strong> ' + market.reliability_rating + '</p>';
+                    }
+                    html += '</div>';
+                }
+
+                // MOT Failure Prediction with detailed data
+                if (ai.prediction || ai.MOT_FAILURE_PREDICTION) {
+                    var prediction = ai.prediction || ai.MOT_FAILURE_PREDICTION || {};
+                    var failureProb = prediction.MOT_failure_probability || prediction.probability_of_next_failure || 0;
+                    var motPredColor = failureProb > 50 ? 
+                        'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
+                        failureProb > 25 ? 
+                        'background: linear-gradient(135deg, #f39c12, #e67e22); color: white;' :
+                        'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;';
+                    
+                    html += '<div class="analysis-section colored-box" style="' + motPredColor + '">';
+                    html += '<h4>🔮 MOT Failure Prediction</h4>';
+                    html += '<p><strong>Failure Probability:</strong> ' + failureProb + '%</p>';
+                    
+                    if (prediction.likely_failure_points) {
+                        html += '<p><strong>Likely Failure Points:</strong></p>';
+                        html += '<ul>';
+                        for (var i = 0; i < prediction.likely_failure_points.length; i++) {
+                            html += '<li>' + prediction.likely_failure_points[i] + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    
+                    if (prediction.estimated_maintenance_costs) {
+                        var costs = prediction.estimated_maintenance_costs;
+                        html += '<p><strong>Estimated Maintenance Costs:</strong></p>';
+                        if (costs.brakes) html += '<p>• Brakes: <strong>£' + costs.brakes + '</strong></p>';
+                        if (costs.tyres) html += '<p>• Tyres: <strong>£' + costs.tyres + '</strong></p>';
+                        if (costs.suspension) html += '<p>• Suspension: <strong>£' + costs.suspension + '</strong></p>';
+                        if (costs.total_estimated_cost) {
+                            html += '<p>• <strong>Total Estimated: £' + costs.total_estimated_cost + '</strong></p>';
+                        }
                     }
                     html += '</div>';
                 }

@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "vehicle": "Audi A6 (2007)",
+    "registration": "Unknown",
+    "analysis_date": "2023-10-01"
+  },
+  "mileage": {
+    "current_mileage": 113202,
+    "annual_average": 11218,
+    "usage_category": "average_usage",
+    "mileage_anomalies": [
+      {
+        "date_from": "05/05/2016",
+        "date_to": "04/05/2017",
+        "mileage_from": 141699,
+        "mileage_to": 90288,
+        "rollback_amount": 51411,
+        "severity": "CRITICAL"
+      }
+    ]
+  },
+  "MOT_history": {
+    "total_tests": 16,
+    "failure_rate": 12.5,
+    "recent_failures": [
+      {
+        "date": "02/06/2023",
+        "mileage": 107496,
+        "comments": [
+          "Nearside Rear Upper Anti-roll bar linkage pin or bush worn but not resulting in excessive movement (5.3.4 (a) (i)) ADVISORY",
+          "Nearside Rear Inner Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY",
+          "Offside Rear Inner Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY",
+          "Nearside Rear Inner Brake pad(s) less than 1.5 mm thick (1.1.13 (a) (ii)) DANGEROUS",
+          "Nearside Rear Brake disc significantly and obviously worn (1.1.14 (a) (i)) MAJOR",
+          "Offside Rear Inner Tyre worn close to legal limit/worn on edge (5.2.3 (e)) ADVISORY",
+          "Nearside Front Outer Tyre has a cut but not deep enough to reach the ply or cords (5.2.3 (d) (i)) ADVISORY",
+          "Offside Front Upper Suspension arm pin or bush worn but not resulting in excessive movement Rear arm, inner bush (5.3.4 (a) (i)) ADVISORY"
+        ]
+      },
+      {
+        "date": "28/04/2021",
+        "mileage": 104447,
+        "comments": [
+          "Nearside Windscreen wiper does not clear the windscreen effectively (3.4 (b) (ii)) MAJOR",
+          "Offside Windscreen wiper does not clear the windscreen effectively (3.4 (b) (ii)) MAJOR"
+        ]
+      }
+    ],
+    "common_issue_categories": {
+      "tyres": 7,
+      "suspension": 7,
+      "brakes": 6,
+      "lights": 1
+    },
+    "advisory_patterns": [
+      {
+        "date": "04/06/2024",
+        "issue": "Vehicle passed MOT with no advisory notices.",
+        "mileage": 113202
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Nearside Rear Upper Anti-roll bar linkage pin or bush worn but not resulting in excessive movement (5.3.4 (a) (i)) ADVISORY",
+        "mileage": 107496
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Offside Rear Inner Tyre worn close to legal limit/worn on edge (5.2.3 (e)) ADVISORY",
+        "mileage": 107496
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Nearside Front Outer Tyre has a cut but not deep enough to reach the ply or cords (5.2.3 (d) (i)) ADVISORY",
+        "mileage": 107496
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Offside Front Upper Suspension arm pin or bush worn but not resulting in excessive movement Rear arm, inner bush (5.3.4 (a) (i)) ADVISORY",
+        "mileage": 107496
+      }
+    ],
+    "wear_pattern": {
+      "average_test_interval": 343,
+      "recent_failure_trend": 1,
+      "pattern_detected": "stable"
+    }
+  },
+  "compliance": {
+    "total_keepers": 6,
+    "last_V5C_change": "2025-01-22",
+    "registration_place": "Chester",
+    "MOT_days_remaining": 0,
+    "vehicle_exported": false,
+    "outstanding_recalls": false
+  },
+  "system_flags": {
+    "mileage_tampering_detected": true,
+    "critical_rollback": true
+  },
+  "grading_scores": {
+    "mechanical_risk_band": "High"
+  },
+  "prediction": {
+    "MOT_failure_probability": 21,
+    "likely_failure_points": [
+      "Brakes",
+      "Tyres",
+      "Suspension"
+    ],
+    "estimated_maintenance_costs": {
+      "brakes": 250,
+      "tyres": 200,
+      "suspension": 300,
+      "total_estimated_cost": 750
+    }
+  },
+  "trade_purchase_recommendation": {
+    "recommendation": "AVOID",
+    "reasoning": "The vehicle has a critical mileage rollback, high mechanical risk, and significant maintenance costs. The recent V5C change suggests potential auction trade context.",
+    "CAP_price_tier": "CAP Below"
+  },
+  "market_context": {
+    "CAP_valuation_data": {
+      "cap_estimate": 3200,
+      "trade_value": 2560,
+      "retail_high": 3680,
+      "retail_low": 2880,
+      "confidence": "low"
+    },
+    "current_market_prices": {
+      "average": 3200,
+      "high": 3680,
+      "low": 2880
+    }
+  }
+}
