@@ -188,6 +188,59 @@
             font-weight: 700;
         }
 
+        .status-boxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .status-box {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .status-box:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-good {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .status-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .status-unknown {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .status-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .status-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .status-detail {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
         .analyze-btn {
             background: #9b59b6;
             color: white;
@@ -389,6 +442,83 @@
             html += (data.year || 'Unknown') + ' • ' + (data.color || 'Unknown') + ' • ' + (data.fuel_type || 'Unknown');
             html += '</p>';
 
+            // Status Boxes
+            html += '<div class="status-boxes">';
+            
+            // Ownership Status
+            var ownershipClass = 'status-unknown';
+            var ownershipStatus = 'Unknown';
+            var ownershipDetail = 'Analysis pending';
+            
+            if (data.total_keepers) {
+                var keepersCount = parseInt(data.total_keepers);
+                if (keepersCount <= 2) {
+                    ownershipClass = 'status-good';
+                    ownershipStatus = 'Good';
+                    ownershipDetail = keepersCount + ' previous owners';
+                } else if (keepersCount <= 4) {
+                    ownershipClass = 'status-warning';
+                    ownershipStatus = 'Moderate';
+                    ownershipDetail = keepersCount + ' previous owners';
+                } else {
+                    ownershipClass = 'status-danger';
+                    ownershipStatus = 'High';
+                    ownershipDetail = keepersCount + ' previous owners';
+                }
+            }
+            
+            html += '<div class="status-box ' + ownershipClass + '">';
+            html += '<div class="status-title">Ownership Risk</div>';
+            html += '<div class="status-value">' + ownershipStatus + '</div>';
+            html += '<div class="status-detail">' + ownershipDetail + '</div>';
+            html += '</div>';
+
+            // MOT Status
+            var motClass = 'status-unknown';
+            var motStatus = 'Unknown';
+            var motDetail = 'MOT data pending';
+            
+            if (data.mot_expiry_date) {
+                var motDate = new Date(data.mot_expiry_date);
+                var today = new Date();
+                var diffTime = motDate - today;
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays > 30) {
+                    motClass = 'status-good';
+                    motStatus = 'Valid';
+                    motDetail = diffDays + ' days remaining';
+                } else if (diffDays > 0) {
+                    motClass = 'status-warning';
+                    motStatus = 'Expiring Soon';
+                    motDetail = diffDays + ' days remaining';
+                } else {
+                    motClass = 'status-danger';
+                    motStatus = 'Expired';
+                    motDetail = Math.abs(diffDays) + ' days overdue';
+                }
+            }
+            
+            html += '<div class="status-box ' + motClass + '">';
+            html += '<div class="status-title">MOT Status</div>';
+            html += '<div class="status-value">' + motStatus + '</div>';
+            html += '<div class="status-detail">' + motDetail + '</div>';
+            html += '</div>';
+
+            // Mileage Analysis Status
+            var mileageClass = 'status-unknown';
+            var mileageStatus = 'Unknown';
+            var mileageDetail = 'Analysis pending';
+            
+            // This will be updated after AI analysis, for now show as pending
+            html += '<div class="status-box ' + mileageClass + '" id="mileageStatus">';
+            html += '<div class="status-title">Mileage Analysis</div>';
+            html += '<div class="status-value">' + mileageStatus + '</div>';
+            html += '<div class="status-detail">' + mileageDetail + '</div>';
+            html += '</div>';
+            
+            html += '</div>';
+
             // Vehicle Details Grid
             html += '<div class="vehicle-details">';
             
@@ -476,6 +606,7 @@
                 
                 if (data.success) {
                     displayAnalysis(data.data);
+                    updateMileageStatus(data.data);
                 } else {
                     alert('Analysis failed: ' + (data.error || 'Unknown error'));
                 }
@@ -559,6 +690,38 @@
             html += '</div>';
 
             document.getElementById('resultsSection').innerHTML += html;
+        }
+
+        function updateMileageStatus(analysisData) {
+            var mileageStatusBox = document.getElementById('mileageStatus');
+            if (!mileageStatusBox || !analysisData.mileage_analysis) return;
+            
+            var mileageClass = 'status-good';
+            var mileageStatus = 'Normal';
+            var mileageDetail = 'No issues detected';
+            
+            if (analysisData.mileage_analysis.tampering_risk) {
+                var risk = analysisData.mileage_analysis.tampering_risk.toLowerCase();
+                if (risk.includes('high') || risk.includes('likely')) {
+                    mileageClass = 'status-danger';
+                    mileageStatus = 'High Risk';
+                    mileageDetail = 'Possible tampering';
+                } else if (risk.includes('medium') || risk.includes('moderate')) {
+                    mileageClass = 'status-warning';
+                    mileageStatus = 'Moderate Risk';
+                    mileageDetail = 'Some concerns';
+                } else if (risk.includes('low') || risk.includes('minimal')) {
+                    mileageClass = 'status-good';
+                    mileageStatus = 'Low Risk';
+                    mileageDetail = 'Appears genuine';
+                }
+            }
+            
+            mileageStatusBox.className = 'status-box ' + mileageClass;
+            mileageStatusBox.innerHTML = 
+                '<div class="status-title">Mileage Analysis</div>' +
+                '<div class="status-value">' + mileageStatus + '</div>' +
+                '<div class="status-detail">' + mileageDetail + '</div>';
         }
 
         function displayError(message) {
