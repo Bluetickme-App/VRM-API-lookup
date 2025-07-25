@@ -10,18 +10,15 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f5f6fa;
             padding: 20px;
         }
-
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
-
         .search-section {
             background: white;
             padding: 24px;
@@ -29,7 +26,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-
         .search-input {
             width: 100%;
             padding: 16px;
@@ -39,12 +35,10 @@
             margin-bottom: 16px;
             transition: border-color 0.2s;
         }
-
         .search-input:focus {
             outline: none;
             border-color: #3498db;
         }
-
         .search-btn {
             background: #3498db;
             color: white;
@@ -57,16 +51,13 @@
             width: 100%;
             transition: background 0.2s;
         }
-
         .search-btn:hover {
             background: #2980b9;
         }
-
         .search-btn:disabled {
             background: #bdc3c7;
             cursor: not-allowed;
         }
-
         .loading {
             text-align: center;
             padding: 40px;
@@ -75,7 +66,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             display: none;
         }
-
         .spinner {
             width: 40px;
             height: 40px;
@@ -85,12 +75,10 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 16px;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         .vehicle-card {
             background: white;
             border-radius: 12px;
@@ -98,7 +86,6 @@
             overflow: hidden;
             margin-bottom: 20px;
         }
-
         .vehicle-header {
             background: #3498db;
             color: white;
@@ -107,7 +94,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .vehicle-reg {
             background: #f39c12;
             padding: 8px 16px;
@@ -115,39 +101,33 @@
             font-weight: 700;
             font-size: 14px;
         }
-
         .vehicle-status {
             background: rgba(255, 255, 255, 0.2);
             padding: 6px 12px;
             border-radius: 4px;
             font-size: 12px;
         }
-
         .vehicle-info {
             padding: 24px;
         }
-
         .vehicle-title {
             font-size: 24px;
             font-weight: 700;
             color: #2c3e50;
             margin-bottom: 8px;
         }
-
         .vehicle-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin: 24px 0;
         }
-
         .detail-item {
             text-align: center;
             padding: 16px;
             background: #f8f9fa;
             border-radius: 8px;
         }
-
         .detail-label {
             font-size: 12px;
             color: #7f8c8d;
@@ -155,20 +135,17 @@
             font-weight: 600;
             margin-bottom: 8px;
         }
-
         .detail-value {
             font-size: 16px;
             font-weight: 700;
             color: #2c3e50;
         }
-
         .tax-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             margin: 24px 0;
         }
-
         .tax-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -176,25 +153,21 @@
             border-radius: 12px;
             text-align: center;
         }
-
         .tax-label {
             font-size: 14px;
             opacity: 0.9;
             margin-bottom: 8px;
         }
-
         .tax-amount {
             font-size: 24px;
             font-weight: 700;
         }
-
         .status-boxes {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
             margin: 24px 0;
         }
-
         .status-box {
             padding: 20px;
             border-radius: 12px;
@@ -203,48 +176,38 @@
             font-weight: 600;
             transition: transform 0.2s;
         }
-
         .status-box:hover {
             transform: translateY(-2px);
         }
-
         .status-good {
             background: linear-gradient(135deg, #27ae60, #2ecc71);
         }
-
         .status-warning {
             background: linear-gradient(135deg, #f39c12, #e67e22);
         }
-
         .status-danger {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
-
         .status-unknown {
             background: linear-gradient(135deg, #95a5a6, #7f8c8d);
         }
-
         .status-info {
             background: linear-gradient(135deg, #17a2b8, #138496);
         }
-
         .status-title {
             font-size: 16px;
             margin-bottom: 8px;
             opacity: 0.9;
         }
-
         .status-value {
             font-size: 20px;
             font-weight: 700;
             margin-bottom: 4px;
         }
-
         .status-detail {
             font-size: 12px;
             opacity: 0.8;
         }
-
         .dropdown-content {
             margin-top: 16px;
             padding: 20px;
@@ -259,7 +222,6 @@
             box-sizing: border-box;
             overflow-x: hidden;
         }
-
         .dropdown-content h4 {
             color: #2c3e50;
             margin-top: 0;
@@ -268,11 +230,9 @@
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 8px;
         }
-
         .mot-history-list {
             margin-top: 12px;
         }
-
         .mot-test-item {
             display: flex;
             justify-content: space-between;
@@ -280,12 +240,10 @@
             padding: 8px 0;
             border-bottom: 1px solid #f1f3f4;
         }
-
         .mot-date {
             font-weight: 600;
             color: #495057;
         }
-
         .mot-result.pass {
             background: #28a745;
             color: white;
@@ -296,7 +254,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         .mot-result.fail {
             background: #dc3545;
             color: white;
@@ -307,30 +264,25 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         .mot-mileage {
             color: #6c757d;
             font-size: 14px;
         }
-
         .mileage-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 12px;
         }
-
         .mileage-table th, .mileage-table td {
             padding: 8px 12px;
             text-align: left;
             border-bottom: 1px solid #e9ecef;
         }
-
         .mileage-table th {
             background: #f8f9fa;
             font-weight: 600;
             color: #495057;
         }
-
         .mot-detailed-history {
             max-height: 400px;
             overflow-y: auto;
@@ -338,7 +290,6 @@
             margin-top: 16px;
             width: 100%;
         }
-
         .mot-test-detailed {
             border: 1px solid #e9ecef;
             border-radius: 8px;
@@ -348,7 +299,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-
         .mot-test-header {
             display: flex;
             flex-direction: column;
@@ -357,7 +307,6 @@
             padding-bottom: 12px;
             border-bottom: 1px solid #e9ecef;
         }
-
         .mot-header-top {
             display: flex;
             justify-content: space-between;
@@ -365,13 +314,11 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-
         .mot-date {
             font-size: 16px;
             font-weight: 700;
             color: #2c3e50;
         }
-
         .mot-mileage {
             font-size: 14px;
             color: #6c757d;
@@ -382,14 +329,12 @@
             border: 1px solid #e9ecef;
             width: fit-content;
         }
-
         .mot-test-info {
             display: flex;
             gap: 12px;
             margin-bottom: 12px;
             font-size: 13px;
         }
-
         .cert-number, .test-number {
             background: #f8f9fa;
             color: #495057;
@@ -398,7 +343,6 @@
             font-weight: 600;
             border: 1px solid #e9ecef;
         }
-
         .mot-expiry {
             font-size: 14px;
             color: #495057;
@@ -409,22 +353,18 @@
             border-radius: 6px;
             border-left: 4px solid #007bff;
         }
-
         .mot-comments {
             margin-top: 12px;
             width: 100%;
         }
-
         .comment-categories {
             margin-top: 8px;
             width: 100%;
         }
-
         .comment-group {
             margin-bottom: 12px;
             width: 100%;
         }
-
         .comment-type-header {
             font-weight: 600;
             font-size: 14px;
@@ -436,7 +376,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-
         .comment-item {
             padding: 10px 12px;
             margin-bottom: 6px;
@@ -449,37 +388,31 @@
             width: 100%;
             box-sizing: border-box;
         }
-
         .comment-item.failure {
             background: #f8d7da;
             border-left: 3px solid #dc3545;
             color: #721c24;
         }
-
         .comment-item.major {
             background: #fff3cd;
             border-left: 3px solid #fd7e14;
             color: #856404;
         }
-
         .comment-item.minor {
             background: #fff3cd;
             border-left: 3px solid #ffc107;
             color: #664d03;
         }
-
         .comment-item.advisory {
             background: #d1ecf1;
             border-left: 3px solid #17a2b8;
             color: #0c5460;
         }
-
         .comment-item.note {
             background: #e2e3e5;
             border-left: 3px solid #6c757d;
             color: #383d41;
         }
-
         .analyze-btn {
             background: #9b59b6;
             color: white;
@@ -493,11 +426,9 @@
             margin-top: 20px;
             transition: background 0.2s;
         }
-
         .analyze-btn:hover {
             background: #8e44ad;
         }
-
         .analysis-results {
             margin-top: 20px;
             padding: 24px;
@@ -505,7 +436,6 @@
             border-radius: 12px;
             border-left: 4px solid #9b59b6;
         }
-
         .analysis-title {
             font-size: 20px;
             font-weight: 700;
@@ -515,7 +445,6 @@
             align-items: center;
             gap: 10px;
         }
-
         .analysis-section {
             background: white;
             padding: 16px;
@@ -523,19 +452,16 @@
             margin-bottom: 16px;
             border-left: 4px solid #3498db;
         }
-
         .analysis-section h4 {
             margin-bottom: 12px;
             color: #2c3e50;
             font-size: 16px;
         }
-
         .analysis-section p {
             color: #7f8c8d;
             line-height: 1.6;
             margin-bottom: 8px;
         }
-
         .error-card {
             background: white;
             border-radius: 12px;
@@ -544,34 +470,28 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             border-left: 4px solid #e74c3c;
         }
-
         .error-icon {
             font-size: 48px;
             color: #e74c3c;
             margin-bottom: 16px;
         }
-
         .error-title {
             font-size: 20px;
             font-weight: 700;
             color: #e74c3c;
             margin-bottom: 8px;
         }
-
         .error-message {
             color: #7f8c8d;
             font-size: 16px;
         }
-
         @media (max-width: 768px) {
             .vehicle-details {
                 grid-template-columns: 1fr;
             }
-            
             .tax-info {
                 grid-template-columns: 1fr;
             }
-            
             .vehicle-header {
                 flex-direction: column;
                 gap: 12px;
@@ -595,39 +515,31 @@
                 Check Vehicle Data
             </button>
         </div>
-
         <!-- Loading Indicator -->
         <div class="loading" id="loadingIndicator">
             <div class="spinner"></div>
             <p>Searching vehicle database...</p>
         </div>
-
         <!-- Results Section -->
         <div id="resultsSection"></div>
     </div>
-
     <script>
         var currentResults = null;
-
         function analyzeMOTMileageRollbacks(motHistory) {
             if (!motHistory || !motHistory.tests || motHistory.tests.length < 2) {
                 return { has_issues: false, rollbacks: [], suspicious_patterns: [] };
             }
-
             var tests = motHistory.tests;
             var mileageData = [];
-
             // Extract mileage data from MOT tests
             for (var i = 0; i < tests.length; i++) {
                 var test = tests[i];
                 if (test.date && test.mileage) {
                     var dateStr = test.date;
                     var mileage = parseInt(test.mileage.toString().replace(/,/g, ''));
-                    
                     if (dateStr && !isNaN(mileage)) {
                         var dateParts = dateStr.split('/');
                         var testDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-                        
                         mileageData.push({
                             date: testDate,
                             date_str: dateStr,
@@ -636,25 +548,19 @@
                     }
                 }
             }
-
             if (mileageData.length < 2) {
                 return { has_issues: false, rollbacks: [], suspicious_patterns: [] };
             }
-
             // Sort by date (oldest first)
             mileageData.sort(function(a, b) { return a.date - b.date; });
-
             // Detect rollbacks
             var rollbacks = [];
             var suspicious_patterns = [];
-
             for (var i = 1; i < mileageData.length; i++) {
                 var currentMileage = mileageData[i].mileage;
                 var previousMileage = mileageData[i-1].mileage;
-
                 if (currentMileage < previousMileage) {
                     var rollbackAmount = previousMileage - currentMileage;
-
                     // Classify severity
                     var severity = 'MEDIUM';
                     if (rollbackAmount > 30000) {
@@ -662,7 +568,6 @@
                     } else if (rollbackAmount > 10000) {
                         severity = 'HIGH';
                     }
-
                     var rollbackInfo = {
                         from_date: mileageData[i-1].date_str,
                         to_date: mileageData[i].date_str,
@@ -671,15 +576,12 @@
                         rollback_amount: rollbackAmount,
                         severity: severity
                     };
-
                     rollbacks.push(rollbackInfo);
-
                     if (rollbackAmount > 30000) {
                         suspicious_patterns.push('CRITICAL ROLLBACK: ' + rollbackAmount.toLocaleString() + ' miles reduced between ' + mileageData[i-1].date_str + ' and ' + mileageData[i].date_str);
                     }
                 }
             }
-
             return {
                 has_issues: rollbacks.length > 0,
                 rollbacks: rollbacks,
@@ -688,27 +590,22 @@
                 total_readings: mileageData.length
             };
         }
-
         function searchVehicle() {
             var registration = document.getElementById('vehicleSearch').value.trim().toUpperCase();
             var searchBtn = document.getElementById('searchBtn');
-            
             if (!registration) {
                 alert('Please enter a vehicle registration number');
                 return;
             }
-
             if (registration.length < 2 || registration.length > 8) {
                 alert('Please enter a valid UK registration number');
                 return;
             }
-
             // Show loading state
             document.getElementById('loadingIndicator').style.display = 'block';
             document.getElementById('resultsSection').innerHTML = '';
             searchBtn.disabled = true;
             searchBtn.textContent = 'Searching...';
-
             fetch('/api/scrape', {
                 method: 'POST',
                 headers: {
@@ -725,7 +622,6 @@
                 document.getElementById('loadingIndicator').style.display = 'none';
                 searchBtn.disabled = false;
                 searchBtn.textContent = 'Check Vehicle Data';
-                
                 if (data.success) {
                     displayVehicleData(data.data);
                 } else {
@@ -740,12 +636,9 @@
                 console.error('Error:', error);
             });
         }
-
         function displayVehicleData(data) {
             currentResults = data;
-            
             var html = '<div class="vehicle-card">';
-            
             // Header
             html += '<div class="vehicle-header">';
             html += '<div>';
@@ -753,36 +646,29 @@
             html += '</div>';
             html += '<div class="vehicle-status">Active</div>';
             html += '</div>';
-
             // Vehicle Info
             html += '<div class="vehicle-info">';
             html += '<div class="vehicle-title">' + (data.make || 'Unknown') + ' ' + (data.model || '') + '</div>';
             html += '<p style="color: #7f8c8d; font-size: 16px; margin-bottom: 0;">';
             html += (data.year || 'Unknown') + ' • ' + (data.color || 'Unknown') + ' • ' + (data.fuel_type || 'Unknown');
             html += '</p>';
-
             // Status Boxes
             html += '<div class="status-boxes">';
-            
             // Ownership Status - Based on V5C issue date timing
             var ownershipClass = 'status-good';
             var ownershipStatus = 'Low Risk';
             var ownershipDetail = 'No recent keeper changes';
-            
             // Calculate months since last V5C issue
             var v5cDate = data.last_v5c_issue_date || data.v5_issue_date;
             var monthsSinceV5C = null;
-            
             if (v5cDate && v5cDate !== 'Not Available') {
                 var v5cDateObj = new Date(v5cDate);
                 var today = new Date();
                 monthsSinceV5C = (today.getFullYear() - v5cDateObj.getFullYear()) * 12 + (today.getMonth() - v5cDateObj.getMonth());
             }
-            
             // Set risk level based on V5C timing
             if (monthsSinceV5C !== null) {
                 var formattedV5CDate = v5cDate.split('-').reverse().join('/');
-                
                 if (monthsSinceV5C < 3) {
                     ownershipClass = 'status-danger';
                     ownershipStatus = 'High Risk';
@@ -801,7 +687,6 @@
                 if (data.total_keepers) {
                     var keepersCount = parseInt(data.total_keepers);
                     ownershipDetail = keepersCount + ' owners • ' + 'Authentic DVLA data';
-                    
                     if (keepersCount <= 2) {
                         ownershipClass = 'status-good';
                         ownershipStatus = 'Low Risk';
@@ -816,13 +701,12 @@
                     ownershipDetail = 'Data available';
                 }
             }
-            
+            // 1. OWNERSHIP SECTION
             html += '<div class="status-box ' + ownershipClass + '" onclick="toggleDropdown(\'ownership\')" style="cursor: pointer;">';
             html += '<div class="status-title">Ownership Risk</div>';
             html += '<div class="status-value">' + ownershipStatus + '</div>';
             html += '<div class="status-detail">' + ownershipDetail + '</div>';
             html += '</div>';
-            
             // Add hidden ownership dropdown
             html += '<div id="ownership-dropdown" class="dropdown-content" style="display: none;">';
             html += '<h4>Ownership Details</h4>';
@@ -837,175 +721,29 @@
                 html += '<p><strong>Registration Place:</strong> ' + data.registration_place + '</p>';
             }
             html += '</div>';
-
-            // Export Status
-            var exportClass = 'status-good';
-            var exportStatus = 'No';
-            var exportDetail = 'Vehicle not exported';
-            
-            if (data.exported && data.exported.toUpperCase() === 'YES') {
-                exportClass = 'status-warning';
-                exportStatus = 'YES';
-                exportDetail = 'Vehicle has been exported';
-            }
-            
-            html += '<div class="status-box ' + exportClass + '">';
-            html += '<div class="status-title">Export Status</div>';
-            html += '<div class="status-value">' + exportStatus + '</div>';
-            html += '<div class="status-detail">' + exportDetail + '</div>';
-            html += '</div>';
-
-            // Outstanding Recall Status
-            var recallClass = 'status-good';
-            var recallStatus = 'No';
-            var recallDetail = 'No outstanding recalls';
-            
-            if (data.has_outstanding_recall && data.has_outstanding_recall.toUpperCase() === 'YES') {
-                recallClass = 'status-danger';
-                recallStatus = 'YES';
-                recallDetail = 'Outstanding recall exists';
-            }
-            
-            html += '<div class="status-box ' + recallClass + '">';
-            html += '<div class="status-title">Outstanding Recall</div>';
-            html += '<div class="status-value">' + recallStatus + '</div>';
-            html += '<div class="status-detail">' + recallDetail + '</div>';
-            html += '</div>';
-
-            // V5C Certificate Count
-            if (data.v5c_certificate_count) {
-                html += '<div class="status-box status-info">';
-                html += '<div class="status-title">V5C Certificates</div>';
-                html += '<div class="status-value">' + data.v5c_certificate_count + '</div>';
-                html += '<div class="status-detail">Certificate count</div>';
-                html += '</div>';
-            }
-
-            // Enhanced Mileage Analysis - Single consolidated status box
-            var motHistoryAnalysis = analyzeMOTMileageRollbacks(data.mot_history);
-            var mileageIssues = data.mileage_issues;
-            var mileageAnalysis = motHistoryAnalysis || 
-                                 (data.mileage_history && data.mileage_history.analysis) || 
-                                 (data.analysis && data.analysis.odometer_issues);
-            
-            // Single Mileage Analysis Status Box
-            var mileageClass = 'status-good';
-            var mileageStatus = 'Verified';
-            var mileageDetail = 'Appears genuine';
-            var hasMileageIssues = false;
-            
-            // Check for issues
-            if (mileageIssues === "Yes" || motHistoryAnalysis.has_issues || (mileageAnalysis && mileageAnalysis.has_issues)) {
-                hasMileageIssues = true;
-                mileageClass = 'status-danger';
-                mileageStatus = 'ISSUES DETECTED';
-                mileageDetail = 'Mileage discrepancies found';
-                
-                // Check for critical rollbacks
-                if (mileageAnalysis && mileageAnalysis.rollbacks) {
-                    var criticalRollbacks = mileageAnalysis.rollbacks.filter(function(r) {
-                        return r.rollback_amount > 30000;
-                    });
-                    
-                    if (criticalRollbacks.length > 0) {
-                        mileageStatus = 'CRITICAL ROLLBACK';
-                        var maxRollback = Math.max.apply(Math, criticalRollbacks.map(function(r) { return r.rollback_amount; }));
-                        mileageDetail = 'Rollback: ' + maxRollback.toLocaleString() + ' miles';
-                    }
-                }
-            } else {
-                // No issues - show data points
-                var motTests = (data.mot_history && data.mot_history.tests) || [];
-                var dataPointCount = motTests.length || 16;
-                mileageDetail = dataPointCount + ' data points • Appears genuine';
-            }
-            
-            html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
-            html += '<div class="status-title">Mileage Analysis</div>';
-            html += '<div class="status-value">' + mileageStatus + '</div>';
-            html += '<div class="status-detail">' + mileageDetail + '</div>';
-            html += '</div>';
-            
-            // Add hidden mileage dropdown with complete analysis
-            html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
-            html += '<h4>Complete Mileage Analysis</h4>';
-            
-            if (hasMileageIssues) {
-                // Show rollback details
-                if (mileageAnalysis && mileageAnalysis.rollbacks) {
-                    html += '<div style="margin-bottom: 16px;"><strong>Rollbacks Detected:</strong></div>';
-                    for (var i = 0; i < mileageAnalysis.rollbacks.length; i++) {
-                        var rollback = mileageAnalysis.rollbacks[i];
-                        var severityColor = rollback.severity === 'CRITICAL' ? '#dc3545' : 
-                                          rollback.severity === 'HIGH' ? '#fd7e14' : '#ffc107';
-                        
-                        html += '<div style="border-left: 4px solid ' + severityColor + '; padding-left: 12px; margin-bottom: 12px;">';
-                        html += '<div><strong>' + rollback.severity + ' ROLLBACK</strong></div>';
-                        html += '<div>From: ' + rollback.from_mileage.toLocaleString() + ' miles (' + rollback.from_date + ')</div>';
-                        html += '<div>To: ' + rollback.to_mileage.toLocaleString() + ' miles (' + rollback.to_date + ')</div>';
-                        html += '<div style="color: ' + severityColor + '; font-weight: bold;">Reduction: ' + rollback.rollback_amount.toLocaleString() + ' miles</div>';
-                        html += '</div>';
-                    }
-                }
-                
-                if (mileageAnalysis && mileageAnalysis.suspicious_patterns) {
-                    html += '<div style="margin-top: 16px;"><strong>Suspicious Patterns:</strong></div>';
-                    for (var j = 0; j < mileageAnalysis.suspicious_patterns.length; j++) {
-                        html += '<div style="color: #dc3545; font-weight: bold; margin: 8px 0;">' + mileageAnalysis.suspicious_patterns[j] + '</div>';
-                    }
-                }
-            }
-            
-            // Always show complete mileage records from MOT tests
-            var motTests = (data.mot_history && data.mot_history.tests) || [];
-            if (motTests.length > 0) {
-                html += '<div style="margin-top: 16px;"><strong>Complete Mileage Records:</strong></div>';
-                html += '<div style="max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px;">';
-                
-                for (var k = 0; k < motTests.length; k++) {
-                    var test = motTests[k];
-                    if (test.date && test.mileage) {
-                        html += '<div style="padding: 4px 0; border-bottom: 1px solid #f1f3f4; display: flex; justify-content: space-between;">';
-                        html += '<span>' + test.date + '</span>';
-                        html += '<span><strong>' + parseInt(test.mileage).toLocaleString() + ' miles</strong></span>';
-                        html += '</div>';
-                    }
-                }
-                
-                html += '</div>';
-            }
-            
-            html += '</div>';
-
-            // MOT Status - Updated thresholds: Red (<3 months), Orange (3-6 months), Green (6+ months)
+            // 2. MOT STATUS SECTION - Updated thresholds: Red (<3 months), Orange (3-6 months), Green (6+ months)
             var motClass = 'status-danger';
             var motStatus = 'No MOT';
             var motDetail = 'MOT required';
-            
             // Check for MOT data in multiple locations
             var motExpiryDate = data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date);
             var motDaysLeft = data.mot_days_left || (data.mot_summary && data.mot_summary.mot_days_left);
-            
             // Calculate MOT test statistics
             var motTestStats = '';
             var motTests = (data.mot_history && data.mot_history.tests) || 
                           (data.complete_mot_history && data.complete_mot_history.tests) || [];
-                          
             if (motTests.length > 0) {
                 var passCount = 0;
                 var failCount = 0;
                 var advisoryCount = 0;
-                
                 for (var i = 0; i < motTests.length; i++) {
                     var test = motTests[i];
                     var result = (test.result || '').toLowerCase();
-                    
                     if (result.includes('pass')) {
                         passCount++;
                     } else if (result.includes('fail')) {
                         failCount++;
                     }
-                    
                     // Count advisories in comments
                     if (test.comments && test.comments.length > 0) {
                         for (var j = 0; j < test.comments.length; j++) {
@@ -1017,7 +755,6 @@
                         }
                     }
                 }
-                
                 motTestStats = motTests.length + ' tests - ' + passCount + ' passes';
                 if (failCount > 0) {
                     motTestStats += ', ' + failCount + ' fails';
@@ -1026,10 +763,8 @@
                     motTestStats += ', ' + advisoryCount + ' advisories';
                 }
             }
-            
             if (motExpiryDate && motExpiryDate !== 'None' && motExpiryDate !== null) {
                 var formattedDate = motExpiryDate.split('-').reverse().join('/');
-                
                 // Use mot_days_left if available, otherwise calculate
                 var diffDays = motDaysLeft;
                 if (diffDays === null || diffDays === undefined) {
@@ -1038,7 +773,6 @@
                     var diffTime = motDate - today;
                     diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 }
-                
                 if (diffDays >= 180) { // 6+ months (approximately 180 days)
                     motClass = 'status-good';
                     motStatus = 'Current';
@@ -1064,7 +798,6 @@
                 // Check if we have MOT history data
                 var motTests = (data.mot_history && data.mot_history.tests) || 
                               (data.complete_mot_history && data.complete_mot_history.tests) || [];
-                              
                 if (motTests.length > 0) {
                     motClass = 'status-danger';
                     motStatus = 'Check Required';
@@ -1077,13 +810,11 @@
                     motDetail = 'May be exempt';
                 }
             }
-            
             html += '<div class="status-box ' + motClass + '" onclick="toggleDropdown(\'mot\')" style="cursor: pointer;">';
             html += '<div class="status-title">MOT Status</div>';
             html += '<div class="status-value">' + motStatus + '</div>';
             html += '<div class="status-detail">' + motDetail + '</div>';
             html += '</div>';
-            
             // Add hidden MOT dropdown with detailed advisory and failure data
             html += '<div id="mot-dropdown" class="dropdown-content" style="display: none;">';
             html += '<h4>Complete MOT History</h4>';
@@ -1092,12 +823,10 @@
             if (motTests.length > 0) {
                 html += '<p><strong>Total Tests:</strong> ' + motTests.length + '</p>';
                 html += '<div class="mot-detailed-history">';
-                
                 // Show all MOT tests with full details
                 for (var i = 0; i < motTests.length; i++) {
                     var test = motTests[i];
                     var resultClass = test.result && test.result.toLowerCase().includes('pass') ? 'pass' : 'fail';
-                    
                     html += '<div class="mot-test-detailed">';
                     html += '<div class="mot-test-header">';
                     html += '<div class="mot-header-top">';
@@ -1108,7 +837,6 @@
                         html += '<div class="mot-mileage">' + parseInt(test.mileage).toLocaleString() + ' miles</div>';
                     }
                     html += '</div>';
-                    
                     // Add certificate number and test number if available
                     if (test.certificate_number || test.test_number) {
                         html += '<div class="mot-test-info">';
@@ -1120,52 +848,47 @@
                         }
                         html += '</div>';
                     }
-                    
                     // Add expiry date if available
                     if (test.expiry_date) {
                         html += '<div class="mot-expiry">Expires: ' + test.expiry_date + '</div>';
                     }
-                    
-                    // Add detailed comments/advisories/failures
+                    // Enhanced comment categorization
                     if (test.comments && test.comments.length > 0) {
                         html += '<div class="mot-comments">';
-                        html += '<strong>Details:</strong>';
-                        html += '<div class="comment-categories">';
-                        
-                        // Group comments by type
+                        // Categorize comments by type
                         var failures = [];
                         var majors = [];
                         var minors = [];
                         var advisories = [];
                         var notes = [];
-                        
                         for (var j = 0; j < test.comments.length; j++) {
                             var comment = test.comments[j];
                             var commentText = typeof comment === 'string' ? comment : comment.text || comment.comment || '';
-                            
-                            if (commentText.toLowerCase().includes('fail') || commentText.toLowerCase().includes('dangerous')) {
+                            var commentType = typeof comment === 'object' ? comment.type : '';
+                            var lowerText = commentText.toLowerCase();
+                            var lowerType = commentType.toLowerCase();
+                            if (lowerType.includes('fail') || lowerText.includes('fail') || lowerText.includes('dangerous') || lowerText.includes('refused')) {
                                 failures.push(commentText);
-                            } else if (commentText.toLowerCase().includes('major')) {
+                            } else if (lowerType.includes('major') || lowerText.includes('major defect')) {
                                 majors.push(commentText);
-                            } else if (commentText.toLowerCase().includes('minor')) {
+                            } else if (lowerType.includes('minor') || lowerText.includes('minor defect')) {
                                 minors.push(commentText);
-                            } else if (commentText.toLowerCase().includes('advisory') || commentText.toLowerCase().includes('monitor')) {
+                            } else if (lowerType.includes('advisory') || lowerText.includes('advisory') || lowerText.includes('monitor')) {
                                 advisories.push(commentText);
                             } else {
                                 notes.push(commentText);
                             }
                         }
-                        
+                        html += '<div class="comment-categories">';
                         // Display failures
                         if (failures.length > 0) {
                             html += '<div class="comment-group failure-group">';
-                            html += '<div class="comment-type-header">🔴 Failures (' + failures.length + ')</div>';
+                            html += '<div class="comment-type-header">🔴 Failure Points (' + failures.length + ')</div>';
                             for (var k = 0; k < failures.length; k++) {
                                 html += '<div class="comment-item failure">' + failures[k] + '</div>';
                             }
                             html += '</div>';
                         }
-                        
                         // Display major defects
                         if (majors.length > 0) {
                             html += '<div class="comment-group major-group">';
@@ -1175,7 +898,6 @@
                             }
                             html += '</div>';
                         }
-                        
                         // Display minor defects
                         if (minors.length > 0) {
                             html += '<div class="comment-group minor-group">';
@@ -1185,7 +907,6 @@
                             }
                             html += '</div>';
                         }
-                        
                         // Display advisories
                         if (advisories.length > 0) {
                             html += '<div class="comment-group advisory-group">';
@@ -1195,7 +916,6 @@
                             }
                             html += '</div>';
                         }
-                        
                         // Display other notes
                         if (notes.length > 0) {
                             html += '<div class="comment-group notes-group">';
@@ -1205,115 +925,158 @@
                             }
                             html += '</div>';
                         }
-                        
                         html += '</div>'; // comment-categories
                         html += '</div>'; // mot-comments
                     }
-                    
                     html += '</div>'; // mot-test-detailed
                 }
-                
                 html += '</div>'; // mot-detailed-history
             } else {
                 html += '<p>No MOT history available</p>';
             }
             html += '</div>';
-
-
-            
+            // 3. MILEAGE ANALYSIS - Single consolidated status box
+            var motHistoryAnalysis = analyzeMOTMileageRollbacks(data.mot_history);
+            var mileageIssues = data.mileage_issues;
+            var mileageAnalysis = motHistoryAnalysis || 
+                                 (data.mileage_history && data.mileage_history.analysis) || 
+                                 (data.analysis && data.analysis.odometer_issues);
+            // Single Mileage Analysis Status Box
+            var mileageClass = 'status-good';
+            var mileageStatus = 'Verified';
+            var mileageDetail = 'Appears genuine';
+            var hasMileageIssues = false;
+            // Check for issues
+            if (mileageIssues === "Yes" || motHistoryAnalysis.has_issues || (mileageAnalysis && mileageAnalysis.has_issues)) {
+                hasMileageIssues = true;
+                mileageClass = 'status-danger';
+                mileageStatus = 'ISSUES DETECTED';
+                mileageDetail = 'Mileage discrepancies found';
+                // Check for critical rollbacks
+                if (mileageAnalysis && mileageAnalysis.rollbacks) {
+                    var criticalRollbacks = mileageAnalysis.rollbacks.filter(function(r) {
+                        return r.rollback_amount > 30000;
+                    });
+                    if (criticalRollbacks.length > 0) {
+                        mileageStatus = 'CRITICAL ROLLBACK';
+                        var maxRollback = Math.max.apply(Math, criticalRollbacks.map(function(r) { return r.rollback_amount; }));
+                        mileageDetail = 'Rollback: ' + maxRollback.toLocaleString() + ' miles';
+                    }
+                }
+            } else {
+                // No issues - show data points
+                var motTests = (data.mot_history && data.mot_history.tests) || [];
+                var dataPointCount = motTests.length || 16;
+                mileageDetail = dataPointCount + ' data points • Appears genuine';
+            }
+            html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
+            html += '<div class="status-title">Mileage Analysis</div>';
+            html += '<div class="status-value">' + mileageStatus + '</div>';
+            html += '<div class="status-detail">' + mileageDetail + '</div>';
             html += '</div>';
-
-            // Vehicle Details Grid
-            html += '<div class="vehicle-details">';
-            
-            if (data.transmission) {
-                html += '<div class="detail-item">';
-                html += '<div class="detail-label">Transmission</div>';
-                html += '<div class="detail-value">' + data.transmission + '</div>';
-                html += '</div>';
-            }
-            
-            if (data.engine_size) {
-                html += '<div class="detail-item">';
-                html += '<div class="detail-label">Engine Size</div>';
-                html += '<div class="detail-value">' + data.engine_size + '</div>';
-                html += '</div>';
-            }
-            
-            if (data.body_style) {
-                html += '<div class="detail-item">';
-                html += '<div class="detail-label">Body Style</div>';
-                html += '<div class="detail-value">' + data.body_style + '</div>';
-                html += '</div>';
-            }
-            
-            if (data.total_keepers) {
-                html += '<div class="detail-item">';
-                html += '<div class="detail-label">Total Keepers</div>';
-                html += '<div class="detail-value">' + data.total_keepers + '</div>';
-                html += '</div>';
-            }
-            
-            // Add MOT expiry date if available
-            if (data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date)) {
-                var motExpiry = data.mot_expiry_date || data.mot_summary.mot_expiry_date;
-                html += '<div class="detail-item">';
-                html += '<div class="detail-label">MOT Expiry</div>';
-                html += '<div class="detail-value">' + motExpiry + '</div>';
-                html += '</div>';
-            }
-            
-            // Add last MOT mileage if available
-            if (data.last_mot_mileage || (data.mot_summary && data.mot_summary.last_mot_mileage)) {
-                var lastMileage = data.last_mot_mileage || data.mot_summary.last_mot_mileage;
-                html += '<div class="detail-item">';
-                html += '<div class="detail-label">Last MOT Mileage</div>';
-                html += '<div class="detail-value">' + lastMileage.toLocaleString() + ' miles</div>';
-                html += '</div>';
-            }
-            
-            // Add mileage issues indicator if available
-            if (data.mileage_issues || (data.mot_summary && data.mot_summary.mileage_issues)) {
-                var mileageIssues = data.mileage_issues || data.mot_summary.mileage_issues;
-                if (mileageIssues !== 'No') {
-                    html += '<div class="detail-item">';
-                    html += '<div class="detail-label">Mileage Issues</div>';
-                    html += '<div class="detail-value" style="color: #dc3545;">' + mileageIssues + '</div>';
-                    html += '</div>';
+            // Add hidden mileage dropdown with complete analysis
+            html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
+            html += '<h4>Complete Mileage Analysis</h4>';
+            if (hasMileageIssues) {
+                // Show rollback details
+                if (mileageAnalysis && mileageAnalysis.rollbacks) {
+                    html += '<div style="margin-bottom: 16px;"><strong>Rollbacks Detected:</strong></div>';
+                    for (var i = 0; i < mileageAnalysis.rollbacks.length; i++) {
+                        var rollback = mileageAnalysis.rollbacks[i];
+                        var severityColor = rollback.severity === 'CRITICAL' ? '#dc3545' : 
+                                          rollback.severity === 'HIGH' ? '#fd7e14' : '#ffc107';
+                        html += '<div style="border-left: 4px solid ' + severityColor + '; padding-left: 12px; margin-bottom: 12px;">';
+                        html += '<div><strong>' + rollback.severity + ' ROLLBACK</strong></div>';
+                        html += '<div>From: ' + rollback.from_mileage.toLocaleString() + ' miles (' + rollback.from_date + ')</div>';
+                        html += '<div>To: ' + rollback.to_mileage.toLocaleString() + ' miles (' + rollback.to_date + ')</div>';
+                        html += '<div style="color: ' + severityColor + '; font-weight: bold;">Reduction: ' + rollback.rollback_amount.toLocaleString() + ' miles</div>';
+                        html += '</div>';
+                    }
+                }
+                if (mileageAnalysis && mileageAnalysis.suspicious_patterns) {
+                    html += '<div style="margin-top: 16px;"><strong>Suspicious Patterns:</strong></div>';
+                    for (var j = 0; j < mileageAnalysis.suspicious_patterns.length; j++) {
+                        html += '<div style="color: #dc3545; font-weight: bold; margin: 8px 0;">' + mileageAnalysis.suspicious_patterns[j] + '</div>';
+                    }
                 }
             }
-            
+            // Always show complete mileage records from MOT tests
+            var motTests = (data.mot_history && data.mot_history.tests) || [];
+            if (motTests.length > 0) {
+                html += '<div style="margin-top: 16px;"><strong>Complete Mileage Records:</strong></div>';
+                html += '<div style="max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px;">';
+                for (var k = 0; k < motTests.length; k++) {
+                    var test = motTests[k];
+                    if (test.date && test.mileage) {
+                        html += '<div style="padding: 4px 0; border-bottom: 1px solid #f1f3f4; display: flex; justify-content: space-between;">';
+                        html += '<span>' + test.date + '</span>';
+                        html += '<span><strong>' + parseInt(test.mileage).toLocaleString() + ' miles</strong></span>';
+                        html += '</div>';
+                    }
+                }
+                html += '</div>';
+            }
             html += '</div>';
-
+            // 4. EXPORT STATUS & OUTSTANDING RECALL SECTIONS
+            // Export Status
+            var exportClass = 'status-good';
+            var exportStatus = 'No';
+            var exportDetail = 'Vehicle not exported';
+            if (data.exported && data.exported.toUpperCase() === 'YES') {
+                exportClass = 'status-warning';
+                exportStatus = 'YES';
+                exportDetail = 'Vehicle has been exported';
+            }
+            html += '<div class="status-box ' + exportClass + '">';
+            html += '<div class="status-title">Export Status</div>';
+            html += '<div class="status-value">' + exportStatus + '</div>';
+            html += '<div class="status-detail">' + exportDetail + '</div>';
+            html += '</div>';
+            // Outstanding Recall Status
+            var recallClass = 'status-good';
+            var recallStatus = 'No';
+            var recallDetail = 'No outstanding recalls';
+            if (data.has_outstanding_recall && data.has_outstanding_recall.toUpperCase() === 'YES') {
+                recallClass = 'status-danger';
+                recallStatus = 'YES';
+                recallDetail = 'Outstanding recall exists';
+            }
+            html += '<div class="status-box ' + recallClass + '">';
+            html += '<div class="status-title">Outstanding Recall</div>';
+            html += '<div class="status-value">' + recallStatus + '</div>';
+            html += '<div class="status-detail">' + recallDetail + '</div>';
+            html += '</div>';
+            // V5C Certificate Count
+            if (data.v5c_certificate_count) {
+                html += '<div class="status-box status-info">';
+                html += '<div class="status-title">V5C Certificates</div>';
+                html += '<div class="status-value">' + data.v5c_certificate_count + '</div>';
+                html += '<div class="status-detail">Certificate count</div>';
+                html += '</div>';
+            }
+            // 5. TAX INFORMATION SECTION - moved to position 5
             // Tax Information
             if (data.tax_6_months || data.tax_12_months) {
                 html += '<div class="tax-info">';
-                
                 if (data.tax_6_months) {
                     html += '<div class="tax-card">';
                     html += '<div class="tax-label">6 Month Tax</div>';
                     html += '<div class="tax-amount">' + data.tax_6_months + '</div>';
                     html += '</div>';
                 }
-                
                 if (data.tax_12_months) {
                     html += '<div class="tax-card">';
                     html += '<div class="tax-label">12 Month Tax</div>';
                     html += '<div class="tax-amount">' + data.tax_12_months + '</div>';
                     html += '</div>';
                 }
-                
                 html += '</div>';
             }
-
             // Analyze Button
             html += '<button class="analyze-btn" onclick="analyzeVehicle()">🧠 Get AI Analysis</button>';
-
             html += '</div></div>';
-
             document.getElementById('resultsSection').innerHTML = html;
         }
-
         function toggleDropdown(type) {
             var dropdown = document.getElementById(type + '-dropdown');
             if (dropdown.style.display === 'none' || dropdown.style.display === '') {
@@ -1328,14 +1091,11 @@
                 dropdown.style.display = 'none';
             }
         }
-
         function analyzeVehicle() {
             if (!currentResults) return;
-
             var analyzeBtn = document.querySelector('.analyze-btn');
             analyzeBtn.disabled = true;
             analyzeBtn.textContent = '🔄 Analyzing...';
-
             fetch('/api/intelligent-analysis', {
                 method: 'POST',
                 headers: {
@@ -1351,7 +1111,6 @@
             .then(function(data) {
                 analyzeBtn.disabled = false;
                 analyzeBtn.textContent = '🧠 Get AI Analysis';
-                
                 if (data.success) {
                     displayAnalysis(data.data);
                     updateMileageStatus(data.data);
@@ -1366,13 +1125,11 @@
                 console.error('Error:', error);
             });
         }
-
         function displayAnalysis(analysisData) {
             var html = '<div class="analysis-results">';
             html += '<div class="analysis-title">';
             html += '🧠 AI Analysis Results';
             html += '</div>';
-            
             // Ownership Analysis
             if (analysisData.ownership_analysis) {
                 html += '<div class="analysis-section">';
@@ -1386,7 +1143,6 @@
                 }
                 html += '</div>';
             }
-
             // MOT Analysis
             if (analysisData.mot_analysis) {
                 html += '<div class="analysis-section" style="border-left-color: #27ae60;">';
@@ -1402,7 +1158,6 @@
                 }
                 html += '</div>';
             }
-
             // Cost Analysis  
             if (analysisData.cost_analysis) {
                 html += '<div class="analysis-section" style="border-left-color: #f39c12;">';
@@ -1418,37 +1173,32 @@
                 }
                 html += '</div>';
             }
-
             // Mileage Analysis
             if (analysisData.mileage_analysis) {
                 html += '<div class="analysis-section" style="border-left-color: #9b59b6;">';
                 html += '<h4>📊 Mileage Analysis</h4>';
+                if (analysisData.mileage_analysis.total_mileage_readings) {
+                    html += '<p><strong>Data Points:</strong> ' + analysisData.mileage_analysis.total_mileage_readings + '</p>';
+                }
                 if (analysisData.mileage_analysis.tampering_risk) {
                     html += '<p><strong>Tampering Risk:</strong> ' + analysisData.mileage_analysis.tampering_risk + '</p>';
                 }
                 if (analysisData.mileage_analysis.usage_patterns) {
                     html += '<p><strong>Usage Pattern:</strong> ' + analysisData.mileage_analysis.usage_patterns + '</p>';
                 }
-                if (analysisData.mileage_analysis.total_mileage_readings) {
-                    html += '<p><strong>Data Points:</strong> ' + analysisData.mileage_analysis.total_mileage_readings + ' readings</p>';
-                }
                 html += '</div>';
             }
-
             html += '</div>';
-
-            document.getElementById('resultsSection').innerHTML += html;
+            document.getElementById('analysisResults').innerHTML = html;
         }
-
         function updateMileageStatus(analysisData) {
-            var mileageStatusBox = document.getElementById('mileageStatus');
-            if (!mileageStatusBox || !analysisData.mileage_analysis) return;
-            
+            var mileageStatusBox = document.querySelector('.status-box .status-title:contains("Mileage Analysis")');
+            if (!mileageStatusBox) return;
+            mileageStatusBox = mileageStatusBox.parentElement;
             var mileageClass = 'status-good';
-            var mileageStatus = 'Normal';
-            var mileageDetail = 'No issues detected';
-            
-            if (analysisData.mileage_analysis.tampering_risk) {
+            var mileageStatus = 'Verified';
+            var mileageDetail = 'Appears genuine';
+            if (analysisData.mileage_analysis && analysisData.mileage_analysis.tampering_risk) {
                 var risk = analysisData.mileage_analysis.tampering_risk.toLowerCase();
                 if (risk.includes('high') || risk.includes('likely')) {
                     mileageClass = 'status-danger';
@@ -1464,30 +1214,25 @@
                     mileageDetail = 'Appears genuine';
                 }
             }
-            
             mileageStatusBox.className = 'status-box ' + mileageClass;
             mileageStatusBox.innerHTML = 
                 '<div class="status-title">Mileage Analysis</div>' +
                 '<div class="status-value">' + mileageStatus + '</div>' +
                 '<div class="status-detail">' + mileageDetail + '</div>';
         }
-
         function displayError(message) {
             var html = '<div class="error-card">';
             html += '<div class="error-icon">⚠️</div>';
             html += '<div class="error-title">Vehicle Not Found</div>';
             html += '<div class="error-message">' + message + '</div>';
             html += '</div>';
-
             document.getElementById('resultsSection').innerHTML = html;
         }
-
         // Auto-format registration input
         document.getElementById('vehicleSearch').addEventListener('input', function(e) {
             var value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             e.target.value = value;
         });
-
         // Enter key support
         document.getElementById('vehicleSearch').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
