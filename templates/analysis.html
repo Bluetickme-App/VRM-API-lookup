@@ -72,26 +72,28 @@
         .confidence-low { color: #dc3545; }
 
         .mot-timeline {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
             border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 6px;
+            padding: 0.5rem;
+            background: white;
         }
 
         .mot-entry {
             border-left: 4px solid #007bff;
-            padding: 1rem;
-            margin: 0.5rem 0;
+            padding: 0.75rem;
+            margin: 0.25rem 0;
             background: #f8f9fa;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 6px 6px 0;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            border: 1px solid #e9ecef;
         }
 
         .mot-entry:hover {
             background: #e9ecef;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .mot-pass { border-left-color: #28a745; }
@@ -106,9 +108,9 @@
         }
 
         .mot-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
             margin-right: 0.5rem;
@@ -119,10 +121,15 @@
         .badge-advisory { background: #fff3cd; color: #856404; }
 
         .mot-details {
-            margin-top: 1rem;
-            padding-top: 1rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
             border-top: 1px solid #dee2e6;
             display: none;
+            background: white;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .mot-details.show {
@@ -130,11 +137,12 @@
         }
 
         .defect-item {
-            background: white;
+            background: #f8f9fa;
             border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 0.75rem;
-            margin: 0.5rem 0;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
         }
 
         .defect-major {
@@ -151,29 +159,32 @@
 
         .mot-summary-stats {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
         .stat-item {
             background: white;
             border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 6px;
+            padding: 0.75rem;
             text-align: center;
             flex: 1;
+            min-width: 80px;
         }
 
         .stat-number {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.125rem;
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: #6c757d;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .expand-icon {
@@ -330,33 +341,33 @@
         </div>
 
         <!-- Key Metrics Dashboard -->
-        <div class="row">
-            <div class="col-md-3">
+        <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="metric-card">
                     <div class="metric-label">Total Keepers</div>
-                    <div class="metric-value" id="totalKeepers">-</div>
-                    <small class="text-muted">Authentic DVLA Data</small>
+                    <div class="metric-value" id="totalKeepers" style="font-size: 1.5rem;">-</div>
+                    <small class="text-muted">DVLA Data</small>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <div class="metric-card">
-                    <div class="metric-label">MOT Failure Risk</div>
-                    <div class="metric-value" id="failureRisk">-</div>
+                    <div class="metric-label">Failure Risk</div>
+                    <div class="metric-value" id="failureRisk" style="font-size: 1.5rem;">-</div>
                     <small class="text-muted">AI Prediction</small>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <div class="metric-card">
-                    <div class="metric-label">Annual Maintenance</div>
-                    <div class="metric-value" id="annualMaintenance">-</div>
-                    <small class="text-muted">Estimated Cost</small>
+                    <div class="metric-label">Annual Cost</div>
+                    <div class="metric-value" id="annualMaintenance" style="font-size: 1.5rem;">-</div>
+                    <small class="text-muted">Estimated</small>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <div class="metric-card">
-                    <div class="metric-label">12 Month Tax</div>
-                    <div class="metric-value" id="taxCost">-</div>
-                    <small class="text-muted">DVLA Official</small>
+                    <div class="metric-label">Tax (12m)</div>
+                    <div class="metric-value" id="taxCost" style="font-size: 1.5rem;">-</div>
+                    <small class="text-muted">Official</small>
                 </div>
             </div>
         </div>
@@ -686,71 +697,67 @@
                 var resultText = test.result || 'Unknown';
                 
                 timelineHtml += '<div class="mot-entry ' + entryClass + '" onclick="toggleMOTDetails(' + index + ')">' +
-                    '<div class="mot-entry-header">' +
+                    '<div class="d-flex justify-content-between align-items-center">' +
                         '<div class="d-flex align-items-center">' +
                             '<span class="mot-badge ' + badgeClass + '">' + resultText + '</span>' +
                             '<div>' +
-                                '<h6 class="mb-1">' + (test.date || 'Unknown Date') + '</h6>' +
+                                '<div class="fw-bold mb-0" style="font-size: 0.9rem;">' + (test.date || 'Unknown Date') + '</div>' +
                                 '<small class="text-muted">' + (test.mileage ? formatMileage(test.mileage) : 'Mileage not recorded') + '</small>' +
                             '</div>' +
                         '</div>' +
-                        '<div class="d-flex align-items-center">' +
-                            '<small class="text-muted me-2">Click for details</small>' +
-                            '<i class="fas fa-chevron-down expand-icon" id="icon-' + index + '"></i>' +
-                        '</div>' +
+                        '<i class="fas fa-chevron-down expand-icon" id="icon-' + index + '" style="font-size: 0.8rem; color: #6c757d;"></i>' +
                     '</div>' +
                     '<div class="mot-details" id="details-' + index + '">' +
-                        '<div class="row">' +
+                        '<div class="row g-2">' +
                             '<div class="col-md-6">' +
-                                '<p><strong>Test Date:</strong> ' + (test.date || 'Unknown') + '</p>' +
-                                '<p><strong>Expiry Date:</strong> ' + (test.expiry_date || 'Unknown') + '</p>' +
-                                '<p><strong>Mileage:</strong> ' + (test.mileage ? formatMileage(test.mileage) : 'Not recorded') + '</p>' +
+                                '<div class="mb-2"><small class="text-muted">Test Date:</small><br>' + (test.date || 'Unknown') + '</div>' +
+                                '<div class="mb-2"><small class="text-muted">Expiry:</small><br>' + (test.expiry_date || 'Unknown') + '</div>' +
                             '</div>' +
                             '<div class="col-md-6">' +
-                                '<p><strong>Result:</strong> ' + resultText + '</p>' +
-                                '<p><strong>Certificate Number:</strong> ' + (test.certificate_number || 'Not available') + '</p>' +
-                                '<p><strong>Test Number:</strong> ' + (test.test_number || 'Not available') + '</p>' +
+                                '<div class="mb-2"><small class="text-muted">Mileage:</small><br>' + (test.mileage ? formatMileage(test.mileage) : 'Not recorded') + '</div>' +
+                                '<div class="mb-2"><small class="text-muted">Certificate:</small><br>' + (test.certificate_number || 'Not available') + '</div>' +
                             '</div>' +
                         '</div>';
                 
                 // Add defects and advisories
                 if (test.comments && test.comments.length > 0) {
-                    timelineHtml += '<div class="mt-3">' +
-                        '<h6><i class="fas fa-exclamation-triangle"></i> Defects & Advisories</h6>';
+                    timelineHtml += '<div class="mt-2">' +
+                        '<div class="mb-2"><small class="text-muted fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>Defects & Advisories</small></div>';
                     
                     test.comments.forEach(function(comment) {
                         var commentLower = comment.toLowerCase();
                         var defectClass = '';
                         var defectType = '';
+                        var typeColor = '';
                         
                         if (commentLower.indexOf('major') !== -1 || commentLower.indexOf('dangerous') !== -1) {
                             defectClass = 'defect-major';
-                            defectType = 'MAJOR DEFECT';
+                            defectType = 'MAJOR';
+                            typeColor = 'text-danger';
                         } else if (commentLower.indexOf('minor') !== -1) {
                             defectClass = 'defect-minor';
-                            defectType = 'MINOR DEFECT';
+                            defectType = 'MINOR';
+                            typeColor = 'text-warning';
                         } else if (commentLower.indexOf('advisory') !== -1) {
                             defectClass = 'defect-advisory';
                             defectType = 'ADVISORY';
+                            typeColor = 'text-info';
                         } else {
                             defectClass = 'defect-advisory';
                             defectType = 'NOTE';
+                            typeColor = 'text-muted';
                         }
                         
                         timelineHtml += '<div class="defect-item ' + defectClass + '">' +
-                            '<div class="d-flex justify-content-between align-items-start">' +
-                                '<div>' +
-                                    '<small class="text-muted fw-bold">' + defectType + '</small>' +
-                                    '<p class="mb-0 mt-1">' + comment + '</p>' +
-                                '</div>' +
-                            '</div>' +
+                            '<span class="badge bg-light ' + typeColor + ' me-2" style="font-size: 0.65rem;">' + defectType + '</span>' +
+                            '<span style="font-size: 0.85rem;">' + comment + '</span>' +
                         '</div>';
                     });
                     
                     timelineHtml += '</div>';
                 } else {
-                    timelineHtml += '<div class="mt-3">' +
-                        '<p class="text-muted"><i class="fas fa-check-circle"></i> No defects or advisories recorded</p>' +
+                    timelineHtml += '<div class="mt-2">' +
+                        '<small class="text-muted"><i class="fas fa-check-circle me-1"></i>No defects recorded</small>' +
                     '</div>';
                 }
                 
