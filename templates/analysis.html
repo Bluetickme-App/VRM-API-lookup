@@ -85,10 +85,105 @@
             margin: 0.5rem 0;
             background: #f8f9fa;
             border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mot-entry:hover {
+            background: #e9ecef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .mot-pass { border-left-color: #28a745; }
         .mot-fail { border-left-color: #dc3545; }
+        .mot-advisory { border-left-color: #ffc107; }
+
+        .mot-entry-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .mot-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+
+        .badge-pass { background: #d4edda; color: #155724; }
+        .badge-fail { background: #f8d7da; color: #721c24; }
+        .badge-advisory { background: #fff3cd; color: #856404; }
+
+        .mot-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+            display: none;
+        }
+
+        .mot-details.show {
+            display: block;
+        }
+
+        .defect-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        .defect-major {
+            border-left: 4px solid #dc3545;
+        }
+
+        .defect-minor {
+            border-left: 4px solid #ffc107;
+        }
+
+        .defect-advisory {
+            border-left: 4px solid #17a2b8;
+        }
+
+        .mot-summary-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+            margin-left: auto;
+        }
+
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
 
         .cost-breakdown {
             background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
@@ -318,24 +413,34 @@
 
                     <!-- MOT History Tab -->
                     <div class="tab-pane fade" id="mot" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <h6>MOT Summary</h6>
-                                <div class="metric-card">
-                                    <div class="metric-label">Total Tests</div>
-                                    <div class="metric-value" id="totalTests">-</div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-label">Pass Rate</div>
-                                    <div class="metric-value" id="passRate">-</div>
-                                </div>
+                        <!-- MOT Summary Statistics -->
+                        <div class="mot-summary-stats">
+                            <div class="stat-item">
+                                <div class="stat-number text-primary" id="totalTests">-</div>
+                                <div class="stat-label">Total Tests</div>
                             </div>
-                            <div class="col-md-8">
-                                <h6>MOT Timeline</h6>
-                                <div class="mot-timeline" id="motTimeline">
-                                    <!-- MOT history populated here -->
-                                </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-success" id="passCount">-</div>
+                                <div class="stat-label">Passed</div>
                             </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-danger" id="failCount">-</div>
+                                <div class="stat-label">Failed</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-warning" id="advisoryCount">-</div>
+                                <div class="stat-label">Advisories</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-info" id="passRate">-</div>
+                                <div class="stat-label">Pass Rate</div>
+                            </div>
+                        </div>
+                        
+                        <!-- MOT Timeline -->
+                        <h6><i class="fas fa-history"></i> Complete MOT History</h6>
+                        <div class="mot-timeline" id="motTimeline">
+                            <!-- MOT history populated here -->
                         </div>
                     </div>
 
@@ -534,33 +639,138 @@
             }
 
             var tests = motHistory.tests;
-            document.getElementById('totalTests').textContent = tests.length;
+            var passCount = 0;
+            var failCount = 0;
+            var advisoryCount = 0;
 
-            var passCount = tests.filter(function(test) {
-                return test.result && test.result.toLowerCase().indexOf('pass') !== -1;
-            }).length;
+            // Count results and advisories
+            tests.forEach(function(test) {
+                var result = (test.result || '').toLowerCase();
+                if (result.indexOf('pass') !== -1) {
+                    passCount++;
+                } else if (result.indexOf('fail') !== -1) {
+                    failCount++;
+                }
+                
+                // Count advisories in comments
+                if (test.comments && Array.isArray(test.comments)) {
+                    test.comments.forEach(function(comment) {
+                        if (comment.toLowerCase().indexOf('advisory') !== -1) {
+                            advisoryCount++;
+                        }
+                    });
+                }
+            });
+
+            // Update summary statistics
+            document.getElementById('totalTests').textContent = tests.length;
+            document.getElementById('passCount').textContent = passCount;
+            document.getElementById('failCount').textContent = failCount;
+            document.getElementById('advisoryCount').textContent = advisoryCount;
             
             var passRate = tests.length > 0 ? Math.round((passCount / tests.length) * 100) : 0;
             document.getElementById('passRate').textContent = passRate + '%';
 
+            // Generate timeline HTML
             var timelineHtml = '';
-            tests.forEach(function(test) {
-                var isPassed = test.result && test.result.toLowerCase().indexOf('pass') !== -1;
-                var entryClass = isPassed ? 'mot-pass' : 'mot-fail';
+            tests.forEach(function(test, index) {
+                var result = (test.result || '').toLowerCase();
+                var isPassed = result.indexOf('pass') !== -1;
+                var isFailed = result.indexOf('fail') !== -1;
+                var hasAdvisory = test.comments && test.comments.some(function(comment) {
+                    return comment.toLowerCase().indexOf('advisory') !== -1;
+                });
                 
-                timelineHtml += '<div class="mot-entry ' + entryClass + '">' +
-                    '<div class="d-flex justify-content-between align-items-start">' +
-                        '<div>' +
-                            '<h6 class="mb-1">' + (test.date || 'Unknown Date') + '</h6>' +
-                            '<p class="mb-1"><strong>Result:</strong> ' + (test.result || 'Unknown') + '</p>' +
-                            '<p class="mb-1"><strong>Mileage:</strong> ' + (test.mileage ? formatMileage(test.mileage) : 'Not recorded') + '</p>' +
-                            '<p class="mb-0"><strong>Expiry:</strong> ' + (test.expiry_date || 'Unknown') + '</p>' +
+                var entryClass = isPassed ? 'mot-pass' : isFailed ? 'mot-fail' : 'mot-advisory';
+                var badgeClass = isPassed ? 'badge-pass' : isFailed ? 'badge-fail' : 'badge-advisory';
+                var resultText = test.result || 'Unknown';
+                
+                timelineHtml += '<div class="mot-entry ' + entryClass + '" onclick="toggleMOTDetails(' + index + ')">' +
+                    '<div class="mot-entry-header">' +
+                        '<div class="d-flex align-items-center">' +
+                            '<span class="mot-badge ' + badgeClass + '">' + resultText + '</span>' +
+                            '<div>' +
+                                '<h6 class="mb-1">' + (test.date || 'Unknown Date') + '</h6>' +
+                                '<small class="text-muted">' + (test.mileage ? formatMileage(test.mileage) : 'Mileage not recorded') + '</small>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="d-flex align-items-center">' +
+                            '<small class="text-muted me-2">Click for details</small>' +
+                            '<i class="fas fa-chevron-down expand-icon" id="icon-' + index + '"></i>' +
                         '</div>' +
                     '</div>' +
-                '</div>';
+                    '<div class="mot-details" id="details-' + index + '">' +
+                        '<div class="row">' +
+                            '<div class="col-md-6">' +
+                                '<p><strong>Test Date:</strong> ' + (test.date || 'Unknown') + '</p>' +
+                                '<p><strong>Expiry Date:</strong> ' + (test.expiry_date || 'Unknown') + '</p>' +
+                                '<p><strong>Mileage:</strong> ' + (test.mileage ? formatMileage(test.mileage) : 'Not recorded') + '</p>' +
+                            '</div>' +
+                            '<div class="col-md-6">' +
+                                '<p><strong>Result:</strong> ' + resultText + '</p>' +
+                                '<p><strong>Certificate Number:</strong> ' + (test.certificate_number || 'Not available') + '</p>' +
+                                '<p><strong>Test Number:</strong> ' + (test.test_number || 'Not available') + '</p>' +
+                            '</div>' +
+                        '</div>';
+                
+                // Add defects and advisories
+                if (test.comments && test.comments.length > 0) {
+                    timelineHtml += '<div class="mt-3">' +
+                        '<h6><i class="fas fa-exclamation-triangle"></i> Defects & Advisories</h6>';
+                    
+                    test.comments.forEach(function(comment) {
+                        var commentLower = comment.toLowerCase();
+                        var defectClass = '';
+                        var defectType = '';
+                        
+                        if (commentLower.indexOf('major') !== -1 || commentLower.indexOf('dangerous') !== -1) {
+                            defectClass = 'defect-major';
+                            defectType = 'MAJOR DEFECT';
+                        } else if (commentLower.indexOf('minor') !== -1) {
+                            defectClass = 'defect-minor';
+                            defectType = 'MINOR DEFECT';
+                        } else if (commentLower.indexOf('advisory') !== -1) {
+                            defectClass = 'defect-advisory';
+                            defectType = 'ADVISORY';
+                        } else {
+                            defectClass = 'defect-advisory';
+                            defectType = 'NOTE';
+                        }
+                        
+                        timelineHtml += '<div class="defect-item ' + defectClass + '">' +
+                            '<div class="d-flex justify-content-between align-items-start">' +
+                                '<div>' +
+                                    '<small class="text-muted fw-bold">' + defectType + '</small>' +
+                                    '<p class="mb-0 mt-1">' + comment + '</p>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    });
+                    
+                    timelineHtml += '</div>';
+                } else {
+                    timelineHtml += '<div class="mt-3">' +
+                        '<p class="text-muted"><i class="fas fa-check-circle"></i> No defects or advisories recorded</p>' +
+                    '</div>';
+                }
+                
+                timelineHtml += '</div></div>';
             });
 
             document.getElementById('motTimeline').innerHTML = timelineHtml;
+        }
+
+        function toggleMOTDetails(index) {
+            var details = document.getElementById('details-' + index);
+            var icon = document.getElementById('icon-' + index);
+            
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                icon.classList.remove('rotated');
+            } else {
+                details.classList.add('show');
+                icon.classList.add('rotated');
+            }
         }
 
         function populatePredictions() {
