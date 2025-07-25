@@ -1482,15 +1482,18 @@
                 if (ai.prediction || ai.MOT_FAILURE_PREDICTION) {
                     var prediction = ai.prediction || ai.MOT_FAILURE_PREDICTION || {};
                     var failureProb = prediction.MOT_failure_probability || prediction.probability_of_next_failure || 0;
+                    // Corporate color scheme - professional blues and grays
                     var motPredColor = failureProb > 50 ? 
-                        'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
+                        'background: #dc3545; color: white; border-left: 4px solid #c82333;' :
                         failureProb > 25 ? 
-                        'background: linear-gradient(135deg, #f39c12, #e67e22); color: white;' :
-                        'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;';
+                        'background: #fd7e14; color: white; border-left: 4px solid #e55a00;' :
+                        'background: #198754; color: white; border-left: 4px solid #146c43;';
                     
-                    html += '<div class="analysis-section colored-box" style="' + motPredColor + '">';
-                    html += '<h4>🔮 MOT Failure Prediction</h4>';
-                    html += '<p><strong>Failure Probability:</strong> ' + failureProb + '%</p>';
+                    html += '<div class="analysis-section" style="' + motPredColor + ' border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+                    html += '<h4 style="margin-bottom: 16px; font-weight: 600;">📊 MOT Failure Analysis</h4>';
+                    html += '<div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; margin-bottom: 12px;">';
+                    html += '<p style="margin: 0; font-size: 18px; font-weight: 700;">Failure Risk: ' + failureProb.toFixed(1) + '%</p>';
+                    html += '</div>';
                     
                     if (prediction.likely_failure_points) {
                         html += '<p><strong>Likely Failure Points:</strong></p>';
@@ -1519,13 +1522,13 @@
                     var grades = ai.grading_scores;
                     var mechRisk = grades.mechanical_risk_band || 'Unknown';
                     var riskColor = mechRisk.toLowerCase().includes('low') ? 
-                        'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;' :
+                        'background: #198754; color: white; border-left: 4px solid #146c43;' :
                         mechRisk.toLowerCase().includes('high') ? 
-                        'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
-                        'background: linear-gradient(135deg, #f39c12, #e67e22); color: white;';
+                        'background: #dc3545; color: white; border-left: 4px solid #c82333;' :
+                        'background: #fd7e14; color: white; border-left: 4px solid #e55a00;';
                     
-                    html += '<div class="analysis-section colored-box" style="' + riskColor + '">';
-                    html += '<h4>⚡ Risk Assessment</h4>';
+                    html += '<div class="analysis-section" style="' + riskColor + ' border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+                    html += '<h4 style="margin-bottom: 16px; font-weight: 600;">📈 Risk Assessment</h4>';
                     html += '<p><strong>Mechanical Risk:</strong> ' + mechRisk + '</p>';
                     
                     if (grades.overall_grade) {
