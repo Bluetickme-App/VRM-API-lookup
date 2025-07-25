@@ -792,41 +792,131 @@
             });
         }
         
-        function displayInlineAnalysis(analysis, source) {
+        function displayInlineAnalysis(analysisResponse, source) {
             // Show the analysis section
             document.getElementById('aiAnalysisSection').style.display = 'block';
             
-            // Display ownership analysis with V5C change date prominently
+            var analysis = analysisResponse.analysis || analysisResponse;
+            var vehicleData = analysisResponse.vehicle_data || {};
+            
+            // Enhanced ownership analysis with comprehensive data
             var ownershipAnalysis = analysis.ownership_analysis || {};
             var ownershipHtml = '';
             
-            // V5C Change Date and Owner Count - prominent display
-            if (ownershipAnalysis.last_v5c_change_date || ownershipAnalysis.estimated_previous_owners) {
-                ownershipHtml += '<div class="row mb-4">';
-                
-                if (ownershipAnalysis.last_v5c_change_date) {
-                    ownershipHtml += '<div class="col-md-6 mb-3">' +
-                        '<div class="p-3 bg-primary text-white rounded border">' +
-                            '<span class="badge bg-light text-primary fs-5 mb-2">V5C Changes Detected: Yes</span><br>' +
-                            '<strong class="fs-4">Last V5C Change Date:</strong><br>' +
-                            '<span class="fs-2 fw-bold">' + ownershipAnalysis.last_v5c_change_date + '</span><br>' +
-                            '<small>When current V5C was issued</small>' +
+            // Create comprehensive data grid
+            ownershipHtml += '<div class="row mb-4">';
+            
+            // V5C Change Date
+            if (ownershipAnalysis.last_v5c_change_date || vehicleData.last_v5_issue_date) {
+                var v5cDate = ownershipAnalysis.last_v5c_change_date || vehicleData.last_v5_issue_date;
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-primary">' +
+                        '<div class="card-header bg-primary text-white text-center">' +
+                            '<h6 class="mb-0">V5C Change Date</h6>' +
                         '</div>' +
-                    '</div>';
-                }
-                
-                if (ownershipAnalysis.estimated_previous_owners) {
-                    ownershipHtml += '<div class="col-md-6 mb-3">' +
-                        '<div class="p-3 bg-warning text-dark rounded border">' +
-                            '<span class="badge bg-dark text-warning fs-5 mb-2">Estimated Previous Owners:</span><br>' +
-                            '<span class="fs-1 fw-bold">' + ownershipAnalysis.estimated_previous_owners + '</span><br>' +
-                            '<small>Based on V5C history analysis</small>' +
+                        '<div class="card-body text-center">' +
+                            '<h4 class="text-primary fw-bold">' + v5cDate + '</h4>' +
+                            '<small class="text-muted">When current V5C was issued</small>' +
                         '</div>' +
-                    '</div>';
-                }
-                
-                ownershipHtml += '</div>';
+                    '</div>' +
+                '</div>';
             }
+            
+            // Estimated Previous Owners
+            if (ownershipAnalysis.estimated_previous_owners) {
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h6 class="mb-0">Estimated Previous Owners</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h3 class="text-warning fw-bold">' + ownershipAnalysis.estimated_previous_owners + '</h3>' +
+                            '<small class="text-muted">' + (ownershipAnalysis.ownership_reasoning || 'Based on V5C history analysis') + '</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Registration Place
+            if (ownershipAnalysis.registration_place || vehicleData.registration_place) {
+                var regPlace = ownershipAnalysis.registration_place || vehicleData.registration_place;
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-info">' +
+                        '<div class="card-header bg-info text-white text-center">' +
+                            '<h6 class="mb-0">Registration Place</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h5 class="text-info fw-bold">' + regPlace + '</h5>' +
+                            '<small class="text-muted">Original registration location</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            ownershipHtml += '</div>';
+            
+            // MOT and Tax Information Row
+            ownershipHtml += '<div class="row mb-4">';
+            
+            // MOT Expiry Date
+            if (vehicleData.mot_expiry_date) {
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-success">' +
+                        '<div class="card-header bg-success text-white text-center">' +
+                            '<h6 class="mb-0">MOT Expiry</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h6 class="text-success fw-bold">' + vehicleData.mot_expiry_date + '</h6>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // 6 Month Tax
+            if (vehicleData.tax_6_months) {
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-secondary">' +
+                        '<div class="card-header bg-secondary text-white text-center">' +
+                            '<h6 class="mb-0">6 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h6 class="text-secondary fw-bold">' + vehicleData.tax_6_months + '</h6>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // 12 Month Tax
+            if (vehicleData.tax_12_months) {
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-secondary">' +
+                        '<div class="card-header bg-secondary text-white text-center">' +
+                            '<h6 class="mb-0">12 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h6 class="text-secondary fw-bold">' + vehicleData.tax_12_months + '</h6>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Total MOT Tests
+            if (vehicleData.mot_history && vehicleData.mot_history.tests) {
+                var totalTests = vehicleData.mot_history.tests.length;
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-dark">' +
+                        '<div class="card-header bg-dark text-white text-center">' +
+                            '<h6 class="mb-0">Total MOT Tests</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h5 class="text-dark fw-bold">' + totalTests + '</h5>' +
+                            '<small class="text-muted">Complete history</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            ownershipHtml += '</div>';
             
             // Add trading indicators and registration place
             if (ownershipAnalysis.trading_indicators && ownershipAnalysis.trading_indicators.length) {
@@ -845,70 +935,151 @@
             
             document.getElementById('ownershipAnalysisMain').innerHTML = ownershipHtml || '<p class="text-muted">No ownership analysis available.</p>';
             
-            // Display MOT predictions
+            // Display MOT predictions with enhanced layout
             const motPredictions = analysis.mot_predictions || {};
             let motHtml = '';
             
             if (motPredictions.failure_probability !== undefined) {
-                motHtml += `<div class="row mb-3">
-                    <div class="col-md-4">
-                        <h6>Failure Probability</h6>
-                        <div class="text-center">
-                            <span class="display-6 fw-bold ${getFailureProbabilityClass(motPredictions.failure_probability)}">${motPredictions.failure_probability}%</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h6>Likely Failure Areas</h6>
-                        ${(motPredictions.likely_failures || []).map(area => `<span class="badge bg-danger me-1 mb-1">${area}</span>`).join('') || '<span class="text-muted">None identified</span>'}
-                    </div>
-                    <div class="col-md-4">
-                        <h6>Recommended Work</h6>
-                        ${(motPredictions.recommended_work || []).map(work => `<span class="badge bg-warning text-dark me-1 mb-1">${work}</span>`).join('') || '<span class="text-muted">None required</span>'}
-                    </div>
-                </div>`;
+                // Main failure probability display
+                motHtml += '<div class="row mb-4">';
+                motHtml += '<div class="col-md-6 mb-3">' +
+                    '<div class="card border-danger">' +
+                        '<div class="card-header bg-danger text-white text-center">' +
+                            '<h5 class="mb-0">MOT Failure Risk</h5>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h1 class="display-4 fw-bold text-danger">' + motPredictions.failure_probability + '%</h1>' +
+                            '<p class="text-muted">Probability of next MOT failure</p>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+                
+                // Risk assessment and recommendations
+                motHtml += '<div class="col-md-6 mb-3">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h5 class="mb-0">Risk Assessment</h5>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<h6>Likely Failure Areas:</h6>' +
+                            '<div class="mb-3">' +
+                                (motPredictions.likely_failures || []).map(area => 
+                                    '<span class="badge bg-danger me-1 mb-1">' + area + '</span>'
+                                ).join('') +
+                            '</div>' +
+                            '<h6>Recommended Work:</h6>' +
+                            '<div>' +
+                                (motPredictions.recommended_work || []).map(work => 
+                                    '<span class="badge bg-warning text-dark me-1 mb-1">' + work + '</span>'
+                                ).join('') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+                motHtml += '</div>';
+                
+                // Detailed MOT analysis
+                if (motPredictions.analysis_details) {
+                    motHtml += '<div class="card mb-3">' +
+                        '<div class="card-header">' +
+                            '<h6 class="mb-0">Detailed MOT Analysis</h6>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<p>' + motPredictions.analysis_details + '</p>' +
+                        '</div>' +
+                    '</div>';
+                }
             }
             
             document.getElementById('motPredictionsMain').innerHTML = motHtml || '<p class="text-muted">No MOT predictions available.</p>';
             
-            // Display cost analysis
+            // Display enhanced cost analysis
             const costBreakdown = analysis.cost_breakdown || {};
             let costHtml = '';
             
             if (Object.keys(costBreakdown).length > 0) {
-                costHtml += '<div class="row">';
+                costHtml += '<div class="row mb-4">';
+                
                 if (costBreakdown.immediate_repairs) {
-                    costHtml += `<div class="col-md-3 mb-2">
-                        <div class="text-center p-3 bg-light rounded">
-                            <h6>Immediate Repairs</h6>
-                            <h4 class="text-danger">£${costBreakdown.immediate_repairs}</h4>
-                        </div>
-                    </div>`;
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-danger">' +
+                            '<div class="card-header bg-danger text-white text-center">' +
+                                '<h6 class="mb-0">Immediate Repairs</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h3 class="text-danger fw-bold">£' + costBreakdown.immediate_repairs + '</h3>' +
+                                '<small class="text-muted">Urgent issues</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
                 }
+                
                 if (costBreakdown.pre_mot_work) {
-                    costHtml += `<div class="col-md-3 mb-2">
-                        <div class="text-center p-3 bg-light rounded">
-                            <h6>Pre-MOT Work</h6>
-                            <h4 class="text-warning">£${costBreakdown.pre_mot_work}</h4>
-                        </div>
-                    </div>`;
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-warning">' +
+                            '<div class="card-header bg-warning text-dark text-center">' +
+                                '<h6 class="mb-0">Pre-MOT Work</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h3 class="text-warning fw-bold">£' + costBreakdown.pre_mot_work + '</h3>' +
+                                '<small class="text-muted">Before next MOT</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
                 }
+                
                 if (costBreakdown.annual_maintenance) {
-                    costHtml += `<div class="col-md-3 mb-2">
-                        <div class="text-center p-3 bg-light rounded">
-                            <h6>Annual Maintenance</h6>
-                            <h4 class="text-info">£${costBreakdown.annual_maintenance}</h4>
-                        </div>
-                    </div>`;
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-info">' +
+                            '<div class="card-header bg-info text-white text-center">' +
+                                '<h6 class="mb-0">Annual Maintenance</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h3 class="text-info fw-bold">£' + costBreakdown.annual_maintenance + '</h3>' +
+                                '<small class="text-muted">Yearly servicing</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
                 }
+                
                 if (costBreakdown.total_first_year) {
-                    costHtml += `<div class="col-md-3 mb-2">
-                        <div class="text-center p-3 bg-primary text-white rounded">
-                            <h6>Total First Year</h6>
-                            <h4>£${costBreakdown.total_first_year}</h4>
-                        </div>
-                    </div>`;
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-primary">' +
+                            '<div class="card-header bg-primary text-white text-center">' +
+                                '<h6 class="mb-0">Total First Year</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h2 class="text-primary fw-bold">£' + costBreakdown.total_first_year + '</h2>' +
+                                '<small class="text-muted">Complete ownership cost</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
                 }
+                
                 costHtml += '</div>';
+                
+                // Add detailed cost breakdown if available
+                if (costBreakdown.detailed_breakdown) {
+                    costHtml += '<div class="card">' +
+                        '<div class="card-header">' +
+                            '<h6 class="mb-0">Detailed Cost Breakdown</h6>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<div class="row">';
+                    
+                    var details = costBreakdown.detailed_breakdown;
+                    for (var category in details) {
+                        if (details[category] && details[category] > 0) {
+                            costHtml += '<div class="col-md-6 mb-2">' +
+                                '<strong>' + category.replace(/_/g, ' ').toUpperCase() + ':</strong> £' + details[category] +
+                            '</div>';
+                        }
+                    }
+                    
+                    costHtml += '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
             }
             
             document.getElementById('costAnalysisMain').innerHTML = costHtml || '<p class="text-muted">No cost analysis available.</p>';

@@ -81,9 +81,15 @@ def intelligent_vehicle_analysis():
             'tax_status': vehicle_record.tax_status,
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
+            # Add comprehensive extracted fields from database
+            'mot_expiry_date': vehicle_record.mot_expiry,
+            'tax_6_months': vehicle_record.tax_6_months,
+            'tax_12_months': vehicle_record.tax_12_months,
+            'last_v5_issue_date': vehicle_record.last_v5c_issue_date,
+            'registration_place': vehicle_record.registration_place,
             # Use complete scraped data from raw_data field
-            'mot_history': _normalize_mot_history_structure(raw_data.get('mot_history', {})),
-            'mileage_history': raw_data.get('mileage_history', {}),
+            'mot_history': _normalize_mot_history_structure(raw_data.get('mot_history', {}) or vehicle_record.mot_history or {}),
+            'mileage_history': raw_data.get('mileage_history', {}) or vehicle_record.mileage_history or {},
             # Include all additional scraped information
             'basic_info': raw_data.get('basic_info', {}),
             'vehicle_details': raw_data.get('vehicle_details', {}),
