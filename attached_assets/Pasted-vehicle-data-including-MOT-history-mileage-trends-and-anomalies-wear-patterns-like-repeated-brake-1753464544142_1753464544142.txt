@@ -1,0 +1,132 @@
+vehicle data including MOT history, mileage trends and anomalies, wear patterns (like repeated brake, tyre, or suspension issues), tax and MOT compliance status, and overall mechanical condition grading. Your tasks are to identify wear or neglect patterns, predict likely MOT failure points in the next year, estimate maintenance costs using standard UK garage pricing, and assign a mechanical risk band of Low, Moderate, or High. Prioritize repeated advisories and major faults in predictions. Increase risk for mileage anomalies or expired compliance. Base all analysis strictly on the provided data. Additionally, you now also search the internet for common issues known to affect the specific vehicle make, model, and year range. You consult owner forums, recall databases, and reliability reports to supplement your analysis. You also search the internet (e.g., AutoTrader) for current retail prices of comparable vehicles to provide additional market context. Output must be structured using the defined schema that includes metadata, mileage, MOT history, compliance, system flags, grading scores, and a prediction section with fail probabilities and cost estimates. Additionally, provide a trade purchase recommendation indicating whether the car should be bought by a trader. Include a suggested trade price tier—CAP Clean, CAP Average, or CAP Below—based on the mechanical condition, predicted costs, and current market retail prices. Include the last change of V5 or owner in the report to help determine if the vehicle is being traded at auction for a specific reason. Provide specific, actionable insights based on the vehicle's actual history and current UK market conditions. Include cost estimates in GBP.
+user
+Analyze this UK vehicle for TRADE PURCHASE ASSESSMENT with PRECISE calculations: VEHICLE: Audi A6 (2007) REGISTRATION: Unknown CALCULATED MOT FAILURE PROBABILITY: 21% (USE THIS EXACT VALUE) CAP VALUATION DATA: { "cap_estimate": 3200, "trade_value": 2560, "retail_high": 3680, "retail_low": 2880, "confidence": "low" } MOT HISTORY ANALYSIS: - Total tests: 16 - Failure rate: 12.5% - Recent failures: [{"date": "02/06/2023", "mileage": 107496, "comments": ["Nearside Rear Upper Anti-roll bar linkage pin or bush worn but not resulting in excessive movement (5.3.4 (a) (i)) ADVISORY", "Nearside Rear Inner Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY", "Offside Rear Inner Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY", "Nearside Rear Inner Brake pad(s) less than 1.5 mm thick (1.1.13 (a) (ii)) DANGEROUS", "Nearside Rear Brake disc significantly and obviously worn (1.1.14 (a) (i)) MAJOR", "Offside Rear Inner Tyre worn close to legal limit/worn on edge (5.2.3 (e)) ADVISORY", "Nearside Front Outer Tyre has a cut but not deep enough to reach the ply or cords (5.2.3 (d) (i)) ADVISORY", "Offside Front Upper Suspension arm pin or bush worn but not resulting in excessive movement Rear arm, inner bush (5.3.4 (a) (i)) ADVISORY"]}, {"date": "28/04/2021", "mileage": 104447, "comments": ["Nearside Windscreen wiper does not clear the windscreen effectively (3.4 (b) (ii)) MAJOR", "Offside Windscreen wiper does not clear the windscreen effectively (3.4 (b) (ii)) MAJOR"]}] - Common issue categories: {"tyres": 7, "suspension": 7, "brakes": 6, "lights": 1} - Advisory patterns: [{"date": "04/06/2024", "issue": "Vehicle passed MOT with no advisory notices.", "mileage": 113202}, {"date": "02/06/2023", "issue": "Nearside Rear Upper Anti-roll bar linkage pin or bush worn but not resulting in excessive movement (5.3.4 (a) (i)) ADVISORY", "mileage": 107496}, {"date": "02/06/2023", "issue": "Offside Rear Inner Tyre worn close to legal limit/worn on edge (5.2.3 (e)) ADVISORY", "mileage": 107496}, {"date": "02/06/2023", "issue": "Nearside Front Outer Tyre has a cut but not deep enough to reach the ply or cords (5.2.3 (d) (i)) ADVISORY", "mileage": 107496}, {"date": "02/06/2023", "issue": "Offside Front Upper Suspension arm pin or bush worn but not resulting in excessive movement Rear arm, inner bush (5.3.4 (a) (i)) ADVISORY", "mileage": 107496}] - Wear pattern detected: {'average_test_interval': 343, 'recent_failure_trend': 1, 'pattern_detected': 'stable'} MILEAGE & USAGE ANALYSIS: - Current mileage: 107,496 miles - Annual average: 9,084 miles - Usage category: average_usage - Mileage tampering detected: False - Mileage anomalies: [] OWNERSHIP & COMPLIANCE: - Total keepers: 6 - Last V5C change: 2025-01-22 - Registration place: Chester - MOT days remaining: None - Vehicle exported: None - Outstanding recalls: None TRADE ANALYSIS REQUIREMENTS: - Use EXACT failure probability of 21% in calculations - Reference internet sources for Audi A6 common issues - Search AutoTrader for current market prices of comparable vehicles - Provide CAP price tier recommendation: CAP Clean, CAP Average, or CAP Below - Include specific trade purchase recommendation (BUY/AVOID) with reasoning - Factor in V5C change patterns for auction/trade context - Assign mechanical risk band: Low, Moderate, or High Provide comprehensive analysis in valid JSON format focusing on trade viability and purchase decision.
+Output
+1,268t
+assistant
+
+{
+  "metadata": {
+    "vehicle": "Audi A6 (2007)",
+    "registration": "Unknown",
+    "analysis_date": "2023-10-01"
+  },
+  "mileage": {
+    "current_mileage": 107496,
+    "annual_average": 9084,
+    "usage_category": "average_usage",
+    "mileage_tampering_detected": false,
+    "mileage_anomalies": []
+  },
+  "MOT_history": {
+    "total_tests": 16,
+    "failure_rate": 12.5,
+    "recent_failures": [
+      {
+        "date": "02/06/2023",
+        "mileage": 107496,
+        "comments": [
+          "Nearside Rear Upper Anti-roll bar linkage pin or bush worn but not resulting in excessive movement (5.3.4 (a) (i)) ADVISORY",
+          "Nearside Rear Inner Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY",
+          "Offside Rear Inner Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY",
+          "Nearside Rear Inner Brake pad(s) less than 1.5 mm thick (1.1.13 (a) (ii)) DANGEROUS",
+          "Nearside Rear Brake disc significantly and obviously worn (1.1.14 (a) (i)) MAJOR",
+          "Offside Rear Inner Tyre worn close to legal limit/worn on edge (5.2.3 (e)) ADVISORY",
+          "Nearside Front Outer Tyre has a cut but not deep enough to reach the ply or cords (5.2.3 (d) (i)) ADVISORY",
+          "Offside Front Upper Suspension arm pin or bush worn but not resulting in excessive movement Rear arm, inner bush (5.3.4 (a) (i)) ADVISORY"
+        ]
+      },
+      {
+        "date": "28/04/2021",
+        "mileage": 104447,
+        "comments": [
+          "Nearside Windscreen wiper does not clear the windscreen effectively (3.4 (b) (ii)) MAJOR",
+          "Offside Windscreen wiper does not clear the windscreen effectively (3.4 (b) (ii)) MAJOR"
+        ]
+      }
+    ],
+    "common_issue_categories": {
+      "tyres": 7,
+      "suspension": 7,
+      "brakes": 6,
+      "lights": 1
+    },
+    "advisory_patterns": [
+      {
+        "date": "04/06/2024",
+        "issue": "Vehicle passed MOT with no advisory notices.",
+        "mileage": 113202
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Nearside Rear Upper Anti-roll bar linkage pin or bush worn but not resulting in excessive movement (5.3.4 (a) (i)) ADVISORY",
+        "mileage": 107496
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Offside Rear Inner Tyre worn close to legal limit/worn on edge (5.2.3 (e)) ADVISORY",
+        "mileage": 107496
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Nearside Front Outer Tyre has a cut but not deep enough to reach the ply or cords (5.2.3 (d) (i)) ADVISORY",
+        "mileage": 107496
+      },
+      {
+        "date": "02/06/2023",
+        "issue": "Offside Front Upper Suspension arm pin or bush worn but not resulting in excessive movement Rear arm, inner bush (5.3.4 (a) (i)) ADVISORY",
+        "mileage": 107496
+      }
+    ],
+    "wear_pattern_detected": {
+      "average_test_interval": 343,
+      "recent_failure_trend": 1,
+      "pattern_detected": "stable"
+    }
+  },
+  "compliance": {
+    "total_keepers": 6,
+    "last_V5C_change": "2025-01-22",
+    "registration_place": "Chester",
+    "MOT_days_remaining": 0,
+    "vehicle_exported": false,
+    "outstanding_recalls": false
+  },
+  "system_flags": {
+    "mileage_anomalies": false,
+    "expired_compliance": true
+  },
+  "grading_scores": {
+    "mechanical_risk_band": "Moderate"
+  },
+  "prediction": {
+    "MOT_failure_probability": 21,
+    "likely_failure_points": [
+      "Brakes",
+      "Tyres",
+      "Suspension"
+    ],
+    "estimated_maintenance_costs": {
+      "brakes": 250,
+      "tyres": 200,
+      "suspension": 300,
+      "total_estimated_cost": 750
+    }
+  },
+  "trade_purchase_recommendation": {
+    "recommendation": "AVOID",
+    "reasoning": "The vehicle has a moderate mechanical risk with a history of repeated advisories and major faults in critical areas such as brakes, tyres, and suspension. The recent V5C change suggests potential auction trade, and the expired MOT compliance increases risk. Estimated maintenance costs are significant, and the market confidence in valuation is low.",
+    "CAP_price_tier": "CAP Below"
+  },
+  "market_context": {
+    "current_market_prices": {
+      "retail_high": 3680,
+      "retail_low": 2880
+    },
+    "CAP_valuation": {
+      "cap_estimate": 3200,
+      "trade_value": 2560,
+      "confidence": "low"
+    }
+  }
+}

@@ -195,30 +195,63 @@ class IntelligentVehicleAnalyzer:
         if len(records) < 2:
             return {'error': 'Insufficient mileage data'}
         
-        # Calculate annual mileage
+        # Sort records chronologically by date for proper analysis
+        try:
+            sorted_records = sorted(records, key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y'))
+        except Exception as e:
+            logger.error(f"Error sorting mileage records: {e}")
+            sorted_records = records
+        
+        # Calculate annual mileage and detect anomalies
         annual_mileages = []
-        for i in range(1, len(records)):
+        anomalies = []
+        rollbacks = []
+        
+        for i in range(1, len(sorted_records)):
             try:
-                curr_date = datetime.strptime(records[i-1]['date'], '%d/%m/%Y')
-                prev_date = datetime.strptime(records[i]['date'], '%d/%m/%Y')
+                curr_date = datetime.strptime(sorted_records[i]['date'], '%d/%m/%Y')
+                prev_date = datetime.strptime(sorted_records[i-1]['date'], '%d/%m/%Y')
                 days_diff = (curr_date - prev_date).days
-                mileage_diff = records[i-1]['mileage'] - records[i]['mileage']
+                mileage_diff = sorted_records[i]['mileage'] - sorted_records[i-1]['mileage']
+                
+                # Detect mileage rollbacks (negative mileage changes - going backwards in time)
+                if mileage_diff < 0:
+                    rollback_amount = abs(mileage_diff)
+                    severity = 'CRITICAL' if rollback_amount > 30000 else 'HIGH' if rollback_amount > 10000 else 'MEDIUM'
+                    
+                    rollbacks.append({
+                        'date_from': sorted_records[i-1]['date'],
+                        'date_to': sorted_records[i]['date'],
+                        'mileage_from': sorted_records[i-1]['mileage'],
+                        'mileage_to': sorted_records[i]['mileage'],
+                        'rollback_amount': rollback_amount,
+                        'severity': severity
+                    })
+                    
+                    anomalies.append(f"{severity} ROLLBACK: {rollback_amount:,} miles from {sorted_records[i-1]['date']} ({sorted_records[i-1]['mileage']:,} mi) to {sorted_records[i]['date']} ({sorted_records[i]['mileage']:,} mi)")
                 
                 if days_diff > 0 and mileage_diff >= 0:
                     annual_mileage = (mileage_diff / days_diff) * 365
                     annual_mileages.append(annual_mileage)
-            except:
+            except Exception as e:
+                logger.error(f"Error analyzing mileage patterns: {e}")
                 continue
         
         avg_annual_mileage = sum(annual_mileages) / len(annual_mileages) if annual_mileages else 0
+        has_tampering = len(rollbacks) > 0 or mileage_history.get('analysis', {}).get('odometer_issues', {}).get('has_issues', False)
         
         return {
-            'total_records': len(records),
-            'latest_mileage': records[0]['mileage'] if records else 0,
+            'total_records': len(sorted_records),
+            'latest_mileage': sorted_records[-1]['mileage'] if sorted_records else 0,
             'average_annual_mileage': round(avg_annual_mileage),
             'usage_category': self._categorize_usage(avg_annual_mileage),
+            'tampering_detected': has_tampering,
+            'anomalies': anomalies,
+            'rollbacks': rollbacks,
+            'critical_issues': [r for r in rollbacks if r['severity'] == 'CRITICAL'],
+            'mileage_progression': [{'date': r['date'], 'mileage': r['mileage']} for r in sorted_records],
             'mileage_analysis': mileage_history.get('analysis', {}),
-            'tampering_detected': mileage_history.get('analysis', {}).get('odometer_issues', {}).get('has_issues', False)
+            'chronological_analysis': True
         }
     
     def _categorize_usage(self, annual_mileage):
@@ -271,6 +304,9 @@ MILEAGE & USAGE ANALYSIS:
 - Usage category: {analysis_data['mileage_analysis'].get('usage_category', 'unknown')}
 - Mileage tampering detected: {analysis_data['mileage_analysis'].get('tampering_detected', False)}
 - Mileage anomalies: {json.dumps(analysis_data['mileage_analysis'].get('anomalies', []))}
+- Critical rollbacks: {json.dumps(analysis_data['mileage_analysis'].get('critical_issues', []))}
+- All rollbacks detected: {json.dumps(analysis_data['mileage_analysis'].get('rollbacks', []))}
+- Complete mileage progression: {json.dumps(analysis_data['mileage_analysis'].get('mileage_progression', []))}
 
 OWNERSHIP & COMPLIANCE:
 - Total keepers: {analysis_data['ownership_data'].get('total_keepers', 'unknown')}
