@@ -547,6 +547,38 @@
                     '<span class="info-value">' + v5cDate + '</span>' +
                     '<small class="text-muted d-block">When current V5C was issued</small>' +
                 '</div>';
+        
+        // Add tax costs if available
+        if (vehicleData.tax_6_months || vehicleData.tax_12_months) {
+            detailsHtml += '<div class="row mt-3">';
+            if (vehicleData.tax_6_months) {
+                detailsHtml += '<div class="col-md-6">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h6 class="mb-0"><i data-feather="pound-sterling"></i> 6 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h4 class="text-warning fw-bold">' + vehicleData.tax_6_months + '</h4>' +
+                            '<small class="text-muted">Half year cost</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            if (vehicleData.tax_12_months) {
+                detailsHtml += '<div class="col-md-6">' +
+                    '<div class="card border-primary">' +
+                        '<div class="card-header bg-primary text-white text-center">' +
+                            '<h6 class="mb-0"><i data-feather="pound-sterling"></i> 12 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h4 class="text-primary fw-bold">' + vehicleData.tax_12_months + '</h4>' +
+                            '<small class="text-muted">Full year cost</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            detailsHtml += '</div>';
+        }
         }
         
         function displayMOTHistory(motHistory) {

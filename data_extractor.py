@@ -406,8 +406,12 @@ class DataExtractor:
             except:
                 pass
             
-            # Tax costs
+            # Tax costs - enhanced extraction
             try:
+                # Multiple strategies for tax cost extraction
+                page_text = driver.page_source.lower()
+                
+                # Strategy 1: Direct element search
                 tax_elements = driver.find_elements(By.XPATH, "//*[contains(text(), '£') and contains(text(), 'months')]")
                 for element in tax_elements:
                     text = element.text
@@ -419,8 +423,37 @@ class DataExtractor:
                         price_match = re.search(r'£(\d+(?:\.\d{2})?)', text)
                         if price_match:
                             additional['tax_6_months'] = f"£{price_match.group(1)}"
-            except:
-                pass
+                
+                # Strategy 2: Page text pattern matching for tax costs
+                if not additional.get('tax_12_months'):
+                    tax_12_match = re.search(r'12\s*months?[:\s]*£(\d+(?:\.\d{2})?)', page_text, re.IGNORECASE)
+                    if tax_12_match:
+                        additional['tax_12_months'] = f"£{tax_12_match.group(1)}"
+                
+                if not additional.get('tax_6_months'):
+                    tax_6_match = re.search(r'6\s*months?[:\s]*£(\d+(?:\.\d{2})?)', page_text, re.IGNORECASE)
+                    if tax_6_match:
+                        additional['tax_6_months'] = f"£{tax_6_match.group(1)}"
+                
+                # Strategy 3: Tax rate table extraction
+                try:
+                    tax_rows = driver.find_elements(By.XPATH, "//tr[contains(., 'months') or contains(., 'Month')]")
+                    for row in tax_rows:
+                        row_text = row.text.lower()
+                        if '12' in row_text and 'month' in row_text:
+                            price_match = re.search(r'£(\d+(?:\.\d{2})?)', row.text)
+                            if price_match and not additional.get('tax_12_months'):
+                                additional['tax_12_months'] = f"£{price_match.group(1)}"
+                        elif '6' in row_text and 'month' in row_text:
+                            price_match = re.search(r'£(\d+(?:\.\d{2})?)', row.text)
+                            if price_match and not additional.get('tax_6_months'):
+                                additional['tax_6_months'] = f"£{price_match.group(1)}"
+                except:
+                    pass
+                    
+                logger.info(f"Tax extraction results: 6-month: {additional.get('tax_6_months', 'Not found')}, 12-month: {additional.get('tax_12_months', 'Not found')}")
+            except Exception as e:
+                logger.warning(f"Tax cost extraction failed: {e}")
                 
         except Exception as e:
             logger.error(f"Error extracting additional info: {e}")

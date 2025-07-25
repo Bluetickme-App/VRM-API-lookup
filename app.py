@@ -264,12 +264,23 @@ def scrape_vehicle():
                     variant = basic_info.get('variant') or basic_data.get('variant')
                     vehicle_record.variant = variant[:200] if variant else None
                     
-                    # Tax costs
-                    tax_6 = basic_info.get('tax_6_months') or basic_data.get('tax_6_months') 
+                    # Tax costs from extracted data
+                    additional_info = basic_data.get('additional', {})
+                    tax_6 = (basic_info.get('tax_6_months') or basic_data.get('tax_6_months') or 
+                            additional_info.get('tax_6_months'))
                     vehicle_record.tax_6_months = tax_6[:20] if tax_6 else None
                     
-                    tax_12 = basic_info.get('tax_12_months') or basic_data.get('tax_12_months')
+                    tax_12 = (basic_info.get('tax_12_months') or basic_data.get('tax_12_months') or 
+                             additional_info.get('tax_12_months'))
                     vehicle_record.tax_12_months = tax_12[:20] if tax_12 else None
+                    
+                    # Total keepers from extracted data
+                    total_keepers = additional_info.get('total_keepers')
+                    if total_keepers is not None:
+                        vehicle_record.total_keepers = int(total_keepers)
+                        logger.info(f"Stored total keepers: {total_keepers}")
+                    
+                    logger.info(f"TAX EXTRACTION DEBUG: 6-month: {tax_6}, 12-month: {tax_12}, Total keepers: {total_keepers}")
                     
                     logger.info(f"FIXED: Comprehensive fields mapped - transmission: {bool(vehicle_record.transmission)}, engine: {bool(vehicle_record.engine_size)}, body: {bool(vehicle_record.body_style)}")
                     
