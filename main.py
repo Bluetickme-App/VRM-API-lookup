@@ -4,7 +4,13 @@ Main Flask application for Vehicle Data Scraper
 Provides web interface for scraping vehicle data from checkcardetails.co.uk
 """
 
-from app import app  # noqa: F401
+from app import app
+from intelligent_analysis_api import intelligent_api
+from external_vehicle_api import external_api
+
+# Register blueprints
+app.register_blueprint(intelligent_api)
+app.register_blueprint(external_api)
 
 # Import API blueprints if they exist
 try:
