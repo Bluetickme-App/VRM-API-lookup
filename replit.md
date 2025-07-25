@@ -311,6 +311,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - VERTICAL DROPDOWN LAYOUT: Fixed MOT dropdown to prevent horizontal scrolling with proper vertical display
 - RESPONSIVE DESIGN: All elements now fit within container width with proper word wrapping
 
+**July 25, 2025 - MOT STATISTICS SUMMARY INTEGRATION:**
+- MOT TEST STATISTICS: Added comprehensive test summary showing "X tests - Y passes, Z fails, A advisories"
+- INTELLIGENT COUNTING: Automatic calculation of pass/fail counts from MOT history data
+- ADVISORY DETECTION: Smart detection of advisory comments in MOT test data for accurate counting
+- STATUS INTEGRATION: MOT statistics now appear in all MOT status displays (Current, Expired, Urgent, etc.)
+- COMPREHENSIVE DISPLAY: Shows total tests, passes, failures, and advisories in MOT status detail line
+- DA07FWB EXAMPLE: Successfully displaying "13 tests - 10 passes, 3 fails" for Mercedes-Benz A-Class test vehicle
+
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
 - ENHANCED DROPDOWNS: Improved dropdown containers with better visual hierarchy and compact formatting

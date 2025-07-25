@@ -763,6 +763,47 @@
             var motExpiryDate = data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date);
             var motDaysLeft = data.mot_days_left || (data.mot_summary && data.mot_summary.mot_days_left);
             
+            // Calculate MOT test statistics
+            var motTestStats = '';
+            var motTests = (data.mot_history && data.mot_history.tests) || 
+                          (data.complete_mot_history && data.complete_mot_history.tests) || [];
+                          
+            if (motTests.length > 0) {
+                var passCount = 0;
+                var failCount = 0;
+                var advisoryCount = 0;
+                
+                for (var i = 0; i < motTests.length; i++) {
+                    var test = motTests[i];
+                    var result = (test.result || '').toLowerCase();
+                    
+                    if (result.includes('pass')) {
+                        passCount++;
+                    } else if (result.includes('fail')) {
+                        failCount++;
+                    }
+                    
+                    // Count advisories in comments
+                    if (test.comments && test.comments.length > 0) {
+                        for (var j = 0; j < test.comments.length; j++) {
+                            var comment = test.comments[j];
+                            var commentText = typeof comment === 'string' ? comment : comment.text || comment.comment || '';
+                            if (commentText.toLowerCase().includes('advisory') || commentText.toLowerCase().includes('monitor')) {
+                                advisoryCount++;
+                            }
+                        }
+                    }
+                }
+                
+                motTestStats = motTests.length + ' tests - ' + passCount + ' passes';
+                if (failCount > 0) {
+                    motTestStats += ', ' + failCount + ' fails';
+                }
+                if (advisoryCount > 0) {
+                    motTestStats += ', ' + advisoryCount + ' advisories';
+                }
+            }
+            
             if (motExpiryDate && motExpiryDate !== 'None' && motExpiryDate !== null) {
                 var formattedDate = motExpiryDate.split('-').reverse().join('/');
                 
@@ -779,18 +820,22 @@
                     motClass = 'status-good';
                     motStatus = 'Current';
                     motDetail = 'Expires: ' + formattedDate + ' (' + Math.floor(diffDays / 30) + ' months)';
+                    if (motTestStats) motDetail += ' • ' + motTestStats;
                 } else if (diffDays >= 90) { // 3-6 months (90-180 days)
                     motClass = 'status-warning';
                     motStatus = 'Renewal Due';
                     motDetail = 'Expires: ' + formattedDate + ' (' + Math.floor(diffDays / 30) + ' months)';
+                    if (motTestStats) motDetail += ' • ' + motTestStats;
                 } else if (diffDays > 0) { // Less than 3 months
                     motClass = 'status-danger';
                     motStatus = 'Urgent';
                     motDetail = 'Expires: ' + formattedDate + ' (' + diffDays + ' days)';
+                    if (motTestStats) motDetail += ' • ' + motTestStats;
                 } else { // Expired
                     motClass = 'status-danger';
                     motStatus = 'EXPIRED';
                     motDetail = 'EXPIRED ' + Math.abs(diffDays) + ' days ago';
+                    if (motTestStats) motDetail += ' • ' + motTestStats;
                 }
             } else {
                 // Check if we have MOT history data
@@ -801,6 +846,7 @@
                     motClass = 'status-danger';
                     motStatus = 'Check Required';
                     motDetail = 'MOT status unclear';
+                    if (motTestStats) motDetail += ' • ' + motTestStats;
                 } else {
                     // Vehicle might be too new or exempt
                     motClass = 'status-good';
