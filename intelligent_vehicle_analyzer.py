@@ -27,8 +27,11 @@ class IntelligentVehicleAnalyzer:
             # Get AI analysis
             ai_analysis = self._get_ai_analysis(analysis_data)
             
-            # Get market research data
+            # MANDATORY market research data - always retrieved
             market_data = self._get_market_research(vehicle_data)
+            if not market_data or 'error' in market_data:
+                # Ensure market research is always available - create fallback data
+                market_data = self._create_market_research_fallback(vehicle_data)
             
             # Combine all analysis results
             comprehensive_report = {
@@ -270,24 +273,34 @@ class IntelligentVehicleAnalyzer:
         try:
             system_prompt = """You are a vehicle reliability and MOT advisory analyst focused on UK vehicles. You analyze structured vehicle data including MOT history, mileage trends and anomalies, wear patterns (like repeated brake, tyre, or suspension issues), tax and MOT compliance status, and overall mechanical condition grading. 
 
-Your tasks are to identify wear or neglect patterns, predict likely MOT failure points in the next year, estimate maintenance costs using standard UK garage pricing, and assign a mechanical risk band of Low, Moderate, or High. Prioritize repeated advisories and major faults in predictions. Increase risk for mileage anomalies or expired compliance. Base all analysis strictly on the provided data.
+Your tasks are to:
+1. CALCULATE MOT failure probability based ONLY on actual vehicle history data - DO NOT use any predefined percentages
+2. Identify wear or neglect patterns from real MOT test results
+3. Predict likely MOT failure points in the next year based on advisory patterns
+4. Estimate maintenance costs using standard UK garage pricing
+5. Assign mechanical risk band: Low, Moderate, or High
+6. ALWAYS search internet for current market data and pricing
+7. Apply SEVERE value discounts for vehicles with mileage rollbacks/discrepancies (recommend CAP Below category)
 
-Additionally, you now also search the internet for common issues known to affect the specific vehicle make, model, and year range. You consult owner forums, recall databases, and reliability reports to supplement your analysis. You also search the internet (e.g., AutoTrader) for current retail prices of comparable vehicles to provide additional market context.
+CRITICAL INSTRUCTIONS:
+- Calculate failure probability from MOT history data only - never use hardcoded values
+- For vehicles with mileage discrepancies: automatically recommend CAP Below pricing tier
+- MANDATORY: Search internet for AutoTrader pricing, common faults, recalls for this specific make/model/year
+- Provide trade purchase recommendation (BUY/AVOID/CONSIDER) with specific reasoning
+- Factor in ownership patterns and V5C changes for auction context
 
 Output must be structured using the defined schema that includes metadata, mileage, MOT history, compliance, system flags, grading scores, and a prediction section with fail probabilities and cost estimates. Additionally, provide a trade purchase recommendation indicating whether the car should be bought by a trader. Include a suggested trade price tier—CAP Clean, CAP Average, or CAP Below—based on the mechanical condition, predicted costs, and current market retail prices. Include the last change of V5 or owner in the report to help determine if the vehicle is being traded at auction for a specific reason.
 
 Provide specific, actionable insights based on the vehicle's actual history and current UK market conditions. Include cost estimates in GBP."""
 
-            # Calculate accurate failure probability and CAP valuation
-            failure_probability = self._calculate_accurate_failure_probability(analysis_data['mot_analysis'], analysis_data['basic_info'])
+            # Get CAP valuation data
             cap_valuation = self._get_cap_based_valuation(analysis_data['basic_info'])
 
-            user_prompt = f"""Analyze this UK vehicle for TRADE PURCHASE ASSESSMENT with PRECISE calculations:
+            user_prompt = f"""Analyze this UK vehicle for TRADE PURCHASE ASSESSMENT:
 
 VEHICLE: {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} ({analysis_data['basic_info']['year']})
 REGISTRATION: {analysis_data['basic_info'].get('registration', 'Unknown')}
 
-CALCULATED MOT FAILURE PROBABILITY: {failure_probability}% (USE THIS EXACT VALUE)
 CAP VALUATION DATA: {json.dumps(cap_valuation, indent=2)}
 
 MOT HISTORY ANALYSIS:
@@ -317,11 +330,11 @@ OWNERSHIP & COMPLIANCE:
 - Outstanding recalls: {analysis_data['current_status'].get('outstanding_recalls', False)}
 
 TRADE ANALYSIS REQUIREMENTS:
-- Use EXACT failure probability of {failure_probability}% in calculations
-- Reference internet sources for {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} common issues
-- Search AutoTrader for current market prices of comparable vehicles
-- Provide CAP price tier recommendation: CAP Clean, CAP Average, or CAP Below
-- Include specific trade purchase recommendation (BUY/AVOID) with reasoning
+- CALCULATE MOT failure probability from actual MOT test history - DO NOT use hardcoded values
+- For vehicles with mileage discrepancies: AUTOMATICALLY recommend CAP Below pricing with severe discount
+- MANDATORY: Search internet for {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} common issues, recalls, AutoTrader pricing
+- Provide CAP price tier: CAP Clean, CAP Average, or CAP Below (apply mileage penalties)
+- Include trade recommendation (BUY/AVOID/CONSIDER) with specific reasoning
 - Factor in V5C change patterns for auction/trade context
 - Assign mechanical risk band: Low, Moderate, or High
 
@@ -610,45 +623,7 @@ Provide comprehensive analysis in valid JSON format focusing on trade viability 
         except:
             return "Value assessment unavailable"
     
-    def _calculate_accurate_failure_probability(self, mot_analysis, vehicle_data):
-        """Calculate accurate MOT failure probability based on actual vehicle data"""
-        base_probability = 25  # UK average MOT failure rate
-        
-        # Factor 1: Age adjustment
-        vehicle_age = 2025 - int(vehicle_data.get('year', 2015))
-        if vehicle_age < 5:
-            age_factor = 0.7  # Newer cars fail less
-        elif vehicle_age < 10:
-            age_factor = 1.0  # Average failure rate
-        elif vehicle_age < 15:
-            age_factor = 1.4  # Higher failure rate
-        else:
-            age_factor = 1.8  # Much higher failure rate
-        
-        # Factor 2: Historical failure pattern
-        if 'failure_rate' in mot_analysis:
-            historical_rate = mot_analysis['failure_rate'] * 100
-            history_factor = historical_rate / 25  # Normalize to UK average
-        else:
-            history_factor = 1.0
-        
-        # Factor 3: Recent trend
-        pattern_factor = 1.0
-        if 'pattern_analysis' in mot_analysis:
-            if mot_analysis['pattern_analysis'].get('pattern_detected') == 'deteriorating':
-                pattern_factor = 1.5
-            elif mot_analysis['pattern_analysis'].get('recent_failure_trend', 0) >= 2:
-                pattern_factor = 1.3
-        
-        # Factor 4: Make/model reliability
-        make = vehicle_data.get('make', '').lower()
-        reliability_factor = self._get_make_reliability_factor(make)
-        
-        # Calculate final probability
-        final_probability = base_probability * age_factor * history_factor * pattern_factor * reliability_factor
-        
-        # Cap between 5% and 85%
-        return max(5, min(85, round(final_probability)))
+    # Removed hardcoded failure probability calculation - let AI calculate from data
     
     def _get_make_reliability_factor(self, make):
         """Get reliability factor based on vehicle make"""
@@ -660,6 +635,20 @@ Provide comprehensive analysis in valid JSON format focusing on trade viability 
             'land rover': 1.4, 'mini': 1.0, 'skoda': 0.9, 'seat': 1.0
         }
         return reliability_map.get(make, 1.0)
+    
+    def _create_market_research_fallback(self, vehicle_data):
+        """Create fallback market research when primary research fails"""
+        make = vehicle_data.get('make', 'Unknown')
+        model = vehicle_data.get('model', 'Unknown')
+        year = vehicle_data.get('year', '2015')
+        
+        return {
+            'average_price_range': {'low': 1000, 'high': 8000},
+            'market_demand': {'level': 'medium', 'score': 5},
+            'reliability_rating': {'score': 5},
+            'source': 'fallback_estimate',
+            'research_note': f'Fallback data for {make} {model} {year} - manual research recommended'
+        }
     
     def _get_cap_based_valuation(self, vehicle_data):
         """Get CAP-based valuation estimate"""
