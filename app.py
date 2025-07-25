@@ -72,6 +72,83 @@ def test_page():
     """Render the test frontend page"""
     return render_template('test.html')
 
+@app.route('/api/intelligent-analysis', methods=['POST'])
+def intelligent_analysis():
+    """Advanced AI-powered vehicle analysis endpoint"""
+    from intelligent_vehicle_analyzer import IntelligentVehicleAnalyzer
+    from models import VehicleData
+    
+    try:
+        data = request.get_json()
+        registration = data.get('registration', '').strip().upper()
+        
+        if not registration:
+            return jsonify({
+                'success': False,
+                'error': 'Registration number required'
+            }), 400
+        
+        # Get vehicle data from database
+        vehicle_record = VehicleData.query.filter_by(registration=registration).first()
+        
+        if not vehicle_record:
+            return jsonify({
+                'success': False,
+                'error': 'Vehicle data not found. Please search for the vehicle first.'
+            }), 404
+        
+        # Prepare vehicle data for analysis
+        vehicle_data = {
+            'registration': vehicle_record.registration,
+            'make': vehicle_record.make,
+            'model': vehicle_record.model,
+            'year': vehicle_record.year,
+            'color': vehicle_record.color,
+            'fuel_type': vehicle_record.fuel_type,
+            'engine_size': vehicle_record.engine_size,
+            'transmission': vehicle_record.transmission,
+            'body_style': vehicle_record.body_style,
+            'total_keepers': vehicle_record.total_keepers,
+            'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
+            'registration_place': vehicle_record.registration_place,
+            'mot_expiry_date': vehicle_record.mot_expiry_date.isoformat() if vehicle_record.mot_expiry_date else None,
+            'mot_days_left': vehicle_record.mot_days_left,
+            'exported': vehicle_record.exported,
+            'has_outstanding_recall': vehicle_record.has_outstanding_recall,
+            'mot_history': vehicle_record.mot_history or {},
+            'mileage_history': vehicle_record.mileage_history or {},
+            'raw_data': vehicle_record.raw_data or {}
+        }
+        
+        # Perform intelligent analysis
+        analyzer = IntelligentVehicleAnalyzer()
+        analysis_result = analyzer.analyze_vehicle_comprehensive(vehicle_data)
+        
+        if analysis_result:
+            # Store analysis result in database for caching
+            vehicle_record.analysis_data = analysis_result
+            vehicle_record.analysis_completed = True
+            vehicle_record.analysis_timestamp = datetime.now()
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'analysis': analysis_result,
+                'generated_at': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Analysis failed. Please try again.'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error in intelligent analysis: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Analysis error: {str(e)}'
+        }), 500
+
 @app.route('/api/scrape', methods=['POST'])
 def scrape_vehicle():
     """API endpoint to scrape vehicle data"""
