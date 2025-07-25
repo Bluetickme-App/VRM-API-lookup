@@ -127,6 +127,7 @@ def intelligent_analysis():
         
         if analysis_result:
             # Store analysis result in database for caching
+            from datetime import datetime
             vehicle_record.analysis_data = analysis_result
             vehicle_record.analysis_completed = True
             vehicle_record.analysis_timestamp = datetime.now()

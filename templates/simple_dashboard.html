@@ -1334,50 +1334,6 @@
                 vehicleCard.insertAdjacentHTML('afterend', html);
             }
         }
-                if (analysisData.mot_analysis.recent_performance) {
-                    html += '<p><strong>Recent Tests:</strong> ' + analysisData.mot_analysis.recent_performance + '</p>';
-                }
-                if (analysisData.mot_analysis.failure_trends) {
-                    html += '<p><strong>Trends:</strong> ' + analysisData.mot_analysis.failure_trends + '</p>';
-                }
-                if (analysisData.mot_analysis.upcoming_risks) {
-                    html += '<p><strong>Risk Assessment:</strong> ' + analysisData.mot_analysis.upcoming_risks + '</p>';
-                }
-                html += '</div>';
-            }
-            // Cost Analysis  
-            if (analysisData.cost_analysis) {
-                html += '<div class="analysis-section" style="border-left-color: #f39c12;">';
-                html += '<h4>💰 Cost Analysis</h4>';
-                if (analysisData.cost_analysis.estimated_annual_costs) {
-                    html += '<p><strong>Annual Costs:</strong> £' + analysisData.cost_analysis.estimated_annual_costs + '</p>';
-                }
-                if (analysisData.cost_analysis.repair_risk_level) {
-                    html += '<p><strong>Repair Risk:</strong> ' + analysisData.cost_analysis.repair_risk_level + '</p>';
-                }
-                if (analysisData.cost_analysis.maintenance_recommendations) {
-                    html += '<p><strong>Recommendations:</strong> ' + analysisData.cost_analysis.maintenance_recommendations + '</p>';
-                }
-                html += '</div>';
-            }
-            // Mileage Analysis
-            if (analysisData.mileage_analysis) {
-                html += '<div class="analysis-section" style="border-left-color: #9b59b6;">';
-                html += '<h4>📊 Mileage Analysis</h4>';
-                if (analysisData.mileage_analysis.total_mileage_readings) {
-                    html += '<p><strong>Data Points:</strong> ' + analysisData.mileage_analysis.total_mileage_readings + '</p>';
-                }
-                if (analysisData.mileage_analysis.tampering_risk) {
-                    html += '<p><strong>Tampering Risk:</strong> ' + analysisData.mileage_analysis.tampering_risk + '</p>';
-                }
-                if (analysisData.mileage_analysis.usage_patterns) {
-                    html += '<p><strong>Usage Pattern:</strong> ' + analysisData.mileage_analysis.usage_patterns + '</p>';
-                }
-                html += '</div>';
-            }
-            html += '</div>';
-            document.getElementById('analysisResults').innerHTML = html;
-        }
         function updateMileageStatus(analysisData) {
             var mileageStatusBox = document.querySelector('.status-box .status-title:contains("Mileage Analysis")');
             if (!mileageStatusBox) return;
