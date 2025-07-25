@@ -1593,34 +1593,8 @@
                 }
             }
             
-            // Market Analysis
-            if (ai.market_analysis) {
-                var market = ai.market_analysis;
-                var marketScore = (((market.market_demand && market.market_demand.score) || 5) + ((market.reliability_rating && market.reliability_rating.score) || 5)) / 2;
-                var marketColor = getColorByRating(marketScore, 10);
-                html += '<div class="analysis-section colored-box" style="' + marketColor + '">';
-                html += '<h4>📊 Market Analysis</h4>';
-                if (market.average_price_range) {
-                    html += '<p><strong>Price Range:</strong> £' + market.average_price_range.low + ' - £' + market.average_price_range.high + '</p>';
-                }
-                if (market.market_demand) {
-                    html += '<p><strong>Market Demand:</strong> ' + (market.market_demand.level || 'Unknown');
-                    if (market.market_demand.score) {
-                        html += ' (' + market.market_demand.score + '/10)';
-                    }
-                    html += '</p>';
-                }
-                if (market.reliability_rating) {
-                    html += '<p><strong>Reliability Rating:</strong> ';
-                    if (market.reliability_rating.score) {
-                        html += market.reliability_rating.score + '/10';
-                    } else {
-                        html += 'Unknown';
-                    }
-                    html += '</p>';
-                }
-                html += '</div>';
-            }
+            // Legacy market analysis section removed to prevent duplication
+            // Market analysis is now handled in the market_analysis || market_context section above
             
             html += '</div>';
             
