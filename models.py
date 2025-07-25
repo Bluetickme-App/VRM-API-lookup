@@ -78,16 +78,12 @@ class VehicleData(db.Model):
     analysis_completed = db.Column(db.Boolean, default=False)
     analysis_timestamp = db.Column(db.DateTime)
     
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
     # Analysis data
     last_analyzed = db.Column(db.DateTime)
     
-    # Metadata
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Metadata and timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     data_source = db.Column(db.String(100), default='checkcardetails.co.uk')
     
     # Status fields

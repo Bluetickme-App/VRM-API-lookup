@@ -33,6 +33,18 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 # Initialize the app with the extension
 db.init_app(app)
 
+# Create database tables
+with app.app_context():
+    # Import models to ensure they are registered
+    from models import VehicleData, SearchHistory, MOTHistory
+    
+    # Create all tables
+    try:
+        db.create_all()
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {e}")
+
 # Import and register routes (simplified for now)
 
 @app.route('/')
