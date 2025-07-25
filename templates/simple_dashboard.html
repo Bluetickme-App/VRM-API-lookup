@@ -1188,8 +1188,7 @@
                 analyzeBtn.disabled = false;
                 analyzeBtn.textContent = '🧠 Get AI Analysis';
                 if (data.success) {
-                    displayAnalysis(data.data);
-                    updateMileageStatus(data.data);
+                    displayIntelligentAnalysis(data.analysis);
                 } else {
                     alert('Analysis failed: ' + (data.error || 'Unknown error'));
                 }
@@ -1201,28 +1200,140 @@
                 console.error('Error:', error);
             });
         }
-        function displayAnalysis(analysisData) {
-            var html = '<div class="analysis-results">';
-            html += '<div class="analysis-title">';
-            html += '🧠 AI Analysis Results';
-            html += '</div>';
-            // Ownership Analysis
-            if (analysisData.ownership_analysis) {
-                html += '<div class="analysis-section">';
-                html += '<h4>🔐 Ownership History</h4>';
-                html += '<p><strong>Previous Owners:</strong> ' + (analysisData.ownership_analysis.estimated_previous_owners || 'Unknown') + '</p>';
-                if (analysisData.ownership_analysis.ownership_confidence) {
-                    html += '<p><strong>Confidence:</strong> ' + analysisData.ownership_analysis.ownership_confidence + '</p>';
+        function displayIntelligentAnalysis(analysisData) {
+            var html = '<div class="intelligent-analysis-results">';
+            
+            // Traffic Light System - Main Dashboard
+            if (analysisData.traffic_light_system) {
+                html += '<div class="traffic-light-dashboard">';
+                html += '<h3>🚦 Quick Assessment Dashboard</h3>';
+                html += '<div class="traffic-lights">';
+                
+                var tls = analysisData.traffic_light_system;
+                
+                // Purchase Recommendation
+                html += '<div class="traffic-light-item">';
+                html += '<div class="traffic-light ' + tls.purchase_recommendation.status + '">';
+                html += '<div class="light-circle"></div>';
+                html += '</div>';
+                html += '<div class="traffic-light-content">';
+                html += '<h4>Purchase Recommendation</h4>';
+                html += '<p>' + tls.purchase_recommendation.message + '</p>';
+                html += '</div>';
+                html += '</div>';
+                
+                // MOT Risk
+                html += '<div class="traffic-light-item">';
+                html += '<div class="traffic-light ' + tls.mot_risk.status + '">';
+                html += '<div class="light-circle"></div>';
+                html += '</div>';
+                html += '<div class="traffic-light-content">';
+                html += '<h4>MOT Risk Assessment</h4>';
+                html += '<p>' + tls.mot_risk.message + '</p>';
+                html += '</div>';
+                html += '</div>';
+                
+                // Maintenance Urgency
+                html += '<div class="traffic-light-item">';
+                html += '<div class="traffic-light ' + tls.maintenance_urgency.status + '">';
+                html += '<div class="light-circle"></div>';
+                html += '</div>';
+                html += '<div class="traffic-light-content">';
+                html += '<h4>Maintenance Status</h4>';
+                html += '<p>' + tls.maintenance_urgency.message + '</p>';
+                html += '</div>';
+                html += '</div>';
+                
+                html += '</div>';
+                html += '</div>';
+            }
+            
+            // AI Analysis Sections
+            if (analysisData.ai_analysis) {
+                var ai = analysisData.ai_analysis;
+                
+                // MOT Prediction
+                if (ai.mot_prediction) {
+                    html += '<div class="analysis-section">';
+                    html += '<h4>🔮 MOT Failure Prediction</h4>';
+                    html += '<p><strong>Failure Probability:</strong> ' + (ai.mot_prediction.failure_probability || 'N/A') + '%</p>';
+                    if (ai.mot_prediction.likely_failure_points) {
+                        html += '<p><strong>Likely Issues:</strong></p>';
+                        html += '<ul>';
+                        for (var i = 0; i < ai.mot_prediction.likely_failure_points.length; i++) {
+                            html += '<li>' + ai.mot_prediction.likely_failure_points[i] + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    html += '</div>';
                 }
-                if (analysisData.ownership_analysis.ownership_reasoning) {
-                    html += '<p><strong>Analysis:</strong> ' + analysisData.ownership_analysis.ownership_reasoning + '</p>';
+                
+                // Maintenance Recommendations
+                if (ai.maintenance_recommendations) {
+                    html += '<div class="analysis-section">';
+                    html += '<h4>🔧 Maintenance Recommendations</h4>';
+                    if (ai.maintenance_recommendations.immediate_actions) {
+                        html += '<p><strong>Immediate Actions:</strong></p>';
+                        html += '<ul>';
+                        for (var i = 0; i < ai.maintenance_recommendations.immediate_actions.length; i++) {
+                            html += '<li>' + ai.maintenance_recommendations.immediate_actions[i] + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    if (ai.maintenance_recommendations.cost_estimates) {
+                        html += '<p><strong>Estimated Costs:</strong> ' + ai.maintenance_recommendations.cost_estimates + '</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // Purchase Recommendations
+                if (ai.purchase_recommendations) {
+                    html += '<div class="analysis-section">';
+                    html += '<h4>💰 Purchase Assessment</h4>';
+                    if (ai.purchase_recommendations.fair_value) {
+                        html += '<p><strong>Fair Market Value:</strong> ' + ai.purchase_recommendations.fair_value + '</p>';
+                    }
+                    if (ai.purchase_recommendations.negotiation_points) {
+                        html += '<p><strong>Negotiation Points:</strong></p>';
+                        html += '<ul>';
+                        for (var i = 0; i < ai.purchase_recommendations.negotiation_points.length; i++) {
+                            html += '<li>' + ai.purchase_recommendations.negotiation_points[i] + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    html += '</div>';
+                }
+            }
+            
+            // Market Analysis
+            if (analysisData.market_analysis) {
+                var market = analysisData.market_analysis;
+                html += '<div class="analysis-section">';
+                html += '<h4>📊 Market Analysis</h4>';
+                if (market.average_price_range) {
+                    html += '<p><strong>Price Range:</strong> £' + market.average_price_range.low + ' - £' + market.average_price_range.high + '</p>';
+                }
+                if (market.market_demand) {
+                    html += '<p><strong>Market Demand:</strong> ' + market.market_demand.level + ' (' + market.market_demand.score + '/10)</p>';
+                }
+                if (market.reliability_rating) {
+                    html += '<p><strong>Reliability Rating:</strong> ' + market.reliability_rating.score + '/10</p>';
                 }
                 html += '</div>';
             }
-            // MOT Analysis
-            if (analysisData.mot_analysis) {
-                html += '<div class="analysis-section" style="border-left-color: #27ae60;">';
-                html += '<h4>🔧 MOT Performance</h4>';
+            
+            html += '</div>';
+            
+            // Insert after vehicle data
+            var vehicleCard = document.querySelector('.vehicle-card');
+            if (vehicleCard) {
+                var existingAnalysis = document.querySelector('.intelligent-analysis-results');
+                if (existingAnalysis) {
+                    existingAnalysis.remove();
+                }
+                vehicleCard.insertAdjacentHTML('afterend', html);
+            }
+        }
                 if (analysisData.mot_analysis.recent_performance) {
                     html += '<p><strong>Recent Tests:</strong> ' + analysisData.mot_analysis.recent_performance + '</p>';
                 }

@@ -259,7 +259,7 @@ class IntelligentVehicleAnalyzer:
 
 Provide specific, actionable insights based on the vehicle's actual history and current UK market conditions. Include cost estimates in GBP."""
 
-            user_prompt = f"""Analyze this vehicle data comprehensively:
+            user_prompt = f"""Analyze this vehicle data comprehensively and provide response in JSON format:
 
 VEHICLE: {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} ({analysis_data['basic_info']['year']})
 
@@ -284,7 +284,7 @@ CURRENT STATUS:
 - Exported: {analysis_data['current_status'].get('exported', False)}
 - Outstanding recalls: {analysis_data['current_status'].get('outstanding_recalls', False)}
 
-Provide detailed analysis with specific predictions and recommendations."""
+Provide detailed analysis with specific predictions and recommendations in valid JSON format."""
 
             response = self.openai_client.chat.completions.create(
                 model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -296,7 +296,11 @@ Provide detailed analysis with specific predictions and recommendations."""
                 temperature=0.1
             )
             
-            return json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            if content:
+                return json.loads(content)
+            else:
+                return {'error': 'Empty response from AI'}
             
         except Exception as e:
             logger.error(f"Error getting AI analysis: {e}")

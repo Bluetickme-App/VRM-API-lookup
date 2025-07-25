@@ -77,6 +77,7 @@ def intelligent_analysis():
     """Advanced AI-powered vehicle analysis endpoint"""
     from intelligent_vehicle_analyzer import IntelligentVehicleAnalyzer
     from models import VehicleData
+    from datetime import datetime
     
     try:
         data = request.get_json()
@@ -111,7 +112,7 @@ def intelligent_analysis():
             'total_keepers': vehicle_record.total_keepers,
             'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
             'registration_place': vehicle_record.registration_place,
-            'mot_expiry_date': vehicle_record.mot_expiry_date.isoformat() if vehicle_record.mot_expiry_date else None,
+            'mot_expiry_date': vehicle_record.mot_expiry.isoformat() if vehicle_record.mot_expiry else None,
             'mot_days_left': vehicle_record.mot_days_left,
             'exported': vehicle_record.exported,
             'has_outstanding_recall': vehicle_record.has_outstanding_recall,
