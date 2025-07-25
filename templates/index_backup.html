@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Data Scraper - Comprehensive MOT & Vehicle Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+        
+        .search-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px 20px 0 0;
+            color: white;
+            padding: 3rem 2rem;
+        }
+        
+        .search-box {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2rem;
+            padding: 1rem 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .search-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .vehicle-info-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .info-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        
+        .info-content {
+            padding: 1.5rem;
+        }
+        
+        .info-row {
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .mot-history-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+        
+        .mot-header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 1.5rem;
+        }
+        
+        .mot-summary {
+            background: #f8f9fa;
+            padding: 1.5rem;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            color: #667eea;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .mot-test {
+            border-left: 5px solid #ddd;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            position: relative;
+        }
+        
+        .mot-test.passed {
+            border-left-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+        
+        .mot-test.failed {
+            border-left-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+        }
+        
+        .mot-test.unknown {
+            border-left-color: #ffc107;
+            background: rgba(255, 193, 7, 0.05);
+        }
+        
+        .test-badge {
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            text-transform: uppercase;
+        }
+        
+        .badge-passed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-failed {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .badge-unknown {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .test-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .comments-section {
+            margin-top: 1rem;
+        }
+        
+        .comment-item {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+        }
+        
+        .comment-advisory {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .comment-failure {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .comment-clean {
+            border-left: 4px solid #28a745;
+        }
+        
+        .comment-type {
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .spinner-border {
+            color: #667eea;
+            height: 3rem;
+            width: 3rem;
+        }
+        
+        .alert-custom {
+            border-radius: 15px;
+            border: none;
+            font-weight: 500;
+            margin: 1rem 0;
+            padding: 1rem 1.5rem;
+        }
+        
+        .severity-high {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 5px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .no-data {
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #666;
+            font-style: italic;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .highlight-v5c {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .highlight-v5c .info-label {
+            color: #1976d2;
+            font-weight: 600;
+        }
+        
+        .highlight-v5c .info-value {
+            color: #0d47a1;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem;
+            }
+            
+            .search-section {
+                padding: 2rem 1rem;
+            }
+            
+            .test-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="text-center mb-4">
+                    <h1 class="display-4 mb-3">🚗 Vehicle Data Scraper</h1>
+                    <p class="lead">Comprehensive UK Vehicle MOT & History Analysis</p>
+                </div>
+                
+                <form id="vehicleForm" class="row g-3 justify-content-center">
+                    <div class="col-md-6">
+                        <input type="text" 
+                               id="registration" 
+                               class="form-control search-box" 
+                               placeholder="Enter Registration (e.g., DA07BWF)"
+                               maxlength="8"
+                               required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn search-btn w-100">
+                            <i data-feather="search"></i> Analyze Vehicle
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="p-4" id="resultsSection" style="display: none;">
+                <!-- Vehicle Information Card -->
+                <div class="vehicle-info-card" id="vehicleInfo">
+                    <div class="info-header">
+                        <i data-feather="info"></i> Vehicle Information
+                    </div>
+                    <div class="info-content" id="vehicleDetails">
+                        <!-- Vehicle details will be populated here -->
+                    </div>
+                    <div class="p-3 border-top">
+                        <button id="analyzeWithAI" class="btn btn-success btn-lg w-100" style="display: none;">
+                            <i data-feather="zap"></i> 🧠 Analyze with OpenAI GPT-4o
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- MOT History Section -->
+                <div class="mot-history-section" id="motHistorySection">
+                    <div class="mot-header">
+                        <i data-feather="clipboard"></i> MOT Test History
+                    </div>
+                    
+                    <!-- MOT Summary Stats -->
+                    <div class="mot-summary" id="motSummary">
+                        <!-- Summary stats will be populated here -->
+                    </div>
+                    
+                    <!-- Individual MOT Tests -->
+                    <div class="p-3" id="motTests">
+                        <!-- MOT test details will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Mileage Analysis Section -->
+                <div class="vehicle-info-card" id="mileageSection">
+                    <div class="info-header">
+                        <i data-feather="trending-up"></i> Mileage Analysis
+                    </div>
+                    <div class="info-content" id="mileageAnalysis">
+                        <!-- Mileage analysis will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- OpenAI Analysis Results Section -->
+                <div class="vehicle-info-card" id="aiAnalysisSection" style="display: none;">
+                    <div class="info-header">
+                        <i data-feather="zap"></i> 🧠 Intelligent Analysis Results
+                    </div>
+                    
+                    <!-- V5C and Ownership Analysis -->
+                    <div class="p-4 bg-light border-bottom">
+                        <h5><i data-feather="users"></i> Ownership & Trading Analysis</h5>
+                        <div id="ownershipAnalysisMain"></div>
+                    </div>
+                    
+                    <!-- MOT Predictions -->
+                    <div class="p-4 bg-light border-bottom">
+                        <h5><i data-feather="alert-triangle"></i> MOT Predictions & Risk Assessment</h5>
+                        <div id="motPredictionsMain"></div>
+                    </div>
+                    
+                    <!-- Cost Analysis -->
+                    <div class="p-4 bg-light">
+                        <h5><i data-feather="pound-sign"></i> Cost Estimates</h5>
+                        <div id="costAnalysisMain"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Section -->
+            <div class="loading" id="loadingSection" style="display: none;">
+                <div class="spinner-border" role="status"></div>
+                <h4 class="mt-3">Analyzing Vehicle Data...</h4>
+                <p class="text-muted">Extracting comprehensive MOT history and vehicle details</p>
+            </div>
+            
+            <!-- Error Section -->
+            <div class="p-4" id="errorSection" style="display: none;">
+                <div class="alert alert-danger alert-custom" id="errorMessage">
+                    <!-- Error message will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        document.getElementById('vehicleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var registration = document.getElementById('registration').value.trim().toUpperCase();
+            if (!registration) {
+                showError('Please enter a vehicle registration number');
+                return;
+            }
+            
+            analyzeVehicle(registration);
+        });
+        
+        function analyzeVehicle(registration) {
+            showLoading();
+            
+            fetch('/api/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ registration: registration })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success) {
+                    displayResults(data.data, data.source);
+                } else {
+                    showError(data.error || 'Failed to analyze vehicle data');
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                showError('Network error occurred. Please try again.');
+            });
+        }
+        
+        function displayResults(vehicleData, source) {
+            hideAllSections();
+            
+            // Display vehicle information
+            displayVehicleInfo(vehicleData);
+            
+            // Display MOT history
+            displayMOTHistory(vehicleData.mot_history);
+            
+            // Display mileage analysis
+            displayMileageAnalysis(vehicleData.mileage_history);
+            
+            // Show and setup OpenAI analysis button to show analysis inline
+            var analyzeBtn = document.getElementById('analyzeWithAI');
+            analyzeBtn.style.display = 'block';
+            analyzeBtn.onclick = function() {
+                performInlineAnalysis(vehicleData.registration);
+            };
+            
+            // Add source indicator
+            if (source === 'cache') {
+                var cacheIndicator = document.createElement('div');
+                cacheIndicator.className = 'alert alert-info alert-custom';
+                cacheIndicator.innerHTML = '<i data-feather="database"></i> Data retrieved from cache (updated within 24 hours)';
+                document.getElementById('resultsSection').insertBefore(cacheIndicator, document.getElementById('resultsSection').firstChild);
+                feather.replace();
+            }
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            feather.replace();
+        }
+        
+        function displayVehicleInfo(vehicleData) {
+            var vehicleDetails = document.getElementById('vehicleDetails');
+            var v5cDate = vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || 'Not Available';
+            if (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) {
+                v5cDate = vehicleData.vehicle_details.last_v5c_issue_date;
+            }
+            
+            vehicleDetails.innerHTML = 
+                '<div class="info-row">' +
+                    '<span class="info-label">Registration</span>' +
+                    '<span class="info-value">' + (vehicleData.registration || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Make</span>' +
+                    '<span class="info-value">' + (vehicleData.make || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Model</span>' +
+                    '<span class="info-value">' + (vehicleData.model || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Year</span>' +
+                    '<span class="info-value">' + (vehicleData.year || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Color</span>' +
+                    '<span class="info-value">' + (vehicleData.color || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Fuel Type</span>' +
+                    '<span class="info-value">' + (vehicleData.fuel_type || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="info-row highlight-v5c">' +
+                    '<span class="info-label"><i data-feather="credit-card"></i> Last V5C Change Date</span>' +
+                    '<span class="info-value">' + v5cDate + '</span>' +
+                    '<small class="text-muted d-block">When current V5C was issued</small>' +
+                '</div>';
+        
+        // Add tax costs if available
+        if (vehicleData.tax_6_months || vehicleData.tax_12_months) {
+            detailsHtml += '<div class="row mt-3">';
+            if (vehicleData.tax_6_months) {
+                detailsHtml += '<div class="col-md-6">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h6 class="mb-0"><i data-feather="pound-sterling"></i> 6 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h4 class="text-warning fw-bold">' + vehicleData.tax_6_months + '</h4>' +
+                            '<small class="text-muted">Half year cost</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            if (vehicleData.tax_12_months) {
+                detailsHtml += '<div class="col-md-6">' +
+                    '<div class="card border-primary">' +
+                        '<div class="card-header bg-primary text-white text-center">' +
+                            '<h6 class="mb-0"><i data-feather="pound-sterling"></i> 12 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h4 class="text-primary fw-bold">' + vehicleData.tax_12_months + '</h4>' +
+                            '<small class="text-muted">Full year cost</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            detailsHtml += '</div>';
+        }
+        }
+        
+        function displayMOTHistory(motHistory) {
+            if (!motHistory || !motHistory.tests || motHistory.tests.length === 0) {
+                document.getElementById('motSummary').innerHTML = 
+                    '<div class="no-data">' +
+                        '<i data-feather="info"></i>' +
+                        '<h5>No MOT History Available</h5>' +
+                        '<p>No MOT test records found for this vehicle.</p>' +
+                    '</div>';
+                document.getElementById('motTests').innerHTML = '';
+                feather.replace();
+                return;
+            }
+            
+            // Calculate summary statistics from tests data
+            var tests = motHistory.tests || [];
+            var totalTests = tests.length;
+            var passedTests = tests.filter(function(test) { 
+                return test.result && test.result.toLowerCase().indexOf('pass') !== -1; 
+            }).length;
+            var failedTests = tests.filter(function(test) { 
+                return test.result && test.result.toLowerCase().indexOf('fail') !== -1; 
+            }).length;
+            var advisoryTests = tests.filter(function(test) { 
+                return test.comments && test.comments.some(function(comment) {
+                    return comment.toLowerCase().indexOf('advisory') !== -1;
+                });
+            }).length;
+            
+            var summaryHtml = 
+                '<div class="summary-stats">' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + totalTests + '</div>' +
+                        '<div class="stat-label">Total Tests</div>' +
+                    '</div>' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + passedTests + '</div>' +
+                        '<div class="stat-label">Passed</div>' +
+                    '</div>' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + failedTests + '</div>' +
+                        '<div class="stat-label">Failed</div>' +
+                    '</div>' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + advisoryTests + '</div>' +
+                        '<div class="stat-label">Advisories</div>' +
+                    '</div>' +
+                '</div>';
+            
+            document.getElementById('motSummary').innerHTML = summaryHtml;
+            
+            // Display individual tests
+            var motTestsHtml = '';
+            for (var i = 0; i < motHistory.tests.length; i++) {
+                var test = motHistory.tests[i];
+                var resultClass = test.result ? test.result.toLowerCase() : 'unknown';
+                var badgeClass = getBadgeClass(test.result);
+                
+                var commentsHtml = '';
+                if (test.comments && test.comments.length > 0) {
+                    commentsHtml = '<div class="comments-section">' +
+                        '<h6>Comments & Advisories:</h6>';
+                    for (var j = 0; j < test.comments.length; j++) {
+                        var comment = test.comments[j];
+                        commentsHtml += '<div class="comment-item ' + getCommentClass(comment) + '">' +
+                            '<div class="comment-type">' + getCommentType(comment) + '</div>' +
+                            '<div>' + comment + '</div>' +
+                        '</div>';
+                    }
+                    commentsHtml += '</div>';
+                }
+                
+                motTestsHtml += '<div class="mot-test ' + resultClass + '">' +
+                    '<span class="test-badge ' + badgeClass + '">' + (test.result || 'Unknown') + '</span>' +
+                    '<div class="test-details">' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Test Date</span>' +
+                            '<span class="detail-value">' + (test.date || 'Not recorded') + '</span>' +
+                        '</div>' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Mileage</span>' +
+                            '<span class="detail-value">' + (test.mileage ? formatMileage(test.mileage) : 'Not recorded') + '</span>' +
+                        '</div>' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Expiry Date</span>' +
+                            '<span class="detail-value">' + (test.expiry_date || 'Unknown') + '</span>' +
+                        '</div>' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Source</span>' +
+                            '<span class="detail-value">' + (test.source || 'Unknown') + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    commentsHtml +
+                '</div>';
+            }
+            
+            document.getElementById('motTests').innerHTML = motTestsHtml;
+        }
+        
+        function displayMileageAnalysis(mileageHistory) {
+            var mileageAnalysis = document.getElementById('mileageAnalysis');
+            
+            if (!mileageHistory || !mileageHistory.analysis) {
+                mileageAnalysis.innerHTML = 
+                    '<div class="no-data">' +
+                        '<i data-feather="trending-up"></i>' +
+                        '<h5>No Mileage Analysis Available</h5>' +
+                        '<p>No mileage data found for analysis.</p>' +
+                    '</div>';
+                feather.replace();
+                return;
+            }
+            
+            var analysis = mileageHistory.analysis;
+            var analysisHtml = '';
+            
+            // Check for odometer issues
+            if (analysis.odometer_issues && analysis.odometer_issues.has_issues) {
+                var severity = analysis.odometer_issues.severity || 'UNKNOWN';
+                analysisHtml += 
+                    '<div class="alert-custom severity-high">' +
+                        '<h5><i data-feather="alert-triangle"></i> Odometer Discrepancy Detected</h5>' +
+                        '<p><strong>Severity:</strong> ' + severity + '</p>' +
+                        '<p><strong>Issue:</strong> ' + (analysis.odometer_issues.reduction_amount || 'Unknown') + ' miles reduction</p>' +
+                        '<p><strong>Period:</strong> ' + (analysis.odometer_issues.affected_period || 'Unknown') + '</p>' +
+                    '</div>';
+            }
+            
+            // Display mileage records if available
+            if (mileageHistory.mileage_records && mileageHistory.mileage_records.length > 0) {
+                analysisHtml += '<h6>Mileage Records:</h6><div class="row">';
+                for (var k = 0; k < mileageHistory.mileage_records.length; k++) {
+                    var record = mileageHistory.mileage_records[k];
+                    analysisHtml += '<div class="col-md-6">' +
+                        '<div class="info-row">' +
+                            '<span class="info-label">' + (record.date || 'Unknown Date') + '</span>' +
+                            '<span class="info-value">' + formatMileage(record.mileage) + '</span>' +
+                        '</div>' +
+                    '</div>';
+                }
+                analysisHtml += '</div>';
+            }
+            
+            if (!analysisHtml) {
+                analysisHtml = 
+                    '<div class="no-data">' +
+                        '<i data-feather="check-circle"></i>' +
+                        '<h5>No Issues Found</h5>' +
+                        '<p>No mileage discrepancies or issues detected.</p>' +
+                    '</div>';
+            }
+            
+            mileageAnalysis.innerHTML = analysisHtml;
+            feather.replace();
+        }
+        
+
+        
+        function getBadgeClass(result) {
+            if (!result) return 'badge-unknown';
+            var resultLower = result.toLowerCase();
+            if (resultLower.indexOf('pass') !== -1) return 'badge-passed';
+            if (resultLower.indexOf('fail') !== -1) return 'badge-failed';
+            return 'badge-unknown';
+        }
+        
+        function getCommentClass(comment) {
+            if (!comment) return 'comment-clean';
+            var text = comment.toLowerCase();
+            if (text.indexOf('advisory') !== -1) return 'comment-advisory';
+            if (text.indexOf('fail') !== -1 || text.indexOf('major') !== -1) return 'comment-failure';
+            return 'comment-clean';
+        }
+        
+        function getCommentType(comment) {
+            if (!comment) return 'Comment';
+            var text = comment.toLowerCase();
+            if (text.indexOf('advisory') !== -1) return 'ADVISORY';
+            if (text.indexOf('major') !== -1) return 'MAJOR';
+            if (text.indexOf('fail') !== -1) return 'FAILURE';
+            return 'Note';
+        }
+        
+        function formatMileage(mileage) {
+            if (!mileage) return 'Not recorded';
+            var number = parseInt(mileage.toString().replace(/,/g, ''));
+            return number.toLocaleString() + ' miles';
+        }
+        
+        function showLoading() {
+            hideAllSections();
+            document.getElementById('loadingSection').style.display = 'block';
+        }
+        
+        function showError(message) {
+            hideAllSections();
+            document.getElementById('errorMessage').innerHTML = 
+                '<h5><i data-feather="alert-circle"></i> Error</h5>' +
+                '<p>' + message + '</p>';
+            document.getElementById('errorSection').style.display = 'block';
+            feather.replace();
+        }
+        
+        function hideAllSections() {
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+        }
+        
+        function performInlineAnalysis(registration) {
+            // Change button to loading state
+            var analyzeBtn = document.getElementById('analyzeWithAI');
+            var originalText = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Analyzing with AI...';
+            analyzeBtn.disabled = true;
+            
+            fetch('/api/intelligent-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({registration: registration})
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success && data.analysis) {
+                    displayInlineAnalysis(data.analysis, data.analysis_source);
+                } else {
+                    showError(data.error || 'Analysis failed');
+                }
+                // Restore button on success
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+            })
+            .catch(function(error) {
+                console.error('Analysis error:', error);
+                showError('Failed to perform analysis. Please try again.');
+                // Restore button on error
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+            });
+        }
+        
+        function displayInlineAnalysis(analysisResponse, source) {
+            // Show the analysis section
+            document.getElementById('aiAnalysisSection').style.display = 'block';
+            
+            var analysis = analysisResponse.analysis || analysisResponse;
+            var vehicleData = analysisResponse.vehicle_data || {};
+            
+            // Enhanced ownership analysis with comprehensive data
+            var ownershipAnalysis = analysis.ownership_analysis || {};
+            var ownershipHtml = '';
+            
+            // Create comprehensive data grid
+            ownershipHtml += '<div class="row mb-4">';
+            
+            // V5C Change Date
+            if (ownershipAnalysis.last_v5c_change_date || vehicleData.last_v5_issue_date) {
+                var v5cDate = ownershipAnalysis.last_v5c_change_date || vehicleData.last_v5_issue_date;
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-primary">' +
+                        '<div class="card-header bg-primary text-white text-center">' +
+                            '<h6 class="mb-0">V5C Change Date</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h4 class="text-primary fw-bold">' + v5cDate + '</h4>' +
+                            '<small class="text-muted">When current V5C was issued</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Total Keepers (actual data)
+            if (vehicleData.total_keepers || ownershipAnalysis.total_keepers) {
+                var totalKeepers = vehicleData.total_keepers || ownershipAnalysis.total_keepers;
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h6 class="mb-0">Total Keepers</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h3 class="text-warning fw-bold">' + totalKeepers + '</h3>' +
+                            '<small class="text-muted">Authentic DVLA data</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            } else if (ownershipAnalysis.estimated_previous_owners) {
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h6 class="mb-0">Estimated Previous Owners</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h3 class="text-warning fw-bold">' + ownershipAnalysis.estimated_previous_owners + '</h3>' +
+                            '<small class="text-muted">' + (ownershipAnalysis.ownership_reasoning || 'Based on V5C history analysis') + '</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Registration Place
+            if (ownershipAnalysis.registration_place || vehicleData.registration_place) {
+                var regPlace = ownershipAnalysis.registration_place || vehicleData.registration_place;
+                ownershipHtml += '<div class="col-md-4 mb-3">' +
+                    '<div class="card border-info">' +
+                        '<div class="card-header bg-info text-white text-center">' +
+                            '<h6 class="mb-0">Registration Place</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h5 class="text-info fw-bold">' + regPlace + '</h5>' +
+                            '<small class="text-muted">Original registration location</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            ownershipHtml += '</div>';
+            
+            // MOT and Tax Information Row
+            ownershipHtml += '<div class="row mb-4">';
+            
+            // MOT Expiry Date
+            if (vehicleData.mot_expiry_date) {
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-success">' +
+                        '<div class="card-header bg-success text-white text-center">' +
+                            '<h6 class="mb-0">MOT Expiry</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h6 class="text-success fw-bold">' + vehicleData.mot_expiry_date + '</h6>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // 6 Month Tax
+            if (vehicleData.tax_6_months) {
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-secondary">' +
+                        '<div class="card-header bg-secondary text-white text-center">' +
+                            '<h6 class="mb-0">6 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h6 class="text-secondary fw-bold">' + vehicleData.tax_6_months + '</h6>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // 12 Month Tax
+            if (vehicleData.tax_12_months) {
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-secondary">' +
+                        '<div class="card-header bg-secondary text-white text-center">' +
+                            '<h6 class="mb-0">12 Month Tax</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h6 class="text-secondary fw-bold">' + vehicleData.tax_12_months + '</h6>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            // Total MOT Tests
+            if (vehicleData.mot_history && vehicleData.mot_history.tests) {
+                var totalTests = vehicleData.mot_history.tests.length;
+                ownershipHtml += '<div class="col-md-3 mb-3">' +
+                    '<div class="card border-dark">' +
+                        '<div class="card-header bg-dark text-white text-center">' +
+                            '<h6 class="mb-0">Total MOT Tests</h6>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h5 class="text-dark fw-bold">' + totalTests + '</h5>' +
+                            '<small class="text-muted">Complete history</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            ownershipHtml += '</div>';
+            
+            // Add trading indicators and registration place
+            if (ownershipAnalysis.trading_indicators && ownershipAnalysis.trading_indicators.length) {
+                ownershipHtml += '<div class="mb-3"><strong>Trading Indicators:</strong><ul class="mt-2">';
+                ownershipAnalysis.trading_indicators.forEach(function(indicator) {
+                    ownershipHtml += '<li><span class="badge bg-info">' + indicator + '</span></li>';
+                });
+                ownershipHtml += '</ul></div>';
+            }
+            
+            if (ownershipAnalysis.registration_place) {
+                ownershipHtml += '<div class="mb-3">' +
+                    '<strong>Registration Place:</strong> <span class="badge bg-secondary">' + ownershipAnalysis.registration_place + '</span>' +
+                '</div>';
+            }
+            
+            document.getElementById('ownershipAnalysisMain').innerHTML = ownershipHtml || '<p class="text-muted">No ownership analysis available.</p>';
+            
+            // Display MOT predictions with enhanced layout
+            var motPredictions = analysis.mot_predictions || {};
+            var motHtml = '';
+            
+            if (motPredictions.failure_probability !== undefined) {
+                // Main failure probability display
+                motHtml += '<div class="row mb-4">';
+                motHtml += '<div class="col-md-6 mb-3">' +
+                    '<div class="card border-danger">' +
+                        '<div class="card-header bg-danger text-white text-center">' +
+                            '<h5 class="mb-0">MOT Failure Risk</h5>' +
+                        '</div>' +
+                        '<div class="card-body text-center">' +
+                            '<h1 class="display-4 fw-bold text-danger">' + motPredictions.failure_probability + '%</h1>' +
+                            '<p class="text-muted">Probability of next MOT failure</p>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+                
+                // Risk assessment and recommendations
+                motHtml += '<div class="col-md-6 mb-3">' +
+                    '<div class="card border-warning">' +
+                        '<div class="card-header bg-warning text-dark text-center">' +
+                            '<h5 class="mb-0">Risk Assessment</h5>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<h6>Likely Failure Areas:</h6>' +
+                            '<div class="mb-3">' +
+                                (motPredictions.likely_failures || []).map(function(area) {
+                                    return '<span class="badge bg-danger me-1 mb-1">' + area + '</span>';
+                                }).join('') +
+                            '</div>' +
+                            '<h6>Recommended Work:</h6>' +
+                            '<div>' +
+                                (motPredictions.recommended_work || []).map(function(work) {
+                                    return '<span class="badge bg-warning text-dark me-1 mb-1">' + work + '</span>';
+                                }).join('') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+                motHtml += '</div>';
+                
+                // Detailed MOT analysis
+                if (motPredictions.analysis_details) {
+                    motHtml += '<div class="card mb-3">' +
+                        '<div class="card-header">' +
+                            '<h6 class="mb-0">Detailed MOT Analysis</h6>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<p>' + motPredictions.analysis_details + '</p>' +
+                        '</div>' +
+                    '</div>';
+                }
+            }
+            
+            document.getElementById('motPredictionsMain').innerHTML = motHtml || '<p class="text-muted">No MOT predictions available.</p>';
+            
+            // Display enhanced cost analysis
+            var costBreakdown = analysis.cost_breakdown || {};
+            var costHtml = '';
+            
+            if (Object.keys(costBreakdown).length > 0) {
+                costHtml += '<div class="row mb-4">';
+                
+                if (costBreakdown.immediate_repairs) {
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-danger">' +
+                            '<div class="card-header bg-danger text-white text-center">' +
+                                '<h6 class="mb-0">Immediate Repairs</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h3 class="text-danger fw-bold">£' + costBreakdown.immediate_repairs + '</h3>' +
+                                '<small class="text-muted">Urgent issues</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+                
+                if (costBreakdown.pre_mot_work) {
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-warning">' +
+                            '<div class="card-header bg-warning text-dark text-center">' +
+                                '<h6 class="mb-0">Pre-MOT Work</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h3 class="text-warning fw-bold">£' + costBreakdown.pre_mot_work + '</h3>' +
+                                '<small class="text-muted">Before next MOT</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+                
+                if (costBreakdown.annual_maintenance) {
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-info">' +
+                            '<div class="card-header bg-info text-white text-center">' +
+                                '<h6 class="mb-0">Annual Maintenance</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h3 class="text-info fw-bold">£' + costBreakdown.annual_maintenance + '</h3>' +
+                                '<small class="text-muted">Yearly servicing</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+                
+                if (costBreakdown.total_first_year) {
+                    costHtml += '<div class="col-md-3 mb-3">' +
+                        '<div class="card border-primary">' +
+                            '<div class="card-header bg-primary text-white text-center">' +
+                                '<h6 class="mb-0">Total First Year</h6>' +
+                            '</div>' +
+                            '<div class="card-body text-center">' +
+                                '<h2 class="text-primary fw-bold">£' + costBreakdown.total_first_year + '</h2>' +
+                                '<small class="text-muted">Complete ownership cost</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+                
+                costHtml += '</div>';
+                
+                // Add detailed cost breakdown if available
+                if (costBreakdown.detailed_breakdown) {
+                    costHtml += '<div class="card">' +
+                        '<div class="card-header">' +
+                            '<h6 class="mb-0">Detailed Cost Breakdown</h6>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<div class="row">';
+                    
+                    var details = costBreakdown.detailed_breakdown;
+                    for (var category in details) {
+                        if (details[category] && details[category] > 0) {
+                            costHtml += '<div class="col-md-6 mb-2">' +
+                                '<strong>' + category.replace(/_/g, ' ').toUpperCase() + ':</strong> £' + details[category] +
+                            '</div>';
+                        }
+                    }
+                    
+                    costHtml += '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+            }
+            
+            document.getElementById('costAnalysisMain').innerHTML = costHtml || '<p class="text-muted">No cost analysis available.</p>';
+            
+            // Add source indicator
+            if (source === 'cached') {
+                var sourceIndicator = document.createElement('div');
+                sourceIndicator.className = 'alert alert-info mt-3';
+                sourceIndicator.innerHTML = '<i data-feather="database"></i> Analysis data retrieved from cache';
+                document.getElementById('aiAnalysisSection').appendChild(sourceIndicator);
+            }
+            
+            // Scroll to analysis section (compatible with older browsers)
+            var analysisSection = document.getElementById('aiAnalysisSection');
+            if (analysisSection) {
+                if (analysisSection.scrollIntoView) {
+                    try {
+                        analysisSection.scrollIntoView(true);
+                    } catch (e) {
+                        // Fallback for very old browsers
+                        window.location.hash = '#aiAnalysisSection';
+                    }
+                }
+            }
+            
+            feather.replace();
+        }
+        
+        function getFailureProbabilityClass(probability) {
+            if (probability > 60) return 'text-danger';
+            if (probability > 30) return 'text-warning';
+            return 'text-success';
+        }
+        
+        // Auto-format registration input
+        document.getElementById('registration').addEventListener('input', function(e) {
+            var value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            if (value.length > 8) value = value.substring(0, 8);
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
