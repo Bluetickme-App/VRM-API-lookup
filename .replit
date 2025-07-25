@@ -1,8 +1,8 @@
-modules = ["python-3.11", "web", "nodejs-20", "bash", "postgresql-16"]
+modules = ["python-3.11", "web", "nodejs-20", "bash", "postgresql-16", "python3"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["firefox", "geckodriver", "openssl", "postgresql"]
+packages = ["firefox", "freetype", "geckodriver", "lcms2", "libGL", "libGLU", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "postgresql", "tcl", "tesseract", "tk", "zlib", "mesa"]
 
 [workflows]
 runButton = "Project"

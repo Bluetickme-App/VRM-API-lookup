@@ -45,12 +45,53 @@ with app.app_context():
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
 
+# Import components
+from ocr_processor import NumberPlateOCR
+
+# Initialize OCR processor
+ocr_processor = NumberPlateOCR()
+
 # Import and register routes (simplified for now)
 
 @app.route('/')
 def index():
     """Render the simple dashboard interface for iframe integration"""
     return render_template('simple_dashboard.html')
+
+@app.route('/api/ocr-process', methods=['POST'])
+def process_ocr():
+    """Process uploaded image for number plate OCR"""
+    try:
+        result = None
+        
+        # Handle file upload
+        if request.files and 'image' in request.files:
+            file = request.files['image']
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            # Save temporary file for processing
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                file.save(tmp_file.name)
+                result = ocr_processor.process_image(tmp_file.name, is_base64=False)
+                os.unlink(tmp_file.name)  # Clean up
+        
+        # Handle base64 image data
+        elif request.json and 'imageData' in request.json:
+            image_data = request.json['imageData']
+            result = ocr_processor.process_image(image_data, is_base64=True)
+        else:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        if result and 'error' in result:
+            return jsonify(result), 400
+            
+        return jsonify(result if result else {'error': 'Processing failed'})
+        
+    except Exception as e:
+        logger.error(f"OCR processing error: {e}")
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
 
 @app.route('/classic')
 def classic_index():
