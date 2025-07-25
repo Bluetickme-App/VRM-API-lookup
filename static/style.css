@@ -73,6 +73,61 @@ header {
     border-bottom: 1px solid #eee;
 }
 
+/* Color-coded analysis boxes */
+.colored-box {
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.colored-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.colored-box h4 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: rgba(0,0,0,0.8);
+}
+
+.colored-box p {
+    margin-bottom: 0.5rem;
+    color: rgba(0,0,0,0.7);
+}
+
+.colored-box ul {
+    color: rgba(0,0,0,0.7);
+}
+
+/* Grade-based background colors */
+.grade-excellent {
+    background: linear-gradient(135deg, #d4edda, #e8f5e8);
+    border-left-color: #28a745;
+}
+
+.grade-good {
+    background: linear-gradient(135deg, #e2f3e2, #f0f8f0);
+    border-left-color: #6cc04a;
+}
+
+.grade-fair {
+    background: linear-gradient(135deg, #fff3cd, #fffaef);
+    border-left-color: #ffc107;
+}
+
+.grade-poor {
+    background: linear-gradient(135deg, #ffeaa7, #fff5d6);
+    border-left-color: #fd7e14;
+}
+
+.grade-bad {
+    background: linear-gradient(135deg, #f8d7da, #fdedef);
+    border-left-color: #dc3545;
+}
+
 /* Mobile-specific enhancements for V5C display */
 .highlight-mobile {
     background-color: #f8f9fa;

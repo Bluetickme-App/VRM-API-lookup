@@ -1248,15 +1248,17 @@
                 html += '</div>';
             }
             
-            // AI Analysis Sections
+            // AI Analysis Sections with Color-Coded Boxes
             if (analysisData.ai_analysis) {
                 var ai = analysisData.ai_analysis;
                 
                 // MOT Failure Prediction
                 if (ai.MOT_FAILURE_PREDICTION) {
-                    html += '<div class="analysis-section">';
+                    var failureProb = parseInt(ai.MOT_FAILURE_PREDICTION.probability_of_next_failure) || 0;
+                    var motColor = getColorByPercentage(failureProb, true); // true = reverse (higher is worse)
+                    html += '<div class="analysis-section colored-box" style="' + motColor + '">';
                     html += '<h4>🔮 MOT Failure Prediction</h4>';
-                    html += '<p><strong>Failure Probability:</strong> ' + (ai.MOT_FAILURE_PREDICTION.probability_of_next_failure || 'N/A') + '%</p>';
+                    html += '<p><strong>Failure Probability:</strong> ' + failureProb + '%</p>';
                     if (ai.MOT_FAILURE_PREDICTION.most_likely_failure_points) {
                         html += '<p><strong>Most Likely Issues:</strong></p>';
                         html += '<ul>';
@@ -1278,13 +1280,16 @@
                 
                 // Maintenance Recommendations
                 if (ai.MAINTENANCE_RECOMMENDATIONS) {
-                    html += '<div class="analysis-section">';
+                    var immediateActions = ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed || [];
+                    var urgencyLevel = immediateActions.length;
+                    var maintenanceColor = getColorByPercentage((5-urgencyLevel)*20, false); // 0-5 actions, lower is better
+                    html += '<div class="analysis-section colored-box" style="' + maintenanceColor + '">';
                     html += '<h4>🔧 Maintenance Recommendations</h4>';
-                    if (ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed) {
+                    if (immediateActions.length > 0) {
                         html += '<p><strong>Immediate Actions Needed:</strong></p>';
                         html += '<ul>';
-                        for (var i = 0; i < ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed.length; i++) {
-                            html += '<li>' + ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed[i] + '</li>';
+                        for (var i = 0; i < immediateActions.length; i++) {
+                            html += '<li>' + immediateActions[i] + '</li>';
                         }
                         html += '</ul>';
                     }
@@ -1302,13 +1307,15 @@
                 
                 // Purchase Recommendations
                 if (ai.PURCHASE_RECOMMENDATIONS) {
-                    html += '<div class="analysis-section">';
+                    var valueRating = parseInt(ai.PURCHASE_RECOMMENDATIONS.value_for_money_rating) || 5;
+                    var purchaseColor = getColorByRating(valueRating, 10);
+                    html += '<div class="analysis-section colored-box" style="' + purchaseColor + '">';
                     html += '<h4>💰 Purchase Assessment</h4>';
                     if (ai.PURCHASE_RECOMMENDATIONS.fair_market_value_assessment) {
                         html += '<p><strong>Fair Market Value:</strong> ' + ai.PURCHASE_RECOMMENDATIONS.fair_market_value_assessment + '</p>';
                     }
                     if (ai.PURCHASE_RECOMMENDATIONS.value_for_money_rating) {
-                        html += '<p><strong>Value Rating:</strong> ' + ai.PURCHASE_RECOMMENDATIONS.value_for_money_rating + '/10</p>';
+                        html += '<p><strong>Value Rating:</strong> ' + valueRating + '/10</p>';
                     }
                     if (ai.PURCHASE_RECOMMENDATIONS.price_negotiation_points) {
                         html += '<p><strong>Negotiation Points:</strong></p>';
@@ -1323,10 +1330,12 @@
                 
                 // Reliability Assessment
                 if (ai.RELIABILITY_ASSESSMENT) {
-                    html += '<div class="analysis-section">';
+                    var reliabilityScore = parseInt(ai.RELIABILITY_ASSESSMENT.overall_reliability_score) || 5;
+                    var reliabilityColor = getColorByRating(reliabilityScore, 10);
+                    html += '<div class="analysis-section colored-box" style="' + reliabilityColor + '">';
                     html += '<h4>📊 Reliability Assessment</h4>';
                     if (ai.RELIABILITY_ASSESSMENT.overall_reliability_score) {
-                        html += '<p><strong>Overall Reliability:</strong> ' + ai.RELIABILITY_ASSESSMENT.overall_reliability_score + '/10</p>';
+                        html += '<p><strong>Overall Reliability:</strong> ' + reliabilityScore + '/10</p>';
                     }
                     if (ai.RELIABILITY_ASSESSMENT.expected_lifespan_and_maintenance_costs) {
                         var costs = ai.RELIABILITY_ASSESSMENT.expected_lifespan_and_maintenance_costs;
@@ -1352,7 +1361,9 @@
             // Market Analysis
             if (analysisData.market_analysis) {
                 var market = analysisData.market_analysis;
-                html += '<div class="analysis-section">';
+                var marketScore = ((market.market_demand.score || 5) + (market.reliability_rating.score || 5)) / 2;
+                var marketColor = getColorByRating(marketScore, 10);
+                html += '<div class="analysis-section colored-box" style="' + marketColor + '">';
                 html += '<h4>📊 Market Analysis</h4>';
                 if (market.average_price_range) {
                     html += '<p><strong>Price Range:</strong> £' + market.average_price_range.low + ' - £' + market.average_price_range.high + '</p>';
@@ -1378,6 +1389,37 @@
                 vehicleCard.insertAdjacentHTML('afterend', html);
             }
         }
+        // Color grading functions
+        function getColorByPercentage(percentage, reverse) {
+            if (reverse) percentage = 100 - percentage;
+            
+            if (percentage >= 80) return 'background: linear-gradient(135deg, #d4edda, #e8f5e8); border-left-color: #28a745;';
+            if (percentage >= 60) return 'background: linear-gradient(135deg, #e2f3e2, #f0f8f0); border-left-color: #6cc04a;';
+            if (percentage >= 40) return 'background: linear-gradient(135deg, #fff3cd, #fffaef); border-left-color: #ffc107;';
+            if (percentage >= 20) return 'background: linear-gradient(135deg, #ffeaa7, #fff5d6); border-left-color: #fd7e14;';
+            return 'background: linear-gradient(135deg, #f8d7da, #fdedef); border-left-color: #dc3545;';
+        }
+        
+        function getColorByRating(rating, maxRating) {
+            var percentage = (rating / maxRating) * 100;
+            return getColorByPercentage(percentage, false);
+        }
+        
+        function getColorByValue(value, ranges) {
+            if (value >= ranges.excellent) return 'background: linear-gradient(135deg, #d4edda, #e8f5e8); border-left-color: #28a745;';
+            if (value >= ranges.good) return 'background: linear-gradient(135deg, #e2f3e2, #f0f8f0); border-left-color: #6cc04a;';
+            if (value >= ranges.fair) return 'background: linear-gradient(135deg, #fff3cd, #fffaef); border-left-color: #ffc107;';
+            if (value >= ranges.poor) return 'background: linear-gradient(135deg, #ffeaa7, #fff5d6); border-left-color: #fd7e14;';
+            return 'background: linear-gradient(135deg, #f8d7da, #fdedef); border-left-color: #dc3545;';
+        }
+        
+        function getTrafficLightColor(status) {
+            if (status === 'green') return 'background: linear-gradient(135deg, #d4edda, #e8f5e8); border-left-color: #28a745;';
+            if (status === 'amber' || status === 'yellow') return 'background: linear-gradient(135deg, #fff3cd, #fffaef); border-left-color: #ffc107;';
+            if (status === 'red') return 'background: linear-gradient(135deg, #f8d7da, #fdedef); border-left-color: #dc3545;';
+            return 'background: linear-gradient(135deg, #fff3cd, #fffaef); border-left-color: #ffc107;'; // default amber
+        }
+
         function updateMileageStatus(analysisData) {
             var mileageStatusBox = document.querySelector('.status-box .status-title:contains("Mileage Analysis")');
             if (!mileageStatusBox) return;
