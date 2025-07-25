@@ -495,7 +495,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Last V5C Issue Date</span>
-                    <span class="info-value">${vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || 'Not Available'}</span>
+                    <span class="info-value">${vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) || 'Not Available'}</span>
                 </div>
             `;
         }

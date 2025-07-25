@@ -107,6 +107,9 @@ def scrape_vehicle():
                             'registration_place': existing_vehicle.registration_place,
                             'registration_date': existing_vehicle.registration_date.isoformat() if existing_vehicle.registration_date else None,
                             'last_v5c_issue_date': existing_vehicle.last_v5c_issue_date.isoformat() if existing_vehicle.last_v5c_issue_date else None,
+                            # Add V5C date at top level for frontend compatibility
+                            'v5_issue_date': existing_vehicle.last_v5c_issue_date.strftime('%d %B %Y') if existing_vehicle.last_v5c_issue_date else None,
+                            'last_v5_issue_date': existing_vehicle.last_v5c_issue_date.strftime('%d %B %Y') if existing_vehicle.last_v5c_issue_date else None,
                             'mot_history': cached_raw_data.get('mot_history'),
                             'mileage_history': cached_raw_data.get('mileage_history')
                         },
@@ -269,12 +272,19 @@ def scrape_vehicle():
                         except (ValueError, TypeError):
                             vehicle_record.year = None
                     
-                    # Add V5 issue date if available
-                    v5_date = basic_data.get('last_v5_issue_date') or basic_data.get('v5_issue_date')
-                    if v5_date:
-                        basic_data['last_v5_issue_date'] = v5_date
-                        basic_data['v5_issue_date'] = v5_date
-                        logger.info(f"V5C Issue Date mapped for API response: {v5_date}")
+                    # Add V5 issue date to top-level response from database record
+                    if vehicle_record.last_v5c_issue_date:
+                        v5_date_formatted = vehicle_record.last_v5c_issue_date.strftime('%d %B %Y')
+                        basic_data['last_v5_issue_date'] = v5_date_formatted
+                        basic_data['v5_issue_date'] = v5_date_formatted
+                        logger.info(f"V5C Issue Date mapped for API response: {v5_date_formatted}")
+                    else:
+                        # Fallback: try to get from raw extracted data
+                        v5_date = basic_data.get('last_v5_issue_date') or basic_data.get('v5_issue_date')
+                        if v5_date:
+                            basic_data['last_v5_issue_date'] = v5_date
+                            basic_data['v5_issue_date'] = v5_date
+                            logger.info(f"V5C Issue Date mapped for API response: {v5_date}")
                     
                     # Store raw data for future reference
                     vehicle_record.raw_data = basic_data
@@ -307,6 +317,9 @@ def scrape_vehicle():
                             'registration_place': vehicle_record.registration_place,
                             'registration_date': vehicle_record.registration_date.isoformat() if vehicle_record.registration_date else None,
                             'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
+                            # Add V5C date at top level for frontend compatibility
+                            'v5_issue_date': vehicle_record.last_v5c_issue_date.strftime('%d %B %Y') if vehicle_record.last_v5c_issue_date else None,
+                            'last_v5_issue_date': vehicle_record.last_v5c_issue_date.strftime('%d %B %Y') if vehicle_record.last_v5c_issue_date else None,
                             'tax_6_months': vehicle_record.tax_6_months,
                             'tax_12_months': vehicle_record.tax_12_months,
                             'mot_expiry_date': basic_info.get('mot_expiry_date'),
