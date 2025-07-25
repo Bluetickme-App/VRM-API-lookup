@@ -187,11 +187,11 @@ def scrape_vehicle():
                         make = 'BMW'
                     elif 'f12berlinetta' in model_variant.lower() or 'f12' in model_variant.lower() or 'berlinetta' in model_variant.lower() or 'berlinetta' in description.lower():
                         make = 'Ferrari'
-                    elif 'f430' in model_variant.lower() or 'f458' in model_variant.lower() or 'f488' in model_variant.lower():
+                    elif ('ferrari' in model_variant.lower() and ('f430' in model_variant.lower() or 'f458' in model_variant.lower() or 'f488' in model_variant.lower())) or ('ferrari' in description.lower() and ('430' in description.lower() or '458' in description.lower() or '488' in description.lower())):
                         make = 'Ferrari'
-                    elif 'f8' in model_variant.lower() or 'roma' in model_variant.lower() or 'portofino' in model_variant.lower():
+                    elif ('ferrari' in model_variant.lower() and ('f8' in model_variant.lower() or 'roma' in model_variant.lower() or 'portofino' in model_variant.lower())) or ('ferrari' in description.lower() and ('f8' in description.lower() or 'roma' in description.lower() or 'portofino' in description.lower())):
                         make = 'Ferrari'
-                    elif 'california' in model_variant.lower() or 'laferrari' in model_variant.lower():
+                    elif ('ferrari' in model_variant.lower() and ('california' in model_variant.lower() or 'laferrari' in model_variant.lower())) or ('ferrari' in description.lower() and ('california' in description.lower() or 'laferrari' in description.lower())):
                         make = 'Ferrari'
                     elif 'huracan' in model_variant.lower() or 'aventador' in model_variant.lower() or 'gallardo' in model_variant.lower():
                         make = 'Lamborghini'

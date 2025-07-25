@@ -344,6 +344,9 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - SJ56PVG EXAMPLE: Registration SJ56PVG no longer incorrectly shows as "Ferrari 488" - proper vehicle identification restored
 - PATTERN IMPROVEMENTS: Added bidirectional pattern matching (Ferrari+model and model+Ferrari) for better accuracy
 - PORSCHE PATTERNS: Enhanced Porsche 911 detection with similar specificity requirements
+- CRITICAL HARDCODED FIX: Found and fixed hardcoded Ferrari detection in app.py lines 190-198 that was overriding all pattern matching
+- APP.PY FERRARI FIX: Enhanced make detection logic to require "Ferrari" text presence before matching model numbers (488, 458, F430)
+- VAUXHALL CORSA RESTORATION: SJ56PVG and similar registrations now correctly identify as their actual vehicle type instead of "Ferrari 488"
 
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
