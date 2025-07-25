@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Data Scraper - UK Vehicle Intelligence</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -125,7 +125,7 @@
                            placeholder="Enter registration (e.g., K5WBR)" 
                            maxlength="8" required>
                     <button type="submit" class="btn btn-primary">
-                        <i data-feather="search"></i> Search
+                        <i class="fas fa-search"></i> Search
                     </button>
                 </form>
             </div>
@@ -147,20 +147,20 @@
         <div id="resultsSection" style="display: none;">
             <!-- Vehicle Details Card -->
             <div class="vehicle-card">
-                <h3><i data-feather="info"></i> Vehicle Information</h3>
+                <h3><i class="fas fa-car"></i> Vehicle Information</h3>
                 <div id="vehicleDetails" class="row"></div>
                 
                 <!-- Tax Cost Display -->
                 <div class="row mt-4">
                     <div class="col-md-6">
                         <div class="tax-card" id="tax6MonthCard" style="display: none;">
-                            <h5><i data-feather="pound-sign"></i> 6 Month Tax</h5>
+                            <h5><i class="fas fa-pound-sign"></i> 6 Month Tax</h5>
                             <h3 id="tax6MonthValue">-</h3>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="tax-card" id="tax12MonthCard" style="display: none;">
-                            <h5><i data-feather="pound-sign"></i> 12 Month Tax</h5>
+                            <h5><i class="fas fa-pound-sign"></i> 12 Month Tax</h5>
                             <h3 id="tax12MonthValue">-</h3>
                         </div>
                     </div>
@@ -170,7 +170,7 @@
                 <div class="row mt-3">
                     <div class="col-md-6">
                         <div class="owner-card" id="totalKeepersCard" style="display: none;">
-                            <h5><i data-feather="users"></i> Total Keepers</h5>
+                            <h5><i class="fas fa-users"></i> Total Keepers</h5>
                             <h3 id="totalKeepersValue">-</h3>
                             <small>Authentic DVLA Data</small>
                         </div>
@@ -187,21 +187,21 @@
                 <!-- Analysis Button -->
                 <div class="text-center mt-4">
                     <button id="analyzeBtn" class="btn btn-success btn-lg" style="display: none;">
-                        <i data-feather="zap"></i> Analyze with OpenAI GPT-4o
+                        <i class="fas fa-brain"></i> Analyze with OpenAI GPT-4o
                     </button>
                 </div>
             </div>
 
             <!-- MOT History Card -->
             <div class="vehicle-card" id="motCard">
-                <h3><i data-feather="clipboard"></i> MOT Test History</h3>
+                <h3><i class="fas fa-clipboard-list"></i> MOT Test History</h3>
                 <div id="motHistory"></div>
             </div>
 
             <!-- Analysis Results -->
             <div id="analysisResults" style="display: none;">
                 <div class="vehicle-card">
-                    <h3><i data-feather="zap"></i> AI Analysis Results</h3>
+                    <h3><i class="fas fa-brain"></i> AI Analysis Results</h3>
                     <div id="analysisContent"></div>
                 </div>
             </div>
@@ -209,10 +209,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
     <script>
-        // Initialize Feather Icons
-        feather.replace();
+        // No icon initialization needed for Font Awesome
 
         // Form submission handler
         document.getElementById('vehicleForm').addEventListener('submit', function(e) {
@@ -257,7 +255,7 @@
             })
             .catch(function(error) {
                 console.error('Error:', error);
-                showError('Network error occurred. Please try again.');
+                showError('Network error occurred. Please check your connection and try again.');
             });
         }
 
@@ -321,8 +319,6 @@
             document.getElementById('analyzeBtn').onclick = function() {
                 performAnalysis(vehicleData.registration);
             };
-            
-            feather.replace();
         }
 
         // Display MOT history
@@ -357,7 +353,7 @@
         // Perform AI analysis
         function performAnalysis(registration) {
             var btn = document.getElementById('analyzeBtn');
-            btn.innerHTML = '<i data-feather="loader"></i> Analyzing...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
             btn.disabled = true;
             
             fetch('/api/intelligent-analysis', {
@@ -382,9 +378,8 @@
                 showError('Failed to perform analysis. Please try again.');
             })
             .finally(function() {
-                btn.innerHTML = '<i data-feather="zap"></i> Analyze with OpenAI GPT-4o';
+                btn.innerHTML = '<i class="fas fa-brain"></i> Analyze with OpenAI GPT-4o';
                 btn.disabled = false;
-                feather.replace();
             });
         }
 
@@ -474,11 +469,10 @@
             hideAllSections();
             document.getElementById('errorMessage').innerHTML = 
                 '<div class="alert alert-danger">' +
-                    '<h5><i data-feather="alert-circle"></i> Error</h5>' +
+                    '<h5><i class="fas fa-exclamation-circle"></i> Error</h5>' +
                     '<p>' + message + '</p>' +
                 '</div>';
             document.getElementById('errorSection').style.display = 'block';
-            feather.replace();
         }
 
         function hideAllSections() {
