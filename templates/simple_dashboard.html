@@ -509,12 +509,21 @@
             var motStatus = 'No MOT';
             var motDetail = 'MOT required';
             
-            if (data.mot_expiry_date) {
-                var motDate = new Date(data.mot_expiry_date);
-                var today = new Date();
-                var diffTime = motDate - today;
-                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                var formattedDate = data.mot_expiry_date.split('-').reverse().join('/');
+            // Check for MOT data in multiple locations
+            var motExpiryDate = data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date);
+            var motDaysLeft = data.mot_days_left || (data.mot_summary && data.mot_summary.mot_days_left);
+            
+            if (motExpiryDate && motExpiryDate !== 'None' && motExpiryDate !== null) {
+                var formattedDate = motExpiryDate.split('-').reverse().join('/');
+                
+                // Use mot_days_left if available, otherwise calculate
+                var diffDays = motDaysLeft;
+                if (diffDays === null || diffDays === undefined) {
+                    var motDate = new Date(motExpiryDate);
+                    var today = new Date();
+                    var diffTime = motDate - today;
+                    diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                }
                 
                 if (diffDays >= 180) { // 6+ months (approximately 180 days)
                     motClass = 'status-good';
@@ -534,8 +543,11 @@
                     motDetail = 'Expired ' + Math.abs(diffDays) + ' days ago';
                 }
             } else {
-                // No MOT expiry date available
-                if (data.mot_history && data.mot_history.length > 0) {
+                // Check if we have MOT history data
+                var motTests = (data.mot_history && data.mot_history.tests) || 
+                              (data.complete_mot_history && data.complete_mot_history.tests) || [];
+                              
+                if (motTests.length > 0) {
                     motClass = 'status-danger';
                     motStatus = 'Check Required';
                     motDetail = 'MOT status unclear';
@@ -553,21 +565,38 @@
             html += '<div class="status-detail">' + motDetail + '</div>';
             html += '</div>';
 
-            // Mileage Analysis Status - Show based on data points available
+            // Mileage Analysis Status - Show based on data points available and mileage issues
             var mileageClass = 'status-good';
             var mileageStatus = 'Low Risk';
             var mileageDetail = 'Appears genuine';
             
-            // Check mileage history or MOT data points
+            // Check for mileage issues from database
+            var mileageIssues = data.mileage_issues || (data.mot_summary && data.mot_summary.mileage_issues);
+            var lastMotMileage = data.last_mot_mileage || (data.mot_summary && data.mot_summary.last_mot_mileage);
+            
+            // Count data points from various sources
             var dataPoints = 0;
+            var motTests = (data.mot_history && data.mot_history.tests) || 
+                          (data.complete_mot_history && data.complete_mot_history.tests) || [];
+            dataPoints = motTests.length;
+            
             if (data.mileage_history && data.mileage_history.length > 0) {
-                dataPoints = data.mileage_history.length;
-            } else if (data.mot_history && data.mot_history.length > 0) {
-                dataPoints = data.mot_history.length;
+                dataPoints += data.mileage_history.length;
             }
             
-            if (dataPoints > 0) {
-                mileageDetail = dataPoints + ' data points • Analysis pending';
+            // Set status based on mileage issues and data availability
+            if (mileageIssues && mileageIssues !== 'No' && mileageIssues !== null) {
+                mileageClass = 'status-danger';
+                mileageStatus = 'Issues Found';
+                mileageDetail = mileageIssues;
+            } else if (dataPoints > 0) {
+                mileageClass = 'status-good';
+                mileageStatus = 'Verified';
+                if (lastMotMileage) {
+                    mileageDetail = dataPoints + ' data points • Last: ' + parseInt(lastMotMileage).toLocaleString() + ' miles';
+                } else {
+                    mileageDetail = dataPoints + ' data points • Appears genuine';
+                }
             } else {
                 mileageDetail = 'Insufficient data';
                 mileageClass = 'status-warning';
