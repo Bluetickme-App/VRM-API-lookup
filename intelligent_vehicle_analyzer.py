@@ -94,19 +94,37 @@ class IntelligentVehicleAnalyzer:
     def _analyze_mot_patterns(self, mot_history):
         """Analyze MOT history for patterns and predictions"""
         if not mot_history or 'tests' not in mot_history:
-            return {'error': 'No MOT history available'}
+            return {
+                'error': 'No MOT history available',
+                'total_tests': 0,
+                'failure_rate': 0,
+                'recent_failures': [],
+                'common_issue_categories': {},
+                'recent_advisories': [],
+                'pattern_analysis': {}
+            }
         
         tests = mot_history.get('tests', [])
         if not tests:
-            return {'error': 'No MOT tests found'}
+            return {
+                'error': 'No MOT tests found',
+                'total_tests': 0,
+                'failure_rate': 0,
+                'recent_failures': [],
+                'common_issue_categories': {},
+                'recent_advisories': [],
+                'pattern_analysis': {}
+            }
         
         # Analyze failure patterns
         failures = []
         advisories = []
         common_issues = {}
+        total_tests = len(tests)
         
         for test in tests:
-            if test.get('result', '').upper() == 'FAILED':
+            result = test.get('result', '').upper()
+            if result == 'FAILED' or result == 'FAIL':
                 failures.append({
                     'date': test.get('date'),
                     'mileage': test.get('mileage'),
@@ -115,10 +133,13 @@ class IntelligentVehicleAnalyzer:
             
             # Extract advisories and categorize issues
             comments = test.get('comments', [])
+            if isinstance(comments, str):
+                comments = [comments]
+            
             for comment in comments:
                 comment_text = comment if isinstance(comment, str) else str(comment)
                 
-                if 'advisory' in comment_text.lower():
+                if 'advisory' in comment_text.lower() or 'minor' in comment_text.lower():
                     advisories.append({
                         'date': test.get('date'),
                         'issue': comment_text,
@@ -130,13 +151,16 @@ class IntelligentVehicleAnalyzer:
                 if issue_category:
                     common_issues[issue_category] = common_issues.get(issue_category, 0) + 1
         
+        # Calculate failure rate correctly
+        failure_rate = len(failures) / total_tests if total_tests > 0 else 0
+        
         return {
-            'total_tests': len(tests),
+            'total_tests': total_tests,
             'failure_count': len(failures),
-            'failure_rate': len(failures) / len(tests) if tests else 0,
-            'recent_failures': failures[:3],  # Last 3 failures
+            'failure_rate': failure_rate,
+            'recent_failures': failures[-3:] if failures else [],  # Last 3 failures
             'advisory_count': len(advisories),
-            'recent_advisories': advisories[:5],  # Last 5 advisories
+            'recent_advisories': advisories[-5:] if advisories else [],  # Last 5 advisories
             'common_issue_categories': common_issues,
             'pattern_analysis': self._detect_mot_patterns(tests)
         }

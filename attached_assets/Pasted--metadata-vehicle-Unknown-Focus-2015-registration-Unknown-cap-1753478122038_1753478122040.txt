@@ -1,0 +1,163 @@
+{
+  "metadata": {
+    "vehicle": "Unknown Focus (2015)",
+    "registration": "Unknown",
+    "cap_valuation_data": {
+      "cap_estimate": 3300,
+      "trade_value": 2640,
+      "retail_high": 3795,
+      "retail_low": 2970,
+      "confidence": "medium"
+    }
+  },
+  "mileage_analysis": {
+    "current_mileage": 96660,
+    "annual_average": 7878,
+    "usage_category": "average_usage",
+    "mileage_tampering_detected": false,
+    "mileage_anomalies": [],
+    "critical_rollbacks": [],
+    "all_rollbacks_detected": [],
+    "complete_mileage_progression": [
+      {
+        "date": "10/12/2018",
+        "mileage": 42844
+      },
+      {
+        "date": "14/11/2019",
+        "mileage": 53491
+      },
+      {
+        "date": "14/11/2019",
+        "mileage": 53491
+      },
+      {
+        "date": "09/10/2020",
+        "mileage": 54824
+      },
+      {
+        "date": "05/10/2021",
+        "mileage": 62550
+      },
+      {
+        "date": "06/10/2022",
+        "mileage": 75112
+      },
+      {
+        "date": "09/10/2023",
+        "mileage": 87189
+      },
+      {
+        "date": "10/10/2023",
+        "mileage": 87190
+      },
+      {
+        "date": "07/10/2024",
+        "mileage": 96660
+      },
+      {
+        "date": "07/10/2024",
+        "mileage": 96660
+      }
+    ]
+  },
+  "mot_history_analysis": {
+    "total_tests": 10,
+    "failure_rate": 0.3,
+    "recent_failures": [
+      {
+        "date": "07/10/2024",
+        "mileage": 96660,
+        "comments": [
+          "Nearside Rear Nail in tyre ADVISORY",
+          "Nearside Stop lamp(s) not working (4.3.1 (a) (ii)) PRS"
+        ]
+      },
+      {
+        "date": "09/10/2023",
+        "mileage": 87189,
+        "comments": [
+          "Nearside Front Brake pad(s) less than 1.5 mm thick (1.1.13 (a) (ii)) DANGEROUS",
+          "Nearside Front Brake disc significantly and obviously worn (1.1.14 (a) (i)) MAJOR",
+          "Offside Front Brake disc significantly and obviously worn (1.1.14 (a) (i)) MAJOR",
+          "Rear exhaust heat shield insecure ADVISORY"
+        ]
+      },
+      {
+        "date": "14/11/2019",
+        "mileage": 53491,
+        "comments": [
+          "Offside Front Side repeater not working (4.4.1 (a) (ii)) PRS"
+        ]
+      }
+    ],
+    "common_issue_categories": {
+      "tyres": 5,
+      "lights": 1,
+      "emissions": 2,
+      "brakes": 5
+    },
+    "advisory_patterns": [
+      {
+        "date": "07/10/2024",
+        "issue": "Nearside Rear Nail in tyre ADVISORY",
+        "mileage": 96660
+      },
+      {
+        "date": "07/10/2024",
+        "issue": "Nearside Rear Nail in tyre ADVISORY",
+        "mileage": 96660
+      },
+      {
+        "date": "10/10/2023",
+        "issue": "Rear exhaust heat shield insecure ADVISORY",
+        "mileage": 87190
+      },
+      {
+        "date": "09/10/2023",
+        "issue": "Rear exhaust heat shield insecure ADVISORY",
+        "mileage": 87189
+      },
+      {
+        "date": "06/10/2022",
+        "issue": "Front Brake pad(s) wearing thin (1.1.13 (a) (ii)) ADVISORY",
+        "mileage": 75112
+      }
+    ],
+    "wear_pattern_detected": {
+      "average_test_interval": 236,
+      "recent_failure_trend": 2,
+      "pattern_detected": "deteriorating"
+    }
+  },
+  "ownership_compliance": {
+    "total_keepers": 3,
+    "last_v5c_change": "2024-01-21",
+    "registration_place": "Stanmore / London",
+    "mot_days_remaining": null,
+    "vehicle_exported": false,
+    "outstanding_recalls": false
+  },
+  "system_flags": {
+    "mechanical_risk_band": "High",
+    "mileage_discrepancy_flag": false
+  },
+  "grading_scores": {
+    "mechanical_condition": "Poor",
+    "bodywork_condition": "Average",
+    "interior_condition": "Average"
+  },
+  "prediction": {
+    "mot_failure_probability": 0.3,
+    "likely_failure_points": [
+      "Brakes",
+      "Tyres",
+      "Lights"
+    ],
+    "estimated_maintenance_costs": 600
+  },
+  "trade_purchase_recommendation": {
+    "recommendation": "AVOID",
+    "reasoning": "The vehicle has a high mechanical risk due to frequent brake and tyre issues, and a deteriorating wear pattern. The recent V5C change suggests potential issues being offloaded. Estimated maintenance costs are high, and the vehicle's condition does not justify the CAP Average pricing tier.",
+    "suggested_trade_price_tier": "CAP Below"
+  }

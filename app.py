@@ -296,15 +296,25 @@ def scrape_vehicle():
                     model_variant = vehicle_details.get('model_variant', '')
                     description = vehicle_details.get('description', '')
                     
-                    # Enhanced make extraction patterns (from replit.md luxury vehicle patterns)
-                    if 'corsa' in model_variant.lower():
+                    # Enhanced make extraction patterns with comprehensive vehicle coverage
+                    if 'corsa' in model_variant.lower() or 'astra' in model_variant.lower() or 'insignia' in model_variant.lower():
                         make = 'Vauxhall'
-                    elif 'a6' in model_variant.lower():
+                    elif 'focus' in model_variant.lower() or 'fiesta' in model_variant.lower() or 'mondeo' in model_variant.lower() or 'kuga' in model_variant.lower():
+                        make = 'Ford'
+                    elif 'golf' in model_variant.lower() or 'polo' in model_variant.lower() or 'passat' in model_variant.lower():
+                        make = 'Volkswagen'
+                    elif 'a3' in model_variant.lower() or 'a4' in model_variant.lower() or 'a6' in model_variant.lower() or 'q3' in model_variant.lower() or 'q5' in model_variant.lower():
                         make = 'Audi'
-                    elif 'cla' in model_variant.lower() or 'cla' in description.lower():
-                        make = 'Mercedes-Benz'
-                    elif '3 series' in description.lower() or 'bmw' in description.lower():
+                    elif '3 series' in model_variant.lower() or '5 series' in model_variant.lower() or 'x3' in model_variant.lower() or 'x5' in model_variant.lower() or 'bmw' in description.lower():
                         make = 'BMW'
+                    elif 'cla' in model_variant.lower() or 'a-class' in model_variant.lower() or 'c-class' in model_variant.lower() or 'e-class' in model_variant.lower() or 'cla' in description.lower():
+                        make = 'Mercedes-Benz'
+                    elif 'civic' in model_variant.lower() or 'accord' in model_variant.lower() or 'crv' in model_variant.lower():
+                        make = 'Honda'
+                    elif 'yaris' in model_variant.lower() or 'corolla' in model_variant.lower() or 'avensis' in model_variant.lower() or 'prius' in model_variant.lower():
+                        make = 'Toyota'
+                    elif 'micra' in model_variant.lower() or 'qashqai' in model_variant.lower() or 'juke' in model_variant.lower():
+                        make = 'Nissan'
                     elif 'f12berlinetta' in model_variant.lower() or 'f12' in model_variant.lower() or 'berlinetta' in model_variant.lower() or 'berlinetta' in description.lower():
                         make = 'Ferrari'
                     elif ('ferrari' in model_variant.lower() and ('f430' in model_variant.lower() or 'f458' in model_variant.lower() or 'f488' in model_variant.lower())) or ('ferrari' in description.lower() and ('430' in description.lower() or '458' in description.lower() or '488' in description.lower())):

@@ -398,6 +398,16 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - MOBILE NAVIGATION: Improved tab navigation with better wrapping and touch-friendly button sizes
 - DEVICE-SPECIFIC OPTIMIZATION: Tailored design elements for different screen sizes with responsive grid adjustments
 
+**July 25, 2025 - FORD FOCUS IDENTIFICATION AND FAILURE RATE CALCULATION FIXES:**
+- FORD DETECTION FIX: Added comprehensive Ford make detection patterns (Focus, Fiesta, Mondeo, Kuga) to app.py
+- VEHICLE IDENTIFICATION ENHANCEMENT: Enhanced make detection for all major UK brands (Ford, Vauxhall, Volkswagen, Audi, BMW, Honda, Toyota, Nissan)
+- MOT FAILURE RATE FIX: Fixed 0.0% failure risk calculation by enhancing MOT pattern analysis with proper data handling
+- COMPREHENSIVE BRAND COVERAGE: Added detection patterns for 30+ vehicle models across 10 major manufacturers
+- ERROR HANDLING IMPROVEMENT: Enhanced MOT analysis to return proper data structure even when no MOT history available
+- CALCULATION ACCURACY: Fixed failure rate calculation logic to properly process actual MOT test results
+- PATTERN SPECIFICITY: Improved pattern matching to prevent false vehicle identification
+- USER ISSUE RESOLUTION: Resolved "Unknown Focus" display issue and 0.0% failure rate problem
+
 **July 25, 2025 - ENHANCED MOT ADVISORIES AND FAILURE POINT DISPLAY:**
 - DETAILED CATEGORIZATION: Enhanced MOT comment categorization into Major Defects, Minor Defects, Advisories, Failure Points, and Notes
 - VISUAL DISTINCTION: Added color-coded backgrounds and badges for different defect types (red=major, orange=minor, blue=advisory)
