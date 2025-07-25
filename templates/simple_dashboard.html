@@ -241,6 +241,84 @@
             opacity: 0.8;
         }
 
+        .dropdown-content {
+            margin-top: 16px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #2c3e50;
+            font-weight: normal;
+        }
+
+        .dropdown-content h4 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 18px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+        }
+
+        .mot-history-list {
+            margin-top: 12px;
+        }
+
+        .mot-test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .mot-date {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .mot-result.pass {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .mot-result.fail {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .mot-mileage {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .mileage-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .mileage-table th, .mileage-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mileage-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
         .analyze-btn {
             background: #9b59b6;
             color: white;
@@ -481,7 +559,8 @@
                 // No V5C date available, use keeper count as fallback
                 if (data.total_keepers) {
                     var keepersCount = parseInt(data.total_keepers);
-                    ownershipDetail = keepersCount + ' owners • V5C date unavailable';
+                    var previousOwners = keepersCount - 1; // Current owner isn't "previous"
+                    ownershipDetail = previousOwners + ' previous owners • ' + keepersCount + ' total keepers';
                     
                     if (keepersCount <= 2) {
                         ownershipClass = 'status-good';
@@ -498,10 +577,25 @@
                 }
             }
             
-            html += '<div class="status-box ' + ownershipClass + '">';
+            html += '<div class="status-box ' + ownershipClass + '" onclick="toggleDropdown(\'ownership\')" style="cursor: pointer;">';
             html += '<div class="status-title">Ownership Risk</div>';
             html += '<div class="status-value">' + ownershipStatus + '</div>';
             html += '<div class="status-detail">' + ownershipDetail + '</div>';
+            html += '</div>';
+            
+            // Add hidden ownership dropdown
+            html += '<div id="ownership-dropdown" class="dropdown-content" style="display: none;">';
+            html += '<h4>Ownership Details</h4>';
+            if (data.total_keepers) {
+                html += '<p><strong>Total Keepers:</strong> ' + data.total_keepers + '</p>';
+            }
+            if (data.last_v5c_issue_date || data.v5_issue_date) {
+                var v5Date = data.last_v5c_issue_date || data.v5_issue_date;
+                html += '<p><strong>Last V5C Issue:</strong> ' + v5Date + '</p>';
+            }
+            if (data.registration_place) {
+                html += '<p><strong>Registration Place:</strong> ' + data.registration_place + '</p>';
+            }
             html += '</div>';
 
             // MOT Status - Updated thresholds: Red (<3 months), Orange (3-6 months), Green (6+ months)
@@ -539,7 +633,7 @@
                     motDetail = 'Expires: ' + formattedDate + ' (' + diffDays + ' days)';
                 } else { // Expired
                     motClass = 'status-danger';
-                    motStatus = 'Expired';
+                    motStatus = 'EXPIRED';
                     motDetail = 'Expired ' + Math.abs(diffDays) + ' days ago';
                 }
             } else {
@@ -559,10 +653,38 @@
                 }
             }
             
-            html += '<div class="status-box ' + motClass + '">';
+            html += '<div class="status-box ' + motClass + '" onclick="toggleDropdown(\'mot\')" style="cursor: pointer;">';
             html += '<div class="status-title">MOT Status</div>';
             html += '<div class="status-value">' + motStatus + '</div>';
             html += '<div class="status-detail">' + motDetail + '</div>';
+            html += '</div>';
+            
+            // Add hidden MOT dropdown
+            html += '<div id="mot-dropdown" class="dropdown-content" style="display: none;">';
+            html += '<h4>MOT History</h4>';
+            var motTests = (data.mot_history && data.mot_history.tests) || 
+                          (data.complete_mot_history && data.complete_mot_history.tests) || [];
+            if (motTests.length > 0) {
+                html += '<p><strong>Total Tests:</strong> ' + motTests.length + '</p>';
+                html += '<div class="mot-history-list">';
+                for (var i = 0; i < Math.min(motTests.length, 5); i++) { // Show first 5 tests
+                    var test = motTests[i];
+                    var resultClass = test.result && test.result.toLowerCase().includes('pass') ? 'pass' : 'fail';
+                    html += '<div class="mot-test-item">';
+                    html += '<span class="mot-date">' + test.date + '</span>';
+                    html += '<span class="mot-result ' + resultClass + '">' + test.result + '</span>';
+                    if (test.mileage) {
+                        html += '<span class="mot-mileage">' + parseInt(test.mileage).toLocaleString() + ' miles</span>';
+                    }
+                    html += '</div>';
+                }
+                if (motTests.length > 5) {
+                    html += '<p><em>... and ' + (motTests.length - 5) + ' more tests</em></p>';
+                }
+                html += '</div>';
+            } else {
+                html += '<p>No MOT history available</p>';
+            }
             html += '</div>';
 
             // Mileage Analysis Status - Show based on data points available and mileage issues
@@ -602,10 +724,35 @@
                 mileageClass = 'status-warning';
                 mileageStatus = 'Limited Data';
             }
-            html += '<div class="status-box ' + mileageClass + '" id="mileageStatus">';
+            html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
             html += '<div class="status-title">Mileage Analysis</div>';
             html += '<div class="status-value">' + mileageStatus + '</div>';
             html += '<div class="status-detail">' + mileageDetail + '</div>';
+            html += '</div>';
+            
+            // Add hidden mileage dropdown
+            html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
+            html += '<h4>Mileage Data Points</h4>';
+            if (motTests.length > 0) {
+                html += '<p><strong>Data Sources:</strong> ' + motTests.length + ' MOT tests</p>';
+                html += '<div class="mileage-progression">';
+                html += '<table class="mileage-table">';
+                html += '<thead><tr><th>Date</th><th>Mileage</th><th>Source</th></tr></thead><tbody>';
+                for (var i = 0; i < Math.min(motTests.length, 8); i++) {
+                    var test = motTests[i];
+                    if (test.mileage) {
+                        html += '<tr>';
+                        html += '<td>' + test.date + '</td>';
+                        html += '<td>' + parseInt(test.mileage).toLocaleString() + '</td>';
+                        html += '<td>MOT Test</td>';
+                        html += '</tr>';
+                    }
+                }
+                html += '</tbody></table>';
+                html += '</div>';
+            } else {
+                html += '<p>No mileage data available</p>';
+            }
             html += '</div>';
             
             html += '</div>';
@@ -699,6 +846,21 @@
             html += '</div></div>';
 
             document.getElementById('resultsSection').innerHTML = html;
+        }
+
+        function toggleDropdown(type) {
+            var dropdown = document.getElementById(type + '-dropdown');
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                // Hide all other dropdowns first
+                var allDropdowns = document.querySelectorAll('.dropdown-content');
+                for (var i = 0; i < allDropdowns.length; i++) {
+                    allDropdowns[i].style.display = 'none';
+                }
+                // Show the clicked one
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
         }
 
         function analyzeVehicle() {
