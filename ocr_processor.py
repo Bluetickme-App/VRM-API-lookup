@@ -42,7 +42,7 @@ class NumberPlateOCR:
         ]
     
     def process_image(self, image_data, is_base64=True):
-        """Process image and extract number plate text"""
+        """Enhanced processing for real-world number plate images"""
         try:
             if not TESSERACT_AVAILABLE:
                 return {'error': 'OCR functionality not available - Tesseract not installed'}
@@ -60,29 +60,54 @@ class NumberPlateOCR:
             if image is None:
                 return {'error': 'Failed to load image'}
             
-            # Convert to RGB if needed (handle different formats)
+            # Convert to RGB if needed
             if image.mode in ('RGBA', 'P'):
                 image = image.convert('RGB')
             
-            # Preprocess image for better OCR
+            # Try multiple processing strategies
+            all_plates = []
+            all_extracted_text = []
+            
+            # Strategy 1: Original preprocessing
             processed_image = self._preprocess_image(image)
-            
-            # Extract text using OCR
             extracted_text = self._extract_text(processed_image)
-            
-            # Find potential number plates
+            all_extracted_text.append(f"Strategy1: '{extracted_text}'")
             plates = self._find_number_plates(extracted_text)
+            all_plates.extend(plates)
             
-            # Try multiple OCR configurations if first attempt fails
-            if not plates and extracted_text.strip():
-                plates = self._try_alternative_ocr(processed_image)
+            # Strategy 2: Try with original image (no preprocessing)
+            original_text = self._extract_text(image)
+            all_extracted_text.append(f"Original: '{original_text}'")
+            original_plates = self._find_number_plates(original_text)
+            all_plates.extend(original_plates)
+            
+            # Strategy 3: Try alternative OCR configs on processed image
+            alt_plates = self._try_alternative_ocr(processed_image)
+            all_plates.extend(alt_plates)
+            
+            # Strategy 4: Focus on yellow plate area (UK plates are often yellow)
+            try:
+                yellow_focused = self._extract_yellow_regions(image)
+                if yellow_focused:
+                    yellow_text = self._extract_text(yellow_focused)
+                    all_extracted_text.append(f"Yellow: '{yellow_text}'")
+                    yellow_plates = self._find_number_plates(yellow_text)
+                    all_plates.extend(yellow_plates)
+            except:
+                pass
+            
+            # Remove duplicates and score by pattern matching
+            unique_plates = list(set(all_plates))
+            scored_plates = self._score_plate_candidates(unique_plates)
+            
+            debug_info = " | ".join(all_extracted_text) if not scored_plates else None
             
             return {
                 'success': True,
-                'extracted_text': extracted_text,
-                'potential_plates': plates,
-                'best_match': plates[0] if plates else None,
-                'debug_info': f"Extracted: '{extracted_text}'" if not plates else None
+                'extracted_text': " | ".join(all_extracted_text),
+                'potential_plates': scored_plates,
+                'best_match': scored_plates[0] if scored_plates else None,
+                'debug_info': debug_info
             }
             
         except Exception as e:
@@ -108,32 +133,61 @@ class NumberPlateOCR:
             return None
     
     def _preprocess_image(self, image):
-        """Preprocess image for better OCR accuracy using PIL"""
+        """Enhanced preprocessing for real-world number plate images"""
         try:
-            # Convert to grayscale if not already
-            if image.mode != 'L':
-                image = image.convert('L')
+            # Convert to RGB first if needed
+            if image.mode not in ('RGB', 'L'):
+                image = image.convert('RGB')
             
             # Convert to numpy array for processing
-            img_array = np.array(image)
-            
-            # Simple contrast enhancement
-            # Find the 5th and 95th percentiles
-            p5, p95 = np.percentile(img_array, (5, 95))
-            
-            # Scale the image to use the full range (avoid division by zero)
-            if p95 > p5:
-                img_array = np.clip((img_array - p5) * 255 / (p95 - p5), 0, 255).astype(np.uint8)
+            if image.mode == 'RGB':
+                img_array = np.array(image)
+                # Convert to grayscale with weighted average (better than simple convert)
+                img_array = np.dot(img_array[...,:3], [0.2989, 0.5870, 0.1140])
             else:
-                img_array = img_array.astype(np.uint8)
+                img_array = np.array(image)
             
-            # Convert back to PIL Image
-            processed_image = Image.fromarray(img_array)
+            img_array = img_array.astype(np.uint8)
             
-            return processed_image
+            # Multiple enhancement strategies
+            enhanced_images = []
+            
+            # Strategy 1: Basic contrast enhancement
+            p5, p95 = np.percentile(img_array, (5, 95))
+            if p95 > p5:
+                contrast_enhanced = np.clip((img_array - p5) * 255 / (p95 - p5), 0, 255).astype(np.uint8)
+                enhanced_images.append(Image.fromarray(contrast_enhanced))
+            
+            # Strategy 2: Adaptive thresholding for high contrast
+            # Simple threshold at mean value
+            mean_val = np.mean(img_array)
+            binary = (img_array > mean_val * 1.1).astype(np.uint8) * 255
+            enhanced_images.append(Image.fromarray(binary))
+            
+            # Strategy 3: Edge enhancement
+            # Simple edge detection using differences
+            try:
+                from scipy import ndimage
+                edges = ndimage.sobel(img_array)
+                edges = np.clip(edges, 0, 255).astype(np.uint8)
+                enhanced_images.append(Image.fromarray(edges))
+            except ImportError:
+                # Fallback simple edge detection
+                h, w = img_array.shape
+                edges = np.zeros_like(img_array)
+                for i in range(1, h-1):
+                    for j in range(1, w-1):
+                        gx = int(img_array[i-1,j-1]) - int(img_array[i-1,j+1]) + 2*(int(img_array[i,j-1]) - int(img_array[i,j+1])) + int(img_array[i+1,j-1]) - int(img_array[i+1,j+1])
+                        gy = int(img_array[i-1,j-1]) - int(img_array[i+1,j-1]) + 2*(int(img_array[i-1,j]) - int(img_array[i+1,j])) + int(img_array[i-1,j+1]) - int(img_array[i+1,j+1])
+                        edges[i,j] = min(255, abs(gx) + abs(gy))
+                enhanced_images.append(Image.fromarray(edges.astype(np.uint8)))
+            
+            # Return the contrast enhanced version as primary (most reliable)
+            return enhanced_images[0] if enhanced_images else Image.fromarray(img_array)
+            
         except Exception as e:
             logger.error(f"Image preprocessing error: {e}")
-            return image  # Return original image if preprocessing fails
+            return image
     
     def _extract_text(self, image):
         """Extract text from preprocessed image using Tesseract"""
@@ -238,3 +292,63 @@ class NumberPlateOCR:
                 return True
         
         return False
+    
+    def _extract_yellow_regions(self, image):
+        """Extract yellow regions that might contain UK number plates"""
+        try:
+            # Convert to HSV for better yellow detection
+            img_array = np.array(image)
+            
+            # Simple yellow detection in RGB
+            # Yellow plates typically have high R and G, low B
+            r, g, b = img_array[:,:,0], img_array[:,:,1], img_array[:,:,2]
+            
+            # Detect yellow-ish regions
+            yellow_mask = (r > 150) & (g > 150) & (b < 100)
+            
+            if np.any(yellow_mask):
+                # Create enhanced image focusing on yellow regions
+                enhanced = img_array.copy()
+                enhanced[~yellow_mask] = enhanced[~yellow_mask] * 0.3  # Darken non-yellow areas
+                return Image.fromarray(enhanced.astype(np.uint8))
+                
+        except Exception as e:
+            logger.error(f"Yellow region extraction error: {e}")
+        
+        return None
+    
+    def _score_plate_candidates(self, plates):
+        """Score and sort plate candidates by likelihood"""
+        if not plates:
+            return []
+        
+        scored = []
+        for plate in plates:
+            score = 0
+            clean_plate = plate.replace(' ', '')
+            
+            # Length scoring (UK plates are typically 7 characters)
+            if len(clean_plate) == 7:
+                score += 10
+            elif 6 <= len(clean_plate) <= 8:
+                score += 5
+            
+            # Pattern scoring for UK formats
+            if re.match(r'^[A-Z]{2}[0-9]{2}[A-Z]{3}$', clean_plate):
+                score += 15  # Current format
+            elif re.match(r'^[A-Z][0-9]{3}[A-Z]{3}$', clean_plate):
+                score += 12  # Older format
+            elif re.match(r'^[A-Z]{3}[0-9]{1,3}[A-Z]$', clean_plate):
+                score += 10  # Even older format
+            
+            # Character quality scoring
+            # Penalize ambiguous characters that might be OCR errors
+            ambiguous_chars = clean_plate.count('0') + clean_plate.count('O') + clean_plate.count('I') + clean_plate.count('1')
+            if ambiguous_chars < len(clean_plate) * 0.5:  # Less than half ambiguous
+                score += 5
+            
+            scored.append((score, plate))
+        
+        # Sort by score (highest first)
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [plate for score, plate in scored]
