@@ -285,25 +285,47 @@ def scrape_vehicle():
                     basic_info = basic_data.get('basic_info', {})
                     vehicle_details = basic_data.get('vehicle_details', {})
                     
+                    # CRITICAL FIX: If vehicle_details is empty, use basic_info as fallback
+                    if not vehicle_details or not vehicle_details.get('model_variant'):
+                        logger.info("FALLBACK DEBUG - vehicle_details empty, using basic_info as fallback")
+                        vehicle_details = basic_info.copy()
+                    
                     # Debug logging
                     logger.info(f"MAPPING DEBUG - vehicle_details keys: {list(vehicle_details.keys())}")
                     logger.info(f"MAPPING DEBUG - model_variant: {vehicle_details.get('model_variant')}")
                     logger.info(f"MAPPING DEBUG - description: {vehicle_details.get('description')}")
                     logger.info(f"MAPPING DEBUG - primary_colour: {vehicle_details.get('primary_colour')}")
                     
-                    # Map make from model_variant for different vehicles
+                    # Map make from model_variant for different vehicles - CRITICAL FORD FIX
                     make = 'Unknown'
                     model_variant = vehicle_details.get('model_variant', '')
                     description = vehicle_details.get('description', '')
                     
+                    # ENHANCED FORD DETECTION - Check both model_variant AND description fields
+                    logger.info(f"FORD DEBUG - model_variant: '{model_variant}', description: '{description}'")
+                    
+                    # ADDITIONAL FALLBACK: Check basic_info make and model directly
+                    basic_make = basic_info.get('make', '')
+                    basic_model = basic_info.get('model', '')
+                    logger.info(f"BASIC INFO DEBUG - make: '{basic_make}', model: '{basic_model}'")
+                    
                     # Enhanced make extraction patterns with comprehensive vehicle coverage
-                    if 'corsa' in model_variant.lower() or 'astra' in model_variant.lower() or 'insignia' in model_variant.lower():
+                    # PRIORITY 1: Use basic_info make if available and valid
+                    if basic_make and basic_make != 'Unknown':
+                        make = basic_make
+                        logger.info(f"BASIC MAKE USED - Using basic_info make: '{basic_make}'")
+                    # PRIORITY 2: Pattern matching
+                    elif 'corsa' in model_variant.lower() or 'astra' in model_variant.lower() or 'insignia' in model_variant.lower():
                         make = 'Vauxhall'
-                    elif 'focus' in model_variant.lower() or 'fiesta' in model_variant.lower() or 'mondeo' in model_variant.lower() or 'kuga' in model_variant.lower():
+                    elif ('focus' in model_variant.lower() or 'fiesta' in model_variant.lower() or 'mondeo' in model_variant.lower() or 'kuga' in model_variant.lower() or
+                          'focus' in description.lower() or 'fiesta' in description.lower() or 'mondeo' in description.lower() or 'kuga' in description.lower() or
+                          'focus' in basic_model.lower() or 'fiesta' in basic_model.lower() or 'mondeo' in basic_model.lower()):
                         make = 'Ford'
+                        logger.info(f"FORD DETECTED - Make set to Ford for model: '{model_variant}', description: '{description}', basic_model: '{basic_model}'")
                     elif 'golf' in model_variant.lower() or 'polo' in model_variant.lower() or 'passat' in model_variant.lower():
                         make = 'Volkswagen'
-                    elif 'a3' in model_variant.lower() or 'a4' in model_variant.lower() or 'a6' in model_variant.lower() or 'q3' in model_variant.lower() or 'q5' in model_variant.lower():
+                    elif ('a3' in model_variant.lower() or 'a4' in model_variant.lower() or 'a6' in model_variant.lower() or 'q3' in model_variant.lower() or 'q5' in model_variant.lower() or
+                          'a3' in basic_model.lower() or 'a4' in basic_model.lower() or 'a6' in basic_model.lower()):
                         make = 'Audi'
                     elif '3 series' in model_variant.lower() or '5 series' in model_variant.lower() or 'x3' in model_variant.lower() or 'x5' in model_variant.lower() or 'bmw' in description.lower():
                         make = 'BMW'
@@ -328,11 +350,16 @@ def scrape_vehicle():
                     elif '911' in model_variant.lower() or 'cayenne' in model_variant.lower() or 'panamera' in model_variant.lower():
                         make = 'Porsche'
                     
-                    # Map model with proper Ferrari handling
+                    # Map model with proper Ferrari handling and basic_info fallback
                     if make == 'Ferrari' and 'f12' in model_variant.lower():
                         model = 'F12 Berlinetta'
+                    elif model_variant:
+                        model = model_variant
+                    elif basic_model:
+                        model = basic_model
+                        logger.info(f"MODEL FALLBACK - Using basic_info model: '{basic_model}'")
                     else:
-                        model = model_variant if model_variant else 'Unknown'
+                        model = 'Unknown'
                         
                     color = vehicle_details.get('primary_colour', 'Unknown')
                     fuel_type = vehicle_details.get('fuel_type', 'Unknown')

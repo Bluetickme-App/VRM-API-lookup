@@ -408,6 +408,15 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - PATTERN SPECIFICITY: Improved pattern matching to prevent false vehicle identification
 - USER ISSUE RESOLUTION: Resolved "Unknown Focus" display issue and 0.0% failure rate problem
 
+**July 25, 2025 - CRITICAL DATA EXTRACTION FALLBACK FIX:**
+- ROOT CAUSE IDENTIFIED: vehicle_details field empty causing Unknown make/model despite basic_info containing correct data
+- FALLBACK IMPLEMENTATION: Added basic_info fallback when vehicle_details is empty or missing model_variant
+- PRIORITY LOGIC: Enhanced make detection to use basic_info make field as priority 1 source
+- COMPREHENSIVE CHECKS: Ford detection now checks model_variant, description, AND basic_model fields
+- DEBUG LOGGING: Added extensive logging to trace data flow and identify extraction issues
+- DATA MAPPING FIX: Ensured vehicle identification works regardless of which extraction field contains the data
+- FORD FOCUS SPECIFIC: System now correctly identifies vehicles even when primary extraction fails
+
 **July 25, 2025 - ENHANCED MOT ADVISORIES AND FAILURE POINT DISPLAY:**
 - DETAILED CATEGORIZATION: Enhanced MOT comment categorization into Major Defects, Minor Defects, Advisories, Failure Points, and Notes
 - VISUAL DISTINCTION: Added color-coded backgrounds and badges for different defect types (red=major, orange=minor, blue=advisory)

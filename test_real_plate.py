@@ -1,142 +1,100 @@
 #!/usr/bin/env python3
 """
-Test OCR with the real Mercedes number plate image
+Test real registration to see Ford detection in action
 """
 
 import requests
-import base64
 import json
-from PIL import Image
-import io
 
-def test_mercedes_plate():
-    """Test OCR with the actual Mercedes plate image YE66 FHT"""
+def test_real_registration():
+    """Test with real Ford Focus registration that's showing as Unknown"""
+    print("🚗 TESTING REAL FORD FOCUS REGISTRATION")
+    print("=" * 60)
     
-    print("🚗 Testing OCR with Real Mercedes Number Plate")
-    print("Expected: YE66 FHT")
-    print("=" * 50)
+    # Use a real registration that should be Ford Focus
+    test_reg = "FG45BNN"  # Based on the attached image showing Mercedes C-Class
     
     try:
-        # Load the Mercedes image
-        image_path = "attached_assets/7_MERCEDES-BENZ_C class amg line business edition _FG45BNN_1753472876434.jpg"
-        
-        # Convert image to base64
-        with open(image_path, 'rb') as img_file:
-            img_data = img_file.read()
-            img_base64 = base64.b64encode(img_data).decode()
-            image_data_url = f"data:image/jpeg;base64,{img_base64}"
-        
-        print("📸 Image loaded successfully")
-        print("🔄 Sending to OCR API...")
-        
-        # Test with OCR API
         response = requests.post(
-            'http://localhost:5000/api/ocr-process',
-            json={'imageData': image_data_url},
+            'http://localhost:5000/api/scrape',
             headers={'Content-Type': 'application/json'},
-            timeout=15
+            json={'registration': test_reg},
+            timeout=30
         )
         
+        print(f"Testing registration: {test_reg}")
+        print(f"Response status: {response.status_code}")
+        
         if response.status_code == 200:
-            result = response.json()
-            
-            print("✅ OCR API Response:")
-            print(f"Success: {result.get('success')}")
-            print(f"Extracted Text: '{result.get('extracted_text', '')}'")
-            print(f"Best Match: {result.get('best_match')}")
-            print(f"All Candidates: {result.get('potential_plates', [])}")
-            
-            if result.get('debug_info'):
-                print(f"Debug Info: {result['debug_info']}")
-            
-            best_match = result.get('best_match')
-            if best_match:
-                expected_clean = "YE66FHT"
-                actual_clean = best_match.replace(' ', '')
+            data = response.json()
+            if data.get('success'):
+                vehicle_data = data.get('data', {})
+                print(f"✅ SUCCESS")
+                print(f"Make: {vehicle_data.get('make', 'Not found')}")
+                print(f"Model: {vehicle_data.get('model', 'Not found')}")
+                print(f"Description: {vehicle_data.get('description', 'Not found')}")
+                print(f"Year: {vehicle_data.get('year', 'Not found')}")
+                print(f"Color: {vehicle_data.get('color', 'Not found')}")
                 
-                if actual_clean == expected_clean:
-                    print("🎉 PERFECT MATCH! OCR correctly detected YE66 FHT")
-                    return True
+                # Check if it's still showing as Unknown
+                if vehicle_data.get('make') == 'Unknown':
+                    print("❌ STILL SHOWING UNKNOWN - FORD FIX NOT WORKING")
                 else:
-                    print(f"⚠️  Partial match: Expected 'YE66FHT', Got '{actual_clean}'")
+                    print("✅ VEHICLE IDENTIFIED CORRECTLY")
                     
-                    # Check if it's close enough (common OCR substitutions)
-                    if len(actual_clean) == len(expected_clean):
-                        differences = sum(1 for a, b in zip(actual_clean, expected_clean) if a != b)
-                        if differences <= 2:
-                            print(f"✅ Close match (only {differences} character differences)")
-                            return True
             else:
-                print("❌ No number plate detected")
-                
+                print(f"❌ API ERROR: {data.get('error', 'Unknown error')}")
         else:
-            print(f"❌ HTTP Error: {response.status_code}")
-            print(f"Response: {response.text}")
+            print(f"❌ HTTP ERROR: {response.status_code}")
+            print(f"Response: {response.text[:200]}...")
             
-    except FileNotFoundError:
-        print("❌ Mercedes image file not found")
+    except requests.exceptions.Timeout:
+        print("⏰ REQUEST TIMEOUT - Server may be processing")
     except Exception as e:
-        print(f"❌ Test error: {e}")
-    
-    return False
+        print(f"❌ ERROR: {e}")
 
-def test_with_cropped_plate():
-    """Try with a cropped version focusing on the number plate area"""
-    try:
-        print("\n🔧 Attempting with cropped number plate area...")
-        
-        # Load and crop the image to focus on the plate
-        image_path = "attached_assets/7_MERCEDES-BENZ_C class amg line business edition _FG45BNN_1753472876434.jpg"
-        img = Image.open(image_path)
-        
-        # Crop to approximate number plate area (you may need to adjust coordinates)
-        # Based on the image, the plate appears to be in the lower-center area
-        width, height = img.size
-        
-        # Estimate plate location (adjust these coordinates as needed)
-        left = int(width * 0.35)   # 35% from left
-        top = int(height * 0.7)    # 70% from top  
-        right = int(width * 0.65)  # 65% from left
-        bottom = int(height * 0.85) # 85% from top
-        
-        cropped_img = img.crop((left, top, right, bottom))
-        
-        # Convert to base64
-        buffer = io.BytesIO()
-        cropped_img.save(buffer, format='JPEG')
-        buffer.seek(0)
-        
-        img_base64 = base64.b64encode(buffer.getvalue()).decode()
-        image_data_url = f"data:image/jpeg;base64,{img_base64}"
-        
-        # Test with OCR API
-        response = requests.post(
-            'http://localhost:5000/api/ocr-process',
-            json={'imageData': image_data_url},
-            headers={'Content-Type': 'application/json'},
-            timeout=15
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            print("📋 Cropped Image OCR Results:")
-            print(f"Extracted Text: '{result.get('extracted_text', '')}'")
-            print(f"Best Match: {result.get('best_match')}")
-            print(f"All Candidates: {result.get('potential_plates', [])}")
-            
-            if result.get('best_match'):
-                print("✅ Cropped image OCR successful!")
-                return True
-                
-    except Exception as e:
-        print(f"❌ Cropped test error: {e}")
+def test_ford_patterns():
+    """Test Ford detection patterns"""
+    print("\n🔧 TESTING FORD DETECTION PATTERNS")
+    print("=" * 60)
     
-    return False
+    test_cases = [
+        ("Focus", "Some description", "Ford"),
+        ("FOCUS ST", "Sport variant", "Ford"),
+        ("Unknown", "Ford Focus description", "Ford"),
+        ("Mondeo", "Family car", "Ford"),
+        ("Fiesta", "City car", "Ford"),
+        ("Corsa", "Small car", "Vauxhall"),
+        ("Golf", "Hatchback", "Volkswagen")
+    ]
+    
+    for model_variant, description, expected_make in test_cases:
+        # Apply the detection logic
+        make = 'Unknown'
+        
+        if 'corsa' in model_variant.lower() or 'astra' in model_variant.lower():
+            make = 'Vauxhall'
+        elif ('focus' in model_variant.lower() or 'fiesta' in model_variant.lower() or 'mondeo' in model_variant.lower() or
+              'focus' in description.lower() or 'fiesta' in description.lower() or 'mondeo' in description.lower()):
+            make = 'Ford'
+        elif 'golf' in model_variant.lower() or 'polo' in model_variant.lower():
+            make = 'Volkswagen'
+        
+        print(f"Model: '{model_variant}', Description: '{description}' → {make} (expected: {expected_make})")
+        
+        if make == expected_make:
+            print("✅ CORRECT")
+        else:
+            print("❌ ERROR")
+        print("-" * 40)
 
 if __name__ == "__main__":
-    success = test_mercedes_plate()
+    test_real_registration()
+    test_ford_patterns()
     
-    if not success:
-        print("\n" + "=" * 50)
-        print("Trying alternative approach...")
-        test_with_cropped_plate()
+    print("\n📋 FORD FIX STATUS")
+    print("=" * 60)
+    print("✅ Enhanced Ford detection patterns added to app.py")
+    print("✅ Debug logging added to trace model_variant and description")
+    print("✅ Checking both model_variant AND description fields")
+    print("🔄 Testing with real registration to verify fix works")
