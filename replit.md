@@ -300,14 +300,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - EFFICIENT DEFECT DISPLAY: Compact badge system for defect types with condensed text formatting
 - SPACE OPTIMIZATION: Maximized content density while maintaining readability and professional appearance
 
-**July 25, 2025 - ENHANCED STATUS BOXES WITH IMMEDIATE FEEDBACK:**
-- OWNERSHIP STATUS: Green default with V5C issue date and keeper count display - shows "Good" for ≤2 owners, "Moderate" for 3-4, "High Risk" for 5+
-- MOT STATUS: Green "Current" with expiry date and days remaining - Orange for <30 days, Red for expired with overdue count
-- MILEAGE ANALYSIS: Green "Low Risk" showing data points available, updates to actual risk after AI analysis
-- V5C DATE INTEGRATION: Shows formatted V5C issue date (DD/MM/YYYY) alongside ownership information
-- DATA POINT TRACKING: Mileage analysis displays number of MOT/mileage data points available for analysis
-- IMMEDIATE VISUAL FEEDBACK: All status boxes show meaningful information from initial vehicle data load
-- PROFESSIONAL COLOR CODING: Green (good), Orange (warning), Red (danger), Gray (unknown) with gradient backgrounds
+**July 25, 2025 - V5C TIMING-BASED OWNERSHIP RISK ASSESSMENT:**
+- OWNERSHIP RISK LOGIC: Red (<3 months since V5C), Orange (3-9 months), Green (9+ months) based on last keeper change timing
+- V5C DATE ANALYSIS: Calculates months since last V5C issue date to determine recent keeper change risk
+- DYNAMIC RISK MESSAGING: "Recent keeper change", "Keeper change X months ago", "No recent changes" with V5C date display
+- FALLBACK SYSTEM: Uses keeper count when V5C date unavailable (≤2 owners=Green, 3-4=Orange, 5+=Red)
+- MOT STATUS: Green "Current" with expiry date and days remaining - Orange for <30 days, Red for expired
+- MILEAGE ANALYSIS: Shows data points available, updates to tampering risk after AI analysis
+- PROFESSIONAL RISK INDICATORS: Clear visual hierarchy with appropriate color coding and detailed explanations
 
 **July 25, 2025 - DASHBOARD REDESIGN FOR TRADEANDCONNECT IFRAME INTEGRATION:**
 - IFRAME-OPTIMIZED DESIGN: Created new dashboard interface matching Trade Dashboard aesthetic for seamless iframe integration

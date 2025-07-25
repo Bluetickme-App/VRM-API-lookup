@@ -445,36 +445,56 @@
             // Status Boxes
             html += '<div class="status-boxes">';
             
-            // Ownership Status
+            // Ownership Status - Based on V5C issue date timing
             var ownershipClass = 'status-good';
-            var ownershipStatus = 'Good';
-            var ownershipDetail = 'Analysis pending';
+            var ownershipStatus = 'Low Risk';
+            var ownershipDetail = 'No recent keeper changes';
             
-            if (data.total_keepers) {
-                var keepersCount = parseInt(data.total_keepers);
-                if (keepersCount <= 2) {
-                    ownershipClass = 'status-good';
-                    ownershipStatus = 'Good';
-                    ownershipDetail = keepersCount + ' owners';
-                } else if (keepersCount <= 4) {
-                    ownershipClass = 'status-warning';
-                    ownershipStatus = 'Moderate';
-                    ownershipDetail = keepersCount + ' owners';
-                } else {
-                    ownershipClass = 'status-danger';
-                    ownershipStatus = 'High Risk';
-                    ownershipDetail = keepersCount + ' owners';
-                }
-            } else {
-                // Default to good if no keeper data available
-                ownershipDetail = 'Data available';
+            // Calculate months since last V5C issue
+            var v5cDate = data.last_v5c_issue_date || data.v5_issue_date;
+            var monthsSinceV5C = null;
+            
+            if (v5cDate && v5cDate !== 'Not Available') {
+                var v5cDateObj = new Date(v5cDate);
+                var today = new Date();
+                monthsSinceV5C = (today.getFullYear() - v5cDateObj.getFullYear()) * 12 + (today.getMonth() - v5cDateObj.getMonth());
             }
             
-            // Add V5C date if available
-            if (data.last_v5c_issue_date || data.v5_issue_date) {
-                var v5cDate = data.last_v5c_issue_date || data.v5_issue_date;
-                if (v5cDate && v5cDate !== 'Not Available') {
-                    ownershipDetail += ' • V5C: ' + v5cDate.split('-').reverse().join('/');
+            // Set risk level based on V5C timing
+            if (monthsSinceV5C !== null) {
+                var formattedV5CDate = v5cDate.split('-').reverse().join('/');
+                
+                if (monthsSinceV5C < 3) {
+                    ownershipClass = 'status-danger';
+                    ownershipStatus = 'High Risk';
+                    ownershipDetail = 'Recent keeper change • V5C: ' + formattedV5CDate;
+                } else if (monthsSinceV5C < 9) {
+                    ownershipClass = 'status-warning';
+                    ownershipStatus = 'Moderate Risk';
+                    ownershipDetail = 'Keeper change ' + monthsSinceV5C + ' months ago • V5C: ' + formattedV5CDate;
+                } else {
+                    ownershipClass = 'status-good';
+                    ownershipStatus = 'Low Risk';
+                    ownershipDetail = 'No recent changes • V5C: ' + formattedV5CDate;
+                }
+            } else {
+                // No V5C date available, use keeper count as fallback
+                if (data.total_keepers) {
+                    var keepersCount = parseInt(data.total_keepers);
+                    ownershipDetail = keepersCount + ' owners • V5C date unavailable';
+                    
+                    if (keepersCount <= 2) {
+                        ownershipClass = 'status-good';
+                        ownershipStatus = 'Low Risk';
+                    } else if (keepersCount <= 4) {
+                        ownershipClass = 'status-warning';
+                        ownershipStatus = 'Moderate Risk';
+                    } else {
+                        ownershipClass = 'status-danger';
+                        ownershipStatus = 'High Risk';
+                    }
+                } else {
+                    ownershipDetail = 'Data available';
                 }
             }
             
