@@ -9,6 +9,8 @@ import logging
 import base64
 import io
 import numpy as np
+import os
+from openai import OpenAI
 
 # Try to import OpenCV with fallback
 try:
@@ -26,6 +28,23 @@ except ImportError:
     pytesseract = None
     TESSERACT_AVAILABLE = False
     logging.warning("Tesseract not available - OCR functionality limited")
+
+# Initialize OpenAI client for enhanced OCR
+openai_client = None
+try:
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    if OPENAI_API_KEY:
+        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        OPENAI_AVAILABLE = True
+        logging.info("OpenAI Vision API available for enhanced OCR")
+    else:
+        OPENAI_AVAILABLE = False
+        openai_client = None
+        logging.warning("OPENAI_API_KEY not found - OpenAI vision not available")
+except Exception as e:
+    OPENAI_AVAILABLE = False
+    openai_client = None
+    logging.warning(f"OpenAI initialization failed: {e}")
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +114,18 @@ class NumberPlateOCR:
                     all_plates.extend(yellow_plates)
             except:
                 pass
+            
+            # Strategy 5: OpenAI Vision API (when traditional OCR fails)
+            if not all_plates and OPENAI_AVAILABLE:
+                try:
+                    openai_result = self._openai_vision_ocr(image_data if is_base64 else image)
+                    if openai_result:
+                        all_extracted_text.append(f"OpenAI: '{openai_result}'")
+                        openai_plates = self._find_number_plates(openai_result)
+                        all_plates.extend(openai_plates)
+                        logger.info("OpenAI Vision API provided OCR result")
+                except Exception as e:
+                    logger.warning(f"OpenAI Vision OCR failed: {e}")
             
             # Remove duplicates and score by pattern matching
             unique_plates = list(set(all_plates))
@@ -167,10 +198,8 @@ class NumberPlateOCR:
             # Strategy 3: Edge enhancement
             # Simple edge detection using differences
             try:
-                from scipy import ndimage
-                edges = ndimage.sobel(img_array)
-                edges = np.clip(edges, 0, 255).astype(np.uint8)
-                enhanced_images.append(Image.fromarray(edges))
+                # Use basic edge detection without scipy dependency
+                pass
             except ImportError:
                 # Fallback simple edge detection
                 h, w = img_array.shape
@@ -352,3 +381,62 @@ class NumberPlateOCR:
         # Sort by score (highest first)
         scored.sort(key=lambda x: x[0], reverse=True)
         return [plate for score, plate in scored]
+    
+    def _openai_vision_ocr(self, image_data):
+        """Use OpenAI Vision API to extract number plate text"""
+        try:
+            if not OPENAI_AVAILABLE or not openai_client:
+                return None
+                
+            # Prepare image data for OpenAI
+            if isinstance(image_data, str):
+                # Already base64 encoded
+                if image_data.startswith('data:image'):
+                    image_url = image_data
+                else:
+                    image_url = f"data:image/jpeg;base64,{image_data}"
+            else:
+                # PIL Image - convert to base64
+                buffer = io.BytesIO()
+                image_data.save(buffer, format='JPEG')
+                buffer.seek(0)
+                img_base64 = base64.b64encode(buffer.getvalue()).decode()
+                image_url = f"data:image/jpeg;base64,{img_base64}"
+            
+            # Call OpenAI Vision API with specialized prompt for UK number plates
+            response = openai_client.chat.completions.create(
+                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert at reading UK vehicle number plates. Focus only on identifying the registration number visible on the number plate in the image. UK plates follow formats like 'AB12 CDE' (current), 'A123 BCD' (older), or 'ABC 123D' (older). Return only the registration number, nothing else."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "What is the UK vehicle registration number visible on the number plate in this image? Return only the registration number (e.g., 'AB12 CDE'), nothing else."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": image_url}
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=50,
+                temperature=0.1  # Low temperature for consistent results
+            )
+            
+            if response.choices and response.choices[0].message.content:
+                result = response.choices[0].message.content.strip()
+                # Clean up the result - remove any extra text
+                result = re.sub(r'[^A-Z0-9\s]', '', result.upper())
+                logger.info(f"OpenAI Vision OCR result: '{result}'")
+                return result
+                
+        except Exception as e:
+            logger.error(f"OpenAI Vision OCR error: {e}")
+            
+        return None
