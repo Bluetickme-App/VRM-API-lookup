@@ -649,6 +649,12 @@
                 console.error('Error:', error);
             });
         }
+        // Helper function to strip HTML tags from text
+        function stripHtmlTags(text) {
+            if (!text) return '';
+            return text.toString().replace(/<[^>]*>/g, '').trim();
+        }
+
         function displayVehicleData(data) {
             currentResults = data;
             var html = '<div class="vehicle-card">';
@@ -825,8 +831,8 @@
             }
             html += '<div class="status-box ' + motClass + '" onclick="toggleDropdown(\'mot\')" style="cursor: pointer;">';
             html += '<div class="status-title">MOT Status</div>';
-            html += '<div class="status-value">' + motStatus + '</div>';
-            html += '<div class="status-detail">' + motDetail + '</div>';
+            html += '<div class="status-value">' + stripHtmlTags(motStatus) + '</div>';
+            html += '<div class="status-detail">' + stripHtmlTags(motDetail) + '</div>';
             html += '</div>';
             // Add hidden MOT dropdown with detailed advisory and failure data
             html += '<div id="mot-dropdown" class="dropdown-content" style="display: none;">';
