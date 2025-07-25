@@ -1,0 +1,47 @@
+ 6
+INFO:vehicle_scraper:Basic info extracted: {'make': 'Mercedes-Benz', 'model': 'A-Class', 'image_url': 'https://www.checkcardetails.co.uk/images/account.png'}
+INFO:vehicle_scraper:Vehicle details extracted: {'model_variant': 'A6', 'description': 'A6 SE TDI Quattro Auto', 'primary_colour': 'Grey', 'fuel_type': 'DIESEL', 'transmission': 'Auto 6 Gears', 'engine': '2696 cc', 'body_style': 'Estate', 'year_manufacture': '2007', 'euro_status': '4', 'vehicle_age': '18 years 2 months', 'registration_place': 'Chester', 'registration_date': '08/05/2007', 'last_v5c_issue_date': '22 January 2025', 'type_approval': 'M1', 'wheel_plan': '2 Axle Rigid Body'}
+INFO:vehicle_scraper:Successfully extracted basic data for DA07BWF
+INFO:vehicle_scraper:Starting from main page: https://www.checkcardetails.co.uk/cardetails/da07bwf
+INFO:vehicle_scraper:Found MOT link using user's JS selector: #viewfullmothistory > span:nth-child(1)
+INFO:vehicle_scraper:Found 'View Full MOT History' button by ID (fallback)
+INFO:vehicle_scraper:Found MOT link: '' -> https://www.checkcardetails.co.uk/mot-check
+INFO:vehicle_scraper:Found MOT link: 'Book MOT or Service' -> https://bookmygarage.com/partners/checkcardetails/?vrm=DA07BWF
+INFO:vehicle_scraper:No clickable MOT link found - staying on current page to extract available data
+INFO:vehicle_scraper:MOT page contains: 44540 characters
+INFO:vehicle_scraper:Page may contain MOT data, attempting extraction
+INFO:vehicle_scraper:Found 20 elements with 'mot' in class name
+INFO:vehicle_scraper:MOT element class: ['main-tax-and-mot'] - tag: h2
+INFO:vehicle_scraper:MOT element class: ['main-tax-and-mot'] - tag: h2
+INFO:vehicle_scraper:MOT element class: ['bookmot'] - tag: div
+INFO:vehicle_scraper:Found 7 elements with class containing 'mot-history-summary'
+INFO:vehicle_scraper:Found 7 elements with class containing 'history-summary'
+INFO:vehicle_scraper:Found 'View Full MOT History' button, clicking to expand data
+INFO:vehicle_scraper:Found main container using user's selector: body > div.container
+INFO:vehicle_scraper:Found MOT summary in container: 16 total tests
+INFO:vehicle_scraper:Searching for MOT wrappers within user's container selector
+INFO:vehicle_scraper:Found 16 mot-history-wrapper elements from authentic DVLA data
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 04/06/2024 - PASSED - 113202 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 02/06/2023 - PASSED - 107496 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 02/06/2023 - FAILED - 107496 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 10/06/2022 - PASSED - 106101 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 28/04/2021 - PASSED - 104447 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 28/04/2021 - FAILED - 104447 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 10/05/2019 - PASSED - 99616 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 27/04/2018 - PASSED - 96584 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 04/05/2017 - PASSED - 90288 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 05/05/2016 - PASSED - 141699 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 09/05/2015 - PASSED - 76524 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 20/05/2014 - PASSED - 67527 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 11/05/2013 - PASSED - 57044 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 11/05/2012 - PASSED - 48764 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 07/05/2011 - PASSED - 37476 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 30/04/2010 - PASSED - 27677 miles
+[2025-07-25 18:09:37 +0000] [28613] [CRITICAL] WORKER TIMEOUT (pid:28624)
+[2025-07-25 18:09:38 +0000] [28613] [ERROR] Worker (pid:28624) was sent SIGKILL! Perhaps out of memory?
+[2025-07-25 18:09:38 +0000] [29260] [INFO] Booting worker with pid: 29260
+INFO:app:Database tables created successfully
+ERROR:app:API error: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+INFO:app:Starting working vehicle scraper for registration: DA07BWF
+INFO:WDM:====== WebDriver manager ======
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
