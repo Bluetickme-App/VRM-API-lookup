@@ -583,121 +583,162 @@
         
         function displayMOTHistory(motHistory) {
             if (!motHistory || !motHistory.tests || motHistory.tests.length === 0) {
-                document.getElementById('motSummary').innerHTML = `
-                    <div class="no-data">
-                        <i data-feather="info"></i>
-                        <h5>No MOT History Available</h5>
-                        <p>No MOT test records found for this vehicle.</p>
-                    </div>
-                `;
+                document.getElementById('motSummary').innerHTML = 
+                    '<div class="no-data">' +
+                        '<i data-feather="info"></i>' +
+                        '<h5>No MOT History Available</h5>' +
+                        '<p>No MOT test records found for this vehicle.</p>' +
+                    '</div>';
                 document.getElementById('motTests').innerHTML = '';
                 feather.replace();
                 return;
             }
             
             // Calculate summary statistics from tests data
-            const tests = motHistory.tests || [];
-            const totalTests = tests.length;
-            const passedTests = tests.filter(test => test.result && test.result.toLowerCase().includes('pass')).length;
-            const failedTests = tests.filter(test => test.result && test.result.toLowerCase().includes('fail')).length;
-            const advisoryTests = tests.filter(test => test.comments && test.comments.some(comment => 
-                comment.toLowerCase().includes('advisory'))).length;
+            var tests = motHistory.tests || [];
+            var totalTests = tests.length;
+            var passedTests = tests.filter(function(test) { 
+                return test.result && test.result.toLowerCase().indexOf('pass') !== -1; 
+            }).length;
+            var failedTests = tests.filter(function(test) { 
+                return test.result && test.result.toLowerCase().indexOf('fail') !== -1; 
+            }).length;
+            var advisoryTests = tests.filter(function(test) { 
+                return test.comments && test.comments.some(function(comment) {
+                    return comment.toLowerCase().indexOf('advisory') !== -1;
+                });
+            }).length;
             
-            const summaryHtml = `
-                <div class="summary-stats">
-                    <div class="stat-card">
-                        <div class="stat-number">${totalTests}</div>
-                        <div class="stat-label">Total Tests</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${passedTests}</div>
-                        <div class="stat-label">Passed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${failedTests}</div>
-                        <div class="stat-label">Failed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${advisoryTests}</div>
-                        <div class="stat-label">Advisories</div>
-                    </div>
-                </div>
-            `;
+            var summaryHtml = 
+                '<div class="summary-stats">' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + totalTests + '</div>' +
+                        '<div class="stat-label">Total Tests</div>' +
+                    '</div>' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + passedTests + '</div>' +
+                        '<div class="stat-label">Passed</div>' +
+                    '</div>' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + failedTests + '</div>' +
+                        '<div class="stat-label">Failed</div>' +
+                    '</div>' +
+                    '<div class="stat-card">' +
+                        '<div class="stat-number">' + advisoryTests + '</div>' +
+                        '<div class="stat-label">Advisories</div>' +
+                    '</div>' +
+                '</div>';
             
             document.getElementById('motSummary').innerHTML = summaryHtml;
             
             // Display individual tests
-            const motTestsHtml = motHistory.tests.map(test => {
-                const resultClass = test.result ? test.result.toLowerCase() : 'unknown';
-                const badgeClass = getBadgeClass(test.result);
+            var motTestsHtml = '';
+            for (var i = 0; i < motHistory.tests.length; i++) {
+                var test = motHistory.tests[i];
+                var resultClass = test.result ? test.result.toLowerCase() : 'unknown';
+                var badgeClass = getBadgeClass(test.result);
                 
-                const commentsHtml = test.comments && test.comments.length > 0 
-                    ? `<div class="comments-section">
-                        <h6>Comments & Advisories:</h6>
-                        ${test.comments.map(comment => `
-                            <div class="comment-item ${getCommentClass(comment)}">
-                                <div class="comment-type">${getCommentType(comment)}</div>
-                                <div>${comment}</div>
-                            </div>
-                        `).join('')}
-                    </div>`
-                    : '';
+                var commentsHtml = '';
+                if (test.comments && test.comments.length > 0) {
+                    commentsHtml = '<div class="comments-section">' +
+                        '<h6>Comments & Advisories:</h6>';
+                    for (var j = 0; j < test.comments.length; j++) {
+                        var comment = test.comments[j];
+                        commentsHtml += '<div class="comment-item ' + getCommentClass(comment) + '">' +
+                            '<div class="comment-type">' + getCommentType(comment) + '</div>' +
+                            '<div>' + comment + '</div>' +
+                        '</div>';
+                    }
+                    commentsHtml += '</div>';
+                }
                 
-                return `
-                    <div class="mot-test ${resultClass}">
-                        <span class="test-badge ${badgeClass}">${test.result || 'Unknown'}</span>
-                        
-                        <div class="test-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Test Date</span>
-                                <span class="detail-value">${test.date || 'Not recorded'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Mileage</span>
-                                <span class="detail-value">${test.mileage ? formatMileage(test.mileage) : 'Not recorded'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Expiry Date</span>
-                                <span class="detail-value">${test.expiry_date || 'Unknown'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Source</span>
-                                <span class="detail-value">${test.source || 'Unknown'}</span>
-                            </div>
-                        </div>
-                        
-                        ${commentsHtml}
-                    </div>
-                `;
-            }).join('');
+                motTestsHtml += '<div class="mot-test ' + resultClass + '">' +
+                    '<span class="test-badge ' + badgeClass + '">' + (test.result || 'Unknown') + '</span>' +
+                    '<div class="test-details">' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Test Date</span>' +
+                            '<span class="detail-value">' + (test.date || 'Not recorded') + '</span>' +
+                        '</div>' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Mileage</span>' +
+                            '<span class="detail-value">' + (test.mileage ? formatMileage(test.mileage) : 'Not recorded') + '</span>' +
+                        '</div>' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Expiry Date</span>' +
+                            '<span class="detail-value">' + (test.expiry_date || 'Unknown') + '</span>' +
+                        '</div>' +
+                        '<div class="detail-item">' +
+                            '<span class="detail-label">Source</span>' +
+                            '<span class="detail-value">' + (test.source || 'Unknown') + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    commentsHtml +
+                '</div>';
+            }
             
             document.getElementById('motTests').innerHTML = motTestsHtml;
         }
         
         function displayMileageAnalysis(mileageHistory) {
-            const mileageAnalysis = document.getElementById('mileageAnalysis');
+            var mileageAnalysis = document.getElementById('mileageAnalysis');
             
             if (!mileageHistory || !mileageHistory.analysis) {
-                mileageAnalysis.innerHTML = `
-                    <div class="no-data">
-                        <i data-feather="trending-up"></i>
-                        <h5>No Mileage Analysis Available</h5>
-                        <p>No mileage data found for analysis.</p>
-                    </div>
-                `;
+                mileageAnalysis.innerHTML = 
+                    '<div class="no-data">' +
+                        '<i data-feather="trending-up"></i>' +
+                        '<h5>No Mileage Analysis Available</h5>' +
+                        '<p>No mileage data found for analysis.</p>' +
+                    '</div>';
                 feather.replace();
                 return;
             }
             
-            const analysis = mileageHistory.analysis;
-            let analysisHtml = '';
+            var analysis = mileageHistory.analysis;
+            var analysisHtml = '';
             
             // Check for odometer issues
             if (analysis.odometer_issues && analysis.odometer_issues.has_issues) {
-                const severity = analysis.odometer_issues.severity || 'UNKNOWN';
-                analysisHtml += `
-                    <div class="alert-custom severity-high">
-                        <h5><i data-feather="alert-triangle"></i> Odometer Discrepancy Detected</h5>
+                var severity = analysis.odometer_issues.severity || 'UNKNOWN';
+                analysisHtml += 
+                    '<div class="alert-custom severity-high">' +
+                        '<h5><i data-feather="alert-triangle"></i> Odometer Discrepancy Detected</h5>' +
+                        '<p><strong>Severity:</strong> ' + severity + '</p>' +
+                        '<p><strong>Issue:</strong> ' + (analysis.odometer_issues.reduction_amount || 'Unknown') + ' miles reduction</p>' +
+                        '<p><strong>Period:</strong> ' + (analysis.odometer_issues.affected_period || 'Unknown') + '</p>' +
+                    '</div>';
+            }
+            
+            // Display mileage records if available
+            if (mileageHistory.mileage_records && mileageHistory.mileage_records.length > 0) {
+                analysisHtml += '<h6>Mileage Records:</h6><div class="row">';
+                for (var k = 0; k < mileageHistory.mileage_records.length; k++) {
+                    var record = mileageHistory.mileage_records[k];
+                    analysisHtml += '<div class="col-md-6">' +
+                        '<div class="info-row">' +
+                            '<span class="info-label">' + (record.date || 'Unknown Date') + '</span>' +
+                            '<span class="info-value">' + formatMileage(record.mileage) + '</span>' +
+                        '</div>' +
+                    '</div>';
+                }
+                analysisHtml += '</div>';
+            }
+            
+            if (!analysisHtml) {
+                analysisHtml = 
+                    '<div class="no-data">' +
+                        '<i data-feather="check-circle"></i>' +
+                        '<h5>No Issues Found</h5>' +
+                        '<p>No mileage discrepancies or issues detected.</p>' +
+                    '</div>';
+            }
+            
+            mileageAnalysis.innerHTML = analysisHtml;
+            feather.replace();
+        }
+        
+        function getBadgeClass(result) {
+            if (!result) return 'badge-unknown';
+            var resultLower = result.toLowerCase();
                         <p><strong>Severity:</strong> ${severity}</p>
                         <p><strong>Issue:</strong> ${analysis.odometer_issues.reduction_amount || 'Unknown'} miles reduction</p>
                         <p><strong>Period:</strong> ${analysis.odometer_issues.affected_period || 'Unknown'}</p>
@@ -738,32 +779,32 @@
         
         function getBadgeClass(result) {
             if (!result) return 'badge-unknown';
-            const resultLower = result.toLowerCase();
-            if (resultLower.includes('pass')) return 'badge-passed';
-            if (resultLower.includes('fail')) return 'badge-failed';
+            var resultLower = result.toLowerCase();
+            if (resultLower.indexOf('pass') !== -1) return 'badge-passed';
+            if (resultLower.indexOf('fail') !== -1) return 'badge-failed';
             return 'badge-unknown';
         }
         
         function getCommentClass(comment) {
             if (!comment) return 'comment-clean';
-            const text = comment.toLowerCase();
-            if (text.includes('advisory')) return 'comment-advisory';
-            if (text.includes('fail') || text.includes('major')) return 'comment-failure';
+            var text = comment.toLowerCase();
+            if (text.indexOf('advisory') !== -1) return 'comment-advisory';
+            if (text.indexOf('fail') !== -1 || text.indexOf('major') !== -1) return 'comment-failure';
             return 'comment-clean';
         }
         
         function getCommentType(comment) {
             if (!comment) return 'Comment';
-            const text = comment.toLowerCase();
-            if (text.includes('advisory')) return 'ADVISORY';
-            if (text.includes('major')) return 'MAJOR';
-            if (text.includes('fail')) return 'FAILURE';
+            var text = comment.toLowerCase();
+            if (text.indexOf('advisory') !== -1) return 'ADVISORY';
+            if (text.indexOf('major') !== -1) return 'MAJOR';
+            if (text.indexOf('fail') !== -1) return 'FAILURE';
             return 'Note';
         }
         
         function formatMileage(mileage) {
             if (!mileage) return 'Not recorded';
-            const number = parseInt(mileage.toString().replace(/,/g, ''));
+            var number = parseInt(mileage.toString().replace(/,/g, ''));
             return number.toLocaleString() + ' miles';
         }
         
@@ -774,10 +815,9 @@
         
         function showError(message) {
             hideAllSections();
-            document.getElementById('errorMessage').innerHTML = `
-                <h5><i data-feather="alert-circle"></i> Error</h5>
-                <p>${message}</p>
-            `;
+            document.getElementById('errorMessage').innerHTML = 
+                '<h5><i data-feather="alert-circle"></i> Error</h5>' +
+                '<p>' + message + '</p>';
             document.getElementById('errorSection').style.display = 'block';
             feather.replace();
         }
@@ -981,8 +1021,8 @@
             document.getElementById('ownershipAnalysisMain').innerHTML = ownershipHtml || '<p class="text-muted">No ownership analysis available.</p>';
             
             // Display MOT predictions with enhanced layout
-            const motPredictions = analysis.mot_predictions || {};
-            let motHtml = '';
+            var motPredictions = analysis.mot_predictions || {};
+            var motHtml = '';
             
             if (motPredictions.failure_probability !== undefined) {
                 // Main failure probability display
@@ -1039,8 +1079,8 @@
             document.getElementById('motPredictionsMain').innerHTML = motHtml || '<p class="text-muted">No MOT predictions available.</p>';
             
             // Display enhanced cost analysis
-            const costBreakdown = analysis.cost_breakdown || {};
-            let costHtml = '';
+            var costBreakdown = analysis.cost_breakdown || {};
+            var costHtml = '';
             
             if (Object.keys(costBreakdown).length > 0) {
                 costHtml += '<div class="row mb-4">';
@@ -1137,8 +1177,18 @@
                 document.getElementById('aiAnalysisSection').appendChild(sourceIndicator);
             }
             
-            // Scroll to analysis section
-            document.getElementById('aiAnalysisSection').scrollIntoView({ behavior: 'smooth' });
+            // Scroll to analysis section (compatible with older browsers)
+            var analysisSection = document.getElementById('aiAnalysisSection');
+            if (analysisSection) {
+                if (analysisSection.scrollIntoView) {
+                    try {
+                        analysisSection.scrollIntoView(true);
+                    } catch (e) {
+                        // Fallback for very old browsers
+                        window.location.hash = '#aiAnalysisSection';
+                    }
+                }
+            }
             
             feather.replace();
         }
