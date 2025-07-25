@@ -1057,7 +1057,7 @@
                 } else { // Expired
                     motClass = 'status-danger';
                     motStatus = 'EXPIRED';
-                    motDetail = 'EXPIRED ' + Math.abs(diffDays) + ' days ago';
+                    motDetail = 'Expired on: ' + formattedDate + ' (' + Math.abs(diffDays) + ' days ago)';
                     if (motTestStats) motDetail += ' • ' + motTestStats;
                 }
             } else {

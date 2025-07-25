@@ -332,6 +332,10 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - AUTHENTIC DATA EXTRACTION: All new fields extracted from genuine DVLA sources with comprehensive pattern matching
 - USER REQUIREMENT FULFILLED: System now properly flags and displays the type of mileage discrepancies shown in user's image
 - CONTRADICTORY STATUS FIX: Resolved issue where both "CRITICAL ROLLBACK" and "Verified" mileage statuses appeared simultaneously
+- DUPLICATE REMOVAL: Eliminated duplicate "Mileage Analysis" status boxes causing display conflicts  
+- SINGLE MILEAGE STATUS: Now displays only one mileage analysis box - either RED for rollbacks or GREEN for verified
+- MOT DATE PRECISION: Enhanced MOT status to show exact expiry dates for expired vehicles (e.g., "Expired on: 03/06/2025 (129 days ago)")
+- COMPREHENSIVE MILEAGE DROPDOWN: Single dropdown contains complete MOT mileage records and rollback analysis details
 
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
