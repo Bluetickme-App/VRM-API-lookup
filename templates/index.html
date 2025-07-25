@@ -736,46 +736,7 @@
             feather.replace();
         }
         
-        function getBadgeClass(result) {
-            if (!result) return 'badge-unknown';
-            var resultLower = result.toLowerCase();
-                        <p><strong>Severity:</strong> ${severity}</p>
-                        <p><strong>Issue:</strong> ${analysis.odometer_issues.reduction_amount || 'Unknown'} miles reduction</p>
-                        <p><strong>Period:</strong> ${analysis.odometer_issues.affected_period || 'Unknown'}</p>
-                    </div>
-                `;
-            }
-            
-            // Display mileage records if available
-            if (mileageHistory.mileage_records && mileageHistory.mileage_records.length > 0) {
-                analysisHtml += `
-                    <h6>Mileage Records:</h6>
-                    <div class="row">
-                        ${mileageHistory.mileage_records.map(record => `
-                            <div class="col-md-6">
-                                <div class="info-row">
-                                    <span class="info-label">${record.date || 'Unknown Date'}</span>
-                                    <span class="info-value">${formatMileage(record.mileage)}</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-            
-            if (!analysisHtml) {
-                analysisHtml = `
-                    <div class="no-data">
-                        <i data-feather="check-circle"></i>
-                        <h5>No Issues Found</h5>
-                        <p>No mileage discrepancies or issues detected.</p>
-                    </div>
-                `;
-            }
-            
-            mileageAnalysis.innerHTML = analysisHtml;
-            feather.replace();
-        }
+
         
         function getBadgeClass(result) {
             if (!result) return 'badge-unknown';
