@@ -308,6 +308,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - MOBILE NAVIGATION: Improved tab navigation with better wrapping and touch-friendly button sizes
 - DEVICE-SPECIFIC OPTIMIZATION: Tailored design elements for different screen sizes with responsive grid adjustments
 
+**July 25, 2025 - ENHANCED MOT ADVISORIES AND FAILURE POINT DISPLAY:**
+- DETAILED CATEGORIZATION: Enhanced MOT comment categorization into Major Defects, Minor Defects, Advisories, Failure Points, and Notes
+- VISUAL DISTINCTION: Added color-coded backgrounds and badges for different defect types (red=major, orange=minor, blue=advisory)
+- GROUPED DISPLAY: Organized MOT details into logical groups with counts for each category type
+- ENHANCED READABILITY: Improved text layout with proper word wrapping and visual hierarchy
+- FAILURE POINT HIGHLIGHTING: Specific highlighting for failure points that caused MOT failures
+- ADVISORY PROMINENCE: Clear distinction between advisories and actual defects with appropriate visual styling
+
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
 - Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation

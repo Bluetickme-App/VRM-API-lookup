@@ -193,18 +193,34 @@
             padding: 0.5rem;
             margin: 0.25rem 0;
             font-size: 0.9rem;
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.4;
         }
 
         .defect-major {
             border-left: 4px solid #dc3545;
+            background: #fef5f5;
         }
 
         .defect-minor {
             border-left: 4px solid #ffc107;
+            background: #fffbf0;
         }
 
         .defect-advisory {
             border-left: 4px solid #17a2b8;
+            background: #f0f8ff;
+        }
+
+        .defect-item .badge {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .defect-item span:last-child {
+            flex: 1;
+            word-wrap: break-word;
         }
 
         .mot-summary-stats {
@@ -784,10 +800,11 @@
                     failCount++;
                 }
                 
-                // Count advisories in comments
+                // Count advisories and defects in comments
                 if (test.comments && Array.isArray(test.comments)) {
                     test.comments.forEach(function(comment) {
-                        if (comment.toLowerCase().indexOf('advisory') !== -1) {
+                        var commentLower = comment.toLowerCase();
+                        if (commentLower.indexOf('advisory') !== -1) {
                             advisoryCount++;
                         }
                     });
@@ -840,45 +857,102 @@
                             '</div>' +
                         '</div>';
                 
-                // Add defects and advisories
+                // Add defects and advisories with enhanced categorization
                 if (test.comments && test.comments.length > 0) {
-                    timelineHtml += '<div class="mt-2">' +
-                        '<div class="mb-2"><small class="text-muted fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>Defects & Advisories</small></div>';
+                    var majorDefects = [];
+                    var minorDefects = [];
+                    var advisories = [];
+                    var failures = [];
+                    var otherNotes = [];
                     
+                    // Categorize comments
                     test.comments.forEach(function(comment) {
                         var commentLower = comment.toLowerCase();
-                        var defectClass = '';
-                        var defectType = '';
-                        var typeColor = '';
-                        
-                        if (commentLower.indexOf('major') !== -1 || commentLower.indexOf('dangerous') !== -1) {
-                            defectClass = 'defect-major';
-                            defectType = 'MAJOR';
-                            typeColor = 'text-danger';
+                        if (commentLower.indexOf('dangerous') !== -1 || commentLower.indexOf('major') !== -1) {
+                            majorDefects.push(comment);
                         } else if (commentLower.indexOf('minor') !== -1) {
-                            defectClass = 'defect-minor';
-                            defectType = 'MINOR';
-                            typeColor = 'text-warning';
+                            minorDefects.push(comment);
                         } else if (commentLower.indexOf('advisory') !== -1) {
-                            defectClass = 'defect-advisory';
-                            defectType = 'ADVISORY';
-                            typeColor = 'text-info';
+                            advisories.push(comment);
+                        } else if (commentLower.indexOf('fail') !== -1 || commentLower.indexOf('defect') !== -1) {
+                            failures.push(comment);
                         } else {
-                            defectClass = 'defect-advisory';
-                            defectType = 'NOTE';
-                            typeColor = 'text-muted';
+                            otherNotes.push(comment);
                         }
-                        
-                        timelineHtml += '<div class="defect-item ' + defectClass + '">' +
-                            '<span class="badge bg-light ' + typeColor + ' me-2" style="font-size: 0.65rem;">' + defectType + '</span>' +
-                            '<span style="font-size: 0.85rem;">' + comment + '</span>' +
-                        '</div>';
                     });
+                    
+                    timelineHtml += '<div class="mt-2">' +
+                        '<div class="mb-2"><small class="text-muted fw-bold"><i class="fas fa-clipboard-list me-1"></i>MOT Details</small></div>';
+                    
+                    // Display major defects (dangerous/major)
+                    if (majorDefects.length > 0) {
+                        timelineHtml += '<div class="mb-2">' +
+                            '<div class="mb-1"><small class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i>Major Defects (' + majorDefects.length + ')</small></div>';
+                        majorDefects.forEach(function(defect) {
+                            timelineHtml += '<div class="defect-item defect-major">' +
+                                '<span class="badge bg-danger text-white me-2" style="font-size: 0.65rem;">MAJOR</span>' +
+                                '<span style="font-size: 0.85rem;">' + defect + '</span>' +
+                            '</div>';
+                        });
+                        timelineHtml += '</div>';
+                    }
+                    
+                    // Display minor defects
+                    if (minorDefects.length > 0) {
+                        timelineHtml += '<div class="mb-2">' +
+                            '<div class="mb-1"><small class="text-warning fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>Minor Defects (' + minorDefects.length + ')</small></div>';
+                        minorDefects.forEach(function(defect) {
+                            timelineHtml += '<div class="defect-item defect-minor">' +
+                                '<span class="badge bg-warning text-dark me-2" style="font-size: 0.65rem;">MINOR</span>' +
+                                '<span style="font-size: 0.85rem;">' + defect + '</span>' +
+                            '</div>';
+                        });
+                        timelineHtml += '</div>';
+                    }
+                    
+                    // Display advisories
+                    if (advisories.length > 0) {
+                        timelineHtml += '<div class="mb-2">' +
+                            '<div class="mb-1"><small class="text-info fw-bold"><i class="fas fa-info-circle me-1"></i>Advisories (' + advisories.length + ')</small></div>';
+                        advisories.forEach(function(advisory) {
+                            timelineHtml += '<div class="defect-item defect-advisory">' +
+                                '<span class="badge bg-info text-white me-2" style="font-size: 0.65rem;">ADVISORY</span>' +
+                                '<span style="font-size: 0.85rem;">' + advisory + '</span>' +
+                            '</div>';
+                        });
+                        timelineHtml += '</div>';
+                    }
+                    
+                    // Display failure points
+                    if (failures.length > 0) {
+                        timelineHtml += '<div class="mb-2">' +
+                            '<div class="mb-1"><small class="text-danger fw-bold"><i class="fas fa-ban me-1"></i>Failure Points (' + failures.length + ')</small></div>';
+                        failures.forEach(function(failure) {
+                            timelineHtml += '<div class="defect-item defect-major">' +
+                                '<span class="badge bg-dark text-white me-2" style="font-size: 0.65rem;">FAIL</span>' +
+                                '<span style="font-size: 0.85rem;">' + failure + '</span>' +
+                            '</div>';
+                        });
+                        timelineHtml += '</div>';
+                    }
+                    
+                    // Display other notes
+                    if (otherNotes.length > 0) {
+                        timelineHtml += '<div class="mb-2">' +
+                            '<div class="mb-1"><small class="text-muted fw-bold"><i class="fas fa-sticky-note me-1"></i>Notes (' + otherNotes.length + ')</small></div>';
+                        otherNotes.forEach(function(note) {
+                            timelineHtml += '<div class="defect-item">' +
+                                '<span class="badge bg-secondary text-white me-2" style="font-size: 0.65rem;">NOTE</span>' +
+                                '<span style="font-size: 0.85rem;">' + note + '</span>' +
+                            '</div>';
+                        });
+                        timelineHtml += '</div>';
+                    }
                     
                     timelineHtml += '</div>';
                 } else {
                     timelineHtml += '<div class="mt-2">' +
-                        '<small class="text-muted"><i class="fas fa-check-circle me-1"></i>No defects recorded</small>' +
+                        '<small class="text-success"><i class="fas fa-check-circle me-1"></i>Clean MOT - No defects or advisories recorded</small>' +
                     '</div>';
                 }
                 
