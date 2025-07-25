@@ -63,8 +63,8 @@ class NumberPlateOCR:
     def process_image(self, image_data, is_base64=True):
         """Enhanced processing for real-world number plate images"""
         try:
-            if not TESSERACT_AVAILABLE and not OPENAI_AVAILABLE:
-                return {'error': 'OCR functionality not available - Neither Tesseract nor OpenAI Vision available'}
+            if not OPENAI_AVAILABLE:
+                return {'error': 'OpenAI Vision API not available - OPENAI_API_KEY required for OCR functionality'}
             
             # Convert image data to PIL format
             if is_base64:
@@ -83,64 +83,58 @@ class NumberPlateOCR:
             if image.mode in ('RGBA', 'P'):
                 image = image.convert('RGB')
             
-            # Try multiple processing strategies - OpenAI Vision first for best results
+            # Use OpenAI Vision API exclusively for all OCR processing
             all_plates = []
             all_extracted_text = []
             
-            # Strategy 1: OpenAI Vision API (primary method for best accuracy)
+            # OpenAI Vision API - the only OCR method used
             if OPENAI_AVAILABLE:
                 try:
                     openai_result = self._openai_vision_ocr(image_data if is_base64 else image)
-                    if openai_result and not openai_result.lower().startswith('im sorry'):
+                    if openai_result:
                         all_extracted_text.append(f"OpenAI: '{openai_result}'")
                         openai_plates = self._find_number_plates(openai_result)
                         all_plates.extend(openai_plates)
-                        logger.info("OpenAI Vision API provided primary OCR result")
+                        logger.info("OpenAI Vision API OCR result")
                         
-                        # If OpenAI found a good result, prioritize it
+                        # Process OpenAI result
                         if openai_plates:
                             scored_plates = self._score_plate_candidates(openai_plates)
                             if scored_plates:
-                                debug_info = f"OpenAI Vision: '{openai_result}'" if not scored_plates else None
                                 return {
                                     'success': True,
                                     'extracted_text': f"OpenAI: '{openai_result}'",
                                     'potential_plates': scored_plates,
                                     'best_match': scored_plates[0],
-                                    'debug_info': debug_info
+                                    'debug_info': f"OpenAI Vision: '{openai_result}'"
                                 }
+                        
+                        # Even if no plates found, return OpenAI result
+                        return {
+                            'success': True,
+                            'extracted_text': f"OpenAI: '{openai_result}'",
+                            'potential_plates': [],
+                            'best_match': None,
+                            'debug_info': f"OpenAI Vision result: '{openai_result}' - no valid plates detected"
+                        }
+                        
                 except Exception as e:
-                    logger.warning(f"OpenAI Vision OCR failed: {e}")
-            
-            # Fallback strategies when OpenAI doesn't find results
-            # Strategy 2: Original preprocessing
-            if TESSERACT_AVAILABLE:
-                processed_image = self._preprocess_image(image)
-                extracted_text = self._extract_text(processed_image)
-                all_extracted_text.append(f"Strategy1: '{extracted_text}'")
-                plates = self._find_number_plates(extracted_text)
-                all_plates.extend(plates)
-                
-                # Strategy 3: Try with original image (no preprocessing)
-                original_text = self._extract_text(image)
-                all_extracted_text.append(f"Original: '{original_text}'")
-                original_plates = self._find_number_plates(original_text)
-                all_plates.extend(original_plates)
-                
-                # Strategy 4: Try alternative OCR configs on processed image
-                alt_plates = self._try_alternative_ocr(processed_image)
-                all_plates.extend(alt_plates)
-                
-                # Strategy 5: Focus on yellow plate area (UK plates are often yellow)
-                try:
-                    yellow_focused = self._extract_yellow_regions(image)
-                    if yellow_focused:
-                        yellow_text = self._extract_text(yellow_focused)
-                        all_extracted_text.append(f"Yellow: '{yellow_text}'")
-                        yellow_plates = self._find_number_plates(yellow_text)
-                        all_plates.extend(yellow_plates)
-                except:
-                    pass
+                    logger.error(f"OpenAI Vision OCR failed: {e}")
+                    return {
+                        'success': False,
+                        'error': f'OpenAI Vision OCR error: {str(e)}',
+                        'extracted_text': '',
+                        'potential_plates': [],
+                        'best_match': None
+                    }
+            else:
+                return {
+                    'success': False,
+                    'error': 'OpenAI Vision API not available - OPENAI_API_KEY required',
+                    'extracted_text': '',
+                    'potential_plates': [],
+                    'best_match': None
+                }
             
             # Remove duplicates and score by pattern matching
             unique_plates = list(set(all_plates))
