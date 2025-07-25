@@ -1252,16 +1252,24 @@
             if (analysisData.ai_analysis) {
                 var ai = analysisData.ai_analysis;
                 
-                // MOT Prediction
-                if (ai.mot_prediction) {
+                // MOT Failure Prediction
+                if (ai.MOT_FAILURE_PREDICTION) {
                     html += '<div class="analysis-section">';
                     html += '<h4>🔮 MOT Failure Prediction</h4>';
-                    html += '<p><strong>Failure Probability:</strong> ' + (ai.mot_prediction.failure_probability || 'N/A') + '%</p>';
-                    if (ai.mot_prediction.likely_failure_points) {
-                        html += '<p><strong>Likely Issues:</strong></p>';
+                    html += '<p><strong>Failure Probability:</strong> ' + (ai.MOT_FAILURE_PREDICTION.probability_of_next_failure || 'N/A') + '%</p>';
+                    if (ai.MOT_FAILURE_PREDICTION.most_likely_failure_points) {
+                        html += '<p><strong>Most Likely Issues:</strong></p>';
                         html += '<ul>';
-                        for (var i = 0; i < ai.mot_prediction.likely_failure_points.length; i++) {
-                            html += '<li>' + ai.mot_prediction.likely_failure_points[i] + '</li>';
+                        for (var i = 0; i < ai.MOT_FAILURE_PREDICTION.most_likely_failure_points.length; i++) {
+                            html += '<li>' + ai.MOT_FAILURE_PREDICTION.most_likely_failure_points[i] + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    if (ai.MOT_FAILURE_PREDICTION.specific_components_to_monitor) {
+                        html += '<p><strong>Components to Monitor:</strong></p>';
+                        html += '<ul>';
+                        for (var i = 0; i < ai.MOT_FAILURE_PREDICTION.specific_components_to_monitor.length; i++) {
+                            html += '<li>' + ai.MOT_FAILURE_PREDICTION.specific_components_to_monitor[i] + '</li>';
                         }
                         html += '</ul>';
                     }
@@ -1269,35 +1277,71 @@
                 }
                 
                 // Maintenance Recommendations
-                if (ai.maintenance_recommendations) {
+                if (ai.MAINTENANCE_RECOMMENDATIONS) {
                     html += '<div class="analysis-section">';
                     html += '<h4>🔧 Maintenance Recommendations</h4>';
-                    if (ai.maintenance_recommendations.immediate_actions) {
-                        html += '<p><strong>Immediate Actions:</strong></p>';
+                    if (ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed) {
+                        html += '<p><strong>Immediate Actions Needed:</strong></p>';
                         html += '<ul>';
-                        for (var i = 0; i < ai.maintenance_recommendations.immediate_actions.length; i++) {
-                            html += '<li>' + ai.maintenance_recommendations.immediate_actions[i] + '</li>';
+                        for (var i = 0; i < ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed.length; i++) {
+                            html += '<li>' + ai.MAINTENANCE_RECOMMENDATIONS.immediate_actions_needed[i] + '</li>';
                         }
                         html += '</ul>';
                     }
-                    if (ai.maintenance_recommendations.cost_estimates) {
-                        html += '<p><strong>Estimated Costs:</strong> ' + ai.maintenance_recommendations.cost_estimates + '</p>';
+                    if (ai.MAINTENANCE_RECOMMENDATIONS.cost_estimates_for_common_repairs) {
+                        html += '<p><strong>Cost Estimates for Common Repairs:</strong></p>';
+                        html += '<ul>';
+                        var costs = ai.MAINTENANCE_RECOMMENDATIONS.cost_estimates_for_common_repairs;
+                        for (var repair in costs) {
+                            html += '<li>' + repair.replace('_', ' ') + ': ' + costs[repair] + '</li>';
+                        }
+                        html += '</ul>';
                     }
                     html += '</div>';
                 }
                 
                 // Purchase Recommendations
-                if (ai.purchase_recommendations) {
+                if (ai.PURCHASE_RECOMMENDATIONS) {
                     html += '<div class="analysis-section">';
                     html += '<h4>💰 Purchase Assessment</h4>';
-                    if (ai.purchase_recommendations.fair_value) {
-                        html += '<p><strong>Fair Market Value:</strong> ' + ai.purchase_recommendations.fair_value + '</p>';
+                    if (ai.PURCHASE_RECOMMENDATIONS.fair_market_value_assessment) {
+                        html += '<p><strong>Fair Market Value:</strong> ' + ai.PURCHASE_RECOMMENDATIONS.fair_market_value_assessment + '</p>';
                     }
-                    if (ai.purchase_recommendations.negotiation_points) {
+                    if (ai.PURCHASE_RECOMMENDATIONS.value_for_money_rating) {
+                        html += '<p><strong>Value Rating:</strong> ' + ai.PURCHASE_RECOMMENDATIONS.value_for_money_rating + '/10</p>';
+                    }
+                    if (ai.PURCHASE_RECOMMENDATIONS.price_negotiation_points) {
                         html += '<p><strong>Negotiation Points:</strong></p>';
                         html += '<ul>';
-                        for (var i = 0; i < ai.purchase_recommendations.negotiation_points.length; i++) {
-                            html += '<li>' + ai.purchase_recommendations.negotiation_points[i] + '</li>';
+                        for (var i = 0; i < ai.PURCHASE_RECOMMENDATIONS.price_negotiation_points.length; i++) {
+                            html += '<li>' + ai.PURCHASE_RECOMMENDATIONS.price_negotiation_points[i] + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    html += '</div>';
+                }
+                
+                // Reliability Assessment
+                if (ai.RELIABILITY_ASSESSMENT) {
+                    html += '<div class="analysis-section">';
+                    html += '<h4>📊 Reliability Assessment</h4>';
+                    if (ai.RELIABILITY_ASSESSMENT.overall_reliability_score) {
+                        html += '<p><strong>Overall Reliability:</strong> ' + ai.RELIABILITY_ASSESSMENT.overall_reliability_score + '/10</p>';
+                    }
+                    if (ai.RELIABILITY_ASSESSMENT.expected_lifespan_and_maintenance_costs) {
+                        var costs = ai.RELIABILITY_ASSESSMENT.expected_lifespan_and_maintenance_costs;
+                        if (costs.annual_maintenance_cost) {
+                            html += '<p><strong>Annual Maintenance Cost:</strong> ' + costs.annual_maintenance_cost + '</p>';
+                        }
+                        if (costs.expected_lifespan) {
+                            html += '<p><strong>Expected Lifespan:</strong> ' + costs.expected_lifespan + '</p>';
+                        }
+                    }
+                    if (ai.RELIABILITY_ASSESSMENT.risk_factors_and_concerns) {
+                        html += '<p><strong>Risk Factors:</strong></p>';
+                        html += '<ul>';
+                        for (var i = 0; i < ai.RELIABILITY_ASSESSMENT.risk_factors_and_concerns.length; i++) {
+                            html += '<li>' + ai.RELIABILITY_ASSESSMENT.risk_factors_and_concerns[i] + '</li>';
                         }
                         html += '</ul>';
                     }
