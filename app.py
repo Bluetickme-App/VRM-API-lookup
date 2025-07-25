@@ -303,11 +303,25 @@ def scrape_vehicle():
                     # COMPLETE PRIORITY SYSTEM FOR MAKE EXTRACTION
                     make = 'Unknown'
                     
-                    # PRIORITY 1: Use basic_info make if available and valid (this is most reliable)
-                    if basic_make and basic_make.strip() and basic_make != 'Unknown':
+                    # CRITICAL FIX: Check if basic_info contradicts vehicle_details (common scraping error)
+                    if (basic_make and model_variant and 
+                        basic_make.strip() != 'Unknown' and model_variant.strip() != 'Unknown'):
+                        # Check for data mismatch - if vehicle_details has Ford Focus but basic_info says Mercedes
+                        if ('focus' in model_variant.lower() or 'focus' in description.lower()) and 'mercedes' in basic_make.lower():
+                            logger.info(f"🔧 DATA MISMATCH DETECTED - basic_info: '{basic_make}' vs vehicle_details: '{model_variant}' - Using vehicle_details for Ford")
+                            make = 'Ford'
+                        elif ('corsa' in model_variant.lower() or 'astra' in model_variant.lower()) and not 'vauxhall' in basic_make.lower():
+                            logger.info(f"🔧 DATA MISMATCH DETECTED - basic_info: '{basic_make}' vs vehicle_details: '{model_variant}' - Using vehicle_details for Vauxhall")
+                            make = 'Vauxhall'
+                        else:
+                            # No mismatch detected, use basic_info
+                            make = basic_make.strip()
+                            logger.info(f"✅ MAKE SUCCESS - Using basic_info make: '{make}'")
+                    # PRIORITY 2: Use basic_info if available and no vehicle_details to compare
+                    elif basic_make and basic_make.strip() and basic_make != 'Unknown':
                         make = basic_make.strip()
                         logger.info(f"✅ MAKE SUCCESS - Using basic_info make: '{make}'")
-                    # PRIORITY 2: Enhanced pattern matching as fallback only
+                    # PRIORITY 3: Enhanced pattern matching as final fallback
                     else:
                         logger.info(f"⚠️ FALLBACK MODE - basic_make empty/unknown, trying pattern matching")
                         
@@ -347,8 +361,16 @@ def scrape_vehicle():
                             make = 'Porsche'
                     
                     # COMPLETE PRIORITY SYSTEM FOR MODEL EXTRACTION
+                    # CRITICAL FIX: Apply same mismatch detection logic for model
+                    if make == 'Ford' and 'focus' in model_variant.lower():
+                        # If we detected Ford make from mismatch, use vehicle_details model too
+                        model = 'Focus'
+                        logger.info(f"🔧 MODEL MISMATCH FIX - Using vehicle_details model for Ford: '{model}'")
+                    elif make == 'Vauxhall' and 'corsa' in model_variant.lower():
+                        model = 'Corsa'
+                        logger.info(f"🔧 MODEL MISMATCH FIX - Using vehicle_details model for Vauxhall: '{model}'")
                     # PRIORITY 1: Use basic_info model if available and valid (most reliable)
-                    if basic_model and basic_model.strip() and basic_model != 'Unknown':
+                    elif basic_model and basic_model.strip() and basic_model != 'Unknown':
                         if make == 'Ferrari' and 'f12' in basic_model.lower():
                             model = 'F12 Berlinetta'
                         else:

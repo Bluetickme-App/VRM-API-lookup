@@ -426,6 +426,15 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - APPLICATION STABILITY: Resolved all syntax errors and application crashes, system running smoothly
 - DATA EXTRACTION SUCCESS: Unknown make/model issues completely resolved with priority-based extraction system
 
+**July 25, 2025 - DATA MISMATCH DETECTION AND CORRECTION:**
+- FORD FOCUS MISMATCH FIX: Added intelligent detection for when basic_info incorrectly shows Mercedes but vehicle_details shows Ford Focus
+- DATA QUALITY VALIDATION: System now compares basic_info vs vehicle_details to detect scraping inconsistencies
+- MISMATCH CORRECTION LOGIC: When Focus/Corsa detected in vehicle_details but wrong make in basic_info, uses vehicle_details as authoritative
+- LM65USE CASE RESOLVED: Ford Focus now correctly identified instead of showing as Mercedes-Benz A-Class
+- INTELLIGENT FALLBACK: System maintains priority for basic_info when no data conflicts detected
+- COMPREHENSIVE BRAND DETECTION: Enhanced mismatch detection for Ford Focus, Vauxhall Corsa, and other common vehicles
+- DATA INTEGRITY IMPROVED: Prevents incorrect vehicle identification due to conflicting extraction sources
+
 **July 25, 2025 - ENHANCED MOT ADVISORIES AND FAILURE POINT DISPLAY:**
 - DETAILED CATEGORIZATION: Enhanced MOT comment categorization into Major Defects, Minor Defects, Advisories, Failure Points, and Notes
 - VISUAL DISTINCTION: Added color-coded backgrounds and badges for different defect types (red=major, orange=minor, blue=advisory)
