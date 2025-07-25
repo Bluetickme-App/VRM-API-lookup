@@ -429,14 +429,22 @@
             padding: 20px;
             border-radius: 12px;
             border-left: 4px solid #007bff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .analysis-section h4 {
             margin-top: 0;
             margin-bottom: 16px;
             font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         .analysis-section p {
             margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            line-height: 1.5;
+        }
+        .analysis-section p strong {
+            font-weight: 800;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
         }
         .analysis-section ul {
             margin-left: 20px;
@@ -444,6 +452,8 @@
         }
         .analysis-section li {
             margin-bottom: 4px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            line-height: 1.4;
             border-left: 3px solid #6c757d;
             color: #383d41;
         }
@@ -1350,18 +1360,27 @@
                     html += '</div>';
                 }
                 
-                // Critical Mileage Analysis
-                if (ai.mileage && (ai.mileage.mileage_tampering_detected || ai.mileage.mileage_anomalies)) {
-                    var mileageColor = ai.mileage.mileage_tampering_detected ? 
+                // Critical Mileage Analysis - Enhanced Detection
+                if (ai.mileage || (ai.trade_purchase_recommendation && ai.trade_purchase_recommendation.reasoning && 
+                    ai.trade_purchase_recommendation.reasoning.toLowerCase().includes('rollback'))) {
+                    
+                    var hasCriticalRollback = (ai.mileage && ai.mileage.mileage_tampering_detected) ||
+                                             (ai.trade_purchase_recommendation && ai.trade_purchase_recommendation.reasoning && 
+                                              ai.trade_purchase_recommendation.reasoning.toLowerCase().includes('critical mileage rollback'));
+                    
+                    var mileageColor = hasCriticalRollback ? 
                         'background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;' :
                         'background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;';
                     
                     html += '<div class="analysis-section colored-box" style="' + mileageColor + '">';
                     html += '<h4>📊 Mileage Analysis</h4>';
                     
-                    if (ai.mileage.mileage_tampering_detected) {
+                    if (hasCriticalRollback) {
                         html += '<p><strong>⚠️ CRITICAL ROLLBACK DETECTED</strong></p>';
-                        if (ai.mileage.mileage_anomalies && ai.mileage.mileage_anomalies.length > 0) {
+                        if (ai.trade_purchase_recommendation && ai.trade_purchase_recommendation.reasoning) {
+                            html += '<p><strong>Details:</strong> ' + ai.trade_purchase_recommendation.reasoning.split('.')[0] + '</p>';
+                        }
+                        if (ai.mileage && ai.mileage.mileage_anomalies && ai.mileage.mileage_anomalies.length > 0) {
                             html += '<p><strong>Anomalies:</strong></p>';
                             html += '<ul>';
                             for (var i = 0; i < Math.min(3, ai.mileage.mileage_anomalies.length); i++) {
@@ -1373,7 +1392,7 @@
                         html += '<p><strong>Status:</strong> Verified mileage progression</p>';
                     }
                     
-                    if (ai.mileage.confidence_score) {
+                    if (ai.mileage && ai.mileage.confidence_score) {
                         html += '<p><strong>Confidence:</strong> ' + (ai.mileage.confidence_score * 100).toFixed(1) + '%</p>';
                     }
                     html += '</div>';
