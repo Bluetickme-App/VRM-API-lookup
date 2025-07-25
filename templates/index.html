@@ -287,6 +287,25 @@
             text-align: center;
         }
         
+        .highlight-v5c {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .highlight-v5c .info-label {
+            color: #1976d2;
+            font-weight: 600;
+        }
+        
+        .highlight-v5c .info-value {
+            color: #0d47a1;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
         @media (max-width: 768px) {
             .main-container {
                 margin: 1rem;
@@ -372,6 +391,31 @@
                         <!-- Mileage analysis will be populated here -->
                     </div>
                 </div>
+                
+                <!-- OpenAI Analysis Results Section -->
+                <div class="vehicle-info-card" id="aiAnalysisSection" style="display: none;">
+                    <div class="info-header">
+                        <i data-feather="zap"></i> 🧠 Intelligent Analysis Results
+                    </div>
+                    
+                    <!-- V5C and Ownership Analysis -->
+                    <div class="p-4 bg-light border-bottom">
+                        <h5><i data-feather="users"></i> Ownership & Trading Analysis</h5>
+                        <div id="ownershipAnalysisMain"></div>
+                    </div>
+                    
+                    <!-- MOT Predictions -->
+                    <div class="p-4 bg-light border-bottom">
+                        <h5><i data-feather="alert-triangle"></i> MOT Predictions & Risk Assessment</h5>
+                        <div id="motPredictionsMain"></div>
+                    </div>
+                    
+                    <!-- Cost Analysis -->
+                    <div class="p-4 bg-light">
+                        <h5><i data-feather="pound-sign"></i> Cost Estimates</h5>
+                        <div id="costAnalysisMain"></div>
+                    </div>
+                </div>
             </div>
             
             <!-- Loading Section -->
@@ -445,11 +489,11 @@
             // Display mileage analysis
             displayMileageAnalysis(vehicleData.mileage_history);
             
-            // Show and setup OpenAI analysis button
+            // Show and setup OpenAI analysis button to show analysis inline
             const analyzeBtn = document.getElementById('analyzeWithAI');
             analyzeBtn.style.display = 'block';
             analyzeBtn.onclick = function() {
-                window.location.href = `/analysis/${vehicleData.registration}`;
+                performInlineAnalysis(vehicleData.registration);
             };
             
             // Add source indicator
@@ -706,6 +750,174 @@
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('loadingSection').style.display = 'none';
             document.getElementById('errorSection').style.display = 'none';
+        }
+        
+        async function performInlineAnalysis(registration) {
+            // Change button to loading state
+            const analyzeBtn = document.getElementById('analyzeWithAI');
+            const originalText = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Analyzing with AI...';
+            analyzeBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/intelligent-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({registration: registration})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.analysis) {
+                    displayInlineAnalysis(data.analysis, data.analysis_source);
+                } else {
+                    showError(data.error || 'Analysis failed');
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showError('Failed to perform analysis. Please try again.');
+            } finally {
+                // Restore button
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+            }
+        }
+        
+        function displayInlineAnalysis(analysis, source) {
+            // Show the analysis section
+            document.getElementById('aiAnalysisSection').style.display = 'block';
+            
+            // Display ownership analysis with V5C change date prominently
+            const ownershipAnalysis = analysis.ownership_analysis || {};
+            let ownershipHtml = '';
+            
+            // V5C Change Date and Owner Count - prominent display
+            if (ownershipAnalysis.last_v5c_change_date || ownershipAnalysis.estimated_previous_owners) {
+                ownershipHtml += '<div class="row mb-4">';
+                
+                if (ownershipAnalysis.last_v5c_change_date) {
+                    ownershipHtml += `<div class="col-md-6 mb-3">
+                        <div class="p-3 bg-primary text-white rounded border">
+                            <span class="badge bg-light text-primary fs-5 mb-2">V5C Changes Detected: Yes</span><br>
+                            <strong class="fs-4">Last V5C Change Date:</strong><br>
+                            <span class="fs-2 fw-bold">${ownershipAnalysis.last_v5c_change_date}</span><br>
+                            <small>When current V5C was issued</small>
+                        </div>
+                    </div>`;
+                }
+                
+                if (ownershipAnalysis.estimated_previous_owners) {
+                    ownershipHtml += `<div class="col-md-6 mb-3">
+                        <div class="p-3 bg-warning text-dark rounded border">
+                            <span class="badge bg-dark text-warning fs-5 mb-2">Estimated Previous Owners:</span><br>
+                            <span class="fs-1 fw-bold">${ownershipAnalysis.estimated_previous_owners}</span><br>
+                            <small>Based on V5C history analysis</small>
+                        </div>
+                    </div>`;
+                }
+                
+                ownershipHtml += '</div>';
+            }
+            
+            // Add trading indicators and registration place
+            if (ownershipAnalysis.trading_indicators?.length) {
+                ownershipHtml += '<div class="mb-3"><strong>Trading Indicators:</strong><ul class="mt-2">';
+                ownershipAnalysis.trading_indicators.forEach(indicator => {
+                    ownershipHtml += `<li><span class="badge bg-info">${indicator}</span></li>`;
+                });
+                ownershipHtml += '</ul></div>';
+            }
+            
+            if (ownershipAnalysis.registration_place) {
+                ownershipHtml += `<div class="mb-3">
+                    <strong>Registration Place:</strong> <span class="badge bg-secondary">${ownershipAnalysis.registration_place}</span>
+                </div>`;
+            }
+            
+            document.getElementById('ownershipAnalysisMain').innerHTML = ownershipHtml || '<p class="text-muted">No ownership analysis available.</p>';
+            
+            // Display MOT predictions
+            const motPredictions = analysis.mot_predictions || {};
+            let motHtml = '';
+            
+            if (motPredictions.failure_probability !== undefined) {
+                motHtml += `<div class="row mb-3">
+                    <div class="col-md-4">
+                        <h6>Failure Probability</h6>
+                        <div class="text-center">
+                            <span class="display-6 fw-bold text-${motPredictions.failure_probability > 60 ? 'danger' : motPredictions.failure_probability > 30 ? 'warning' : 'success'}">${motPredictions.failure_probability}%</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Likely Failure Areas</h6>
+                        ${(motPredictions.likely_failures || []).map(area => `<span class="badge bg-danger me-1 mb-1">${area}</span>`).join('') || '<span class="text-muted">None identified</span>'}
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Recommended Work</h6>
+                        ${(motPredictions.recommended_work || []).map(work => `<span class="badge bg-warning text-dark me-1 mb-1">${work}</span>`).join('') || '<span class="text-muted">None required</span>'}
+                    </div>
+                </div>`;
+            }
+            
+            document.getElementById('motPredictionsMain').innerHTML = motHtml || '<p class="text-muted">No MOT predictions available.</p>';
+            
+            // Display cost analysis
+            const costBreakdown = analysis.cost_breakdown || {};
+            let costHtml = '';
+            
+            if (Object.keys(costBreakdown).length > 0) {
+                costHtml += '<div class="row">';
+                if (costBreakdown.immediate_repairs) {
+                    costHtml += `<div class="col-md-3 mb-2">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h6>Immediate Repairs</h6>
+                            <h4 class="text-danger">£${costBreakdown.immediate_repairs}</h4>
+                        </div>
+                    </div>`;
+                }
+                if (costBreakdown.pre_mot_work) {
+                    costHtml += `<div class="col-md-3 mb-2">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h6>Pre-MOT Work</h6>
+                            <h4 class="text-warning">£${costBreakdown.pre_mot_work}</h4>
+                        </div>
+                    </div>`;
+                }
+                if (costBreakdown.annual_maintenance) {
+                    costHtml += `<div class="col-md-3 mb-2">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h6>Annual Maintenance</h6>
+                            <h4 class="text-info">£${costBreakdown.annual_maintenance}</h4>
+                        </div>
+                    </div>`;
+                }
+                if (costBreakdown.total_first_year) {
+                    costHtml += `<div class="col-md-3 mb-2">
+                        <div class="text-center p-3 bg-primary text-white rounded">
+                            <h6>Total First Year</h6>
+                            <h4>£${costBreakdown.total_first_year}</h4>
+                        </div>
+                    </div>`;
+                }
+                costHtml += '</div>';
+            }
+            
+            document.getElementById('costAnalysisMain').innerHTML = costHtml || '<p class="text-muted">No cost analysis available.</p>';
+            
+            // Add source indicator
+            if (source === 'cached') {
+                const sourceIndicator = document.createElement('div');
+                sourceIndicator.className = 'alert alert-info mt-3';
+                sourceIndicator.innerHTML = '<i data-feather="database"></i> Analysis data retrieved from cache';
+                document.getElementById('aiAnalysisSection').appendChild(sourceIndicator);
+            }
+            
+            // Scroll to analysis section
+            document.getElementById('aiAnalysisSection').scrollIntoView({ behavior: 'smooth' });
+            
+            feather.replace();
         }
         
         // Auto-format registration input
