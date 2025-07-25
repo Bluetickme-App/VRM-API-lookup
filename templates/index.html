@@ -538,7 +538,7 @@
                     <span class="info-value">${vehicleData.fuel_type || 'Unknown'}</span>
                 </div>
                 <div class="info-row highlight-v5c">
-                    <span class="info-label"><i class="fas fa-id-card me-1"></i>Last V5C Change Date</span>
+                    <span class="info-label"><i data-feather="credit-card"></i> Last V5C Change Date</span>
                     <span class="info-value">${vehicleData.v5_issue_date || vehicleData.last_v5_issue_date || (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) || 'Not Available'}</span>
                     <small class="text-muted d-block">When current V5C was issued</small>
                 </div>
@@ -822,7 +822,7 @@
             }
             
             // Add trading indicators and registration place
-            if (ownershipAnalysis.trading_indicators?.length) {
+            if (ownershipAnalysis.trading_indicators && ownershipAnalysis.trading_indicators.length) {
                 ownershipHtml += '<div class="mb-3"><strong>Trading Indicators:</strong><ul class="mt-2">';
                 ownershipAnalysis.trading_indicators.forEach(indicator => {
                     ownershipHtml += `<li><span class="badge bg-info">${indicator}</span></li>`;
