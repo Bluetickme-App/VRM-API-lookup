@@ -256,18 +256,40 @@
             analyzeBtn.disabled = true;
             
             try {
-                const response = await fetch(`/api/analyze/${registration}`);
+                const response = await fetch('/api/intelligent-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({registration: registration})
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Analysis response:', data);
                 
                 if (data.success) {
-                    displayAnalysis(data.analysis);
-                    analysisResult.style.display = 'block';
+                    // Store vehicle data globally for ownership analysis
+                    window.vehicleData = data.data;
+                    if (data.analysis) {
+                        displayAnalysis(data.analysis);
+                        analysisResult.style.display = 'block';
+                    } else {
+                        throw new Error('No analysis data received');
+                    }
                 } else {
                     throw new Error(data.error || 'Analysis failed');
                 }
             } catch (error) {
                 console.error('Analysis error:', error);
-                errorMessage.textContent = `Analysis failed: ${error.message}`;
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    response: error.response
+                });
+                errorMessage.textContent = `Analysis failed: ${error.message || 'Unknown error'}`;
                 errorMessage.style.display = 'block';
             } finally {
                 loadingSpinner.style.display = 'none';
@@ -369,10 +391,13 @@
             let ownershipHtml = '';
             
             // Add V5C Issue Date prominently
-            if (vehicleData.vehicle_details && vehicleData.vehicle_details.last_v5c_issue_date) {
+            const v5Date = (window.vehicleData && window.vehicleData.v5_issue_date) || 
+                          (window.vehicleData && window.vehicleData.last_v5_issue_date) || 
+                          (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.last_v5c_issue_date);
+            if (v5Date) {
                 ownershipHtml += `<div class="mb-3">
                     <strong>Last V5C Issue Date:</strong> 
-                    <span class="badge bg-info ms-2">${vehicleData.vehicle_details.last_v5c_issue_date}</span>
+                    <span class="badge bg-info ms-2">${v5Date}</span>
                 </div>`;
             }
             
@@ -385,10 +410,12 @@
             }
             
             // Add registration place
-            if (vehicleData.vehicle_details && vehicleData.vehicle_details.registration_place) {
+            const regPlace = (window.vehicleData && window.vehicleData.registration_place) || 
+                           (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.registration_place);
+            if (regPlace) {
                 ownershipHtml += `<div class="mb-3">
                     <strong>Registration Place:</strong> 
-                    <span class="badge bg-secondary ms-2">${vehicleData.vehicle_details.registration_place}</span>
+                    <span class="badge bg-secondary ms-2">${regPlace}</span>
                 </div>`;
             }
             
