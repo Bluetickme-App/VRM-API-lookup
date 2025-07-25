@@ -243,13 +243,15 @@
 
         .dropdown-content {
             margin-top: 16px;
-            padding: 20px;
+            padding: 24px;
             background: white;
             border: 1px solid #e9ecef;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             color: #2c3e50;
             font-weight: normal;
+            min-width: 500px;
+            max-width: 700px;
         }
 
         .dropdown-content h4 {
@@ -281,19 +283,23 @@
         .mot-result.pass {
             background: #28a745;
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .mot-result.fail {
             background: #dc3545;
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .mot-mileage {
@@ -320,46 +326,72 @@
         }
 
         .mot-detailed-history {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
+            margin-top: 16px;
         }
 
         .mot-test-detailed {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            padding: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            padding: 20px;
             background: #fafbfc;
+            transition: all 0.2s ease;
+        }
+
+        .mot-test-detailed:hover {
+            border-color: #6c757d;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .mot-test-header {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 16px;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .mot-date {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .mot-mileage {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 600;
         }
 
         .mot-test-info {
             display: flex;
-            gap: 16px;
-            margin-bottom: 8px;
+            gap: 12px;
+            margin-bottom: 12px;
             font-size: 13px;
-            color: #6c757d;
         }
 
         .cert-number, .test-number {
-            background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: #f8f9fa;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: 1px solid #e9ecef;
         }
 
         .mot-expiry {
-            font-size: 13px;
+            font-size: 14px;
             color: #495057;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             font-weight: 600;
+            padding: 8px 12px;
+            background: #e7f3ff;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
         }
 
         .mot-comments {
@@ -375,20 +407,22 @@
         }
 
         .comment-type-header {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 6px;
-            padding: 6px 8px;
-            border-radius: 4px;
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
             background: #f8f9fa;
+            border-left: 4px solid #6c757d;
         }
 
         .comment-item {
-            padding: 6px 12px;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            font-size: 13px;
-            line-height: 1.4;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            border-left: 4px solid transparent;
         }
 
         .comment-item.failure {
