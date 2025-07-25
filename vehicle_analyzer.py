@@ -211,6 +211,17 @@ def create_analysis_prompt(vehicle_data):
             recent_failure_warning += f"ANALYSIS PRIORITY: This vehicle has FAILED its most recent MOT test.\n"
             recent_failure_warning += f"Recent failures indicate HIGH DEFECTIVE RISK and serious mechanical problems.\n\n"
 
+    # Extract V5C and ownership data from vehicle_details
+    vehicle_details = vehicle_data.get('vehicle_details', {})
+    basic_info = vehicle_data.get('basic_info', {})
+    summary = vehicle_data.get('summary', {})
+    
+    v5c_date = vehicle_details.get('last_v5c_issue_date', '') or basic_info.get('last_v5c_issue_date', '') or summary.get('last_v5c_issue_date', '')
+    registration_place = vehicle_details.get('registration_place', '') or basic_info.get('registration_place', '') or summary.get('registration_place', '')
+    
+    print(f"DEBUG ANALYZER: V5C Date from data: {v5c_date}")
+    print(f"DEBUG ANALYZER: Registration Place from data: {registration_place}")
+
     prompt = f"""
 AUTHENTIC DVLA VEHICLE DATA FOR ANALYSIS:
 {recent_failure_warning}
@@ -220,6 +231,10 @@ BASIC INFORMATION:
 - Year: {year} (Age: {vehicle_age} years)
 - Color: {vehicle_data.get('color', 'Unknown')}
 - Fuel Type: {vehicle_data.get('fuel_type', 'Unknown')}
+
+V5C & OWNERSHIP INFORMATION:
+- Last V5C Issue Date: {v5c_date or 'Not Available'}
+- Registration Place: {registration_place or 'Not Available'}
 
 COMPLETE MOT TEST HISTORY ({len(mot_tests)} authentic DVLA tests):
 """
@@ -283,19 +298,14 @@ Test {i+1}: {test_date}
         if test_details:
             prompt += f"- Additional Details: {test_details}\n"
     
-    # Extract V5C and ownership information
-    vehicle_details = vehicle_data.get('vehicle_details', {})
-    basic_info = vehicle_data.get('basic_info', {})
-    
-    v5c_date = vehicle_details.get('last_v5c_issue_date', 'Not available')
-    registration_place = vehicle_details.get('registration_place', 'Unknown')
+    # Add ownership and compliance information using already extracted V5C data
     mot_expiry = vehicle_data.get('mot_expiry', 'Unknown')
     
-    # Add ownership and compliance information
     prompt += f"""
-OWNERSHIP & V5C INFORMATION:
-- Last V5C Issue Date: {v5c_date}
-- Registration Place: {registration_place}
+
+OWNERSHIP & V5C INFORMATION (for ownership analysis):
+- Last V5C Issue Date: {v5c_date or 'Not Available'}
+- Registration Place: {registration_place or 'Unknown'}
 - MOT Expiry: {mot_expiry}
 - Current MOT Status: {vehicle_data.get('mot_status', 'Unknown')}
 - Current Tax Status: {vehicle_data.get('tax_status', 'Unknown')}

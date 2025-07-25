@@ -404,57 +404,63 @@
             const ownershipAnalysis = analysis.ownership_analysis || {};
             let ownershipHtml = '';
             
-            // Add V5C Change Date prominently
+            // Add V5C Change Date prominently with large styling
             const v5Date = (window.vehicleData && window.vehicleData.v5_issue_date) || 
                           (window.vehicleData && window.vehicleData.last_v5_issue_date) || 
                           (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.last_v5c_issue_date);
-            if (v5Date) {
-                ownershipHtml += `<div class="row mb-3">
-                    <div class="col-12 col-md-6">
-                        <strong>Last V5C Change Date:</strong><br>
-                        <span class="badge bg-primary fs-6">${v5Date}</span>
-                    </div>
-                    <div class="col-12 col-md-6 mt-2 mt-md-0">
-                        <small class="text-muted">Date when current V5C was issued</small>
-                    </div>
-                </div>`;
-            }
             
-            // Add ownership details in mobile-friendly format
+            // Add actual owner count prominently 
             const ownersEstimate = ownershipAnalysis.estimated_previous_owners;
-            const regPlace = (window.vehicleData && window.vehicleData.registration_place) || 
-                           (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.registration_place);
             
-            if (ownersEstimate || regPlace) {
-                ownershipHtml += `<div class="row mb-3">`;
+            // Create prominent display for both fields
+            if (v5Date || ownersEstimate) {
+                ownershipHtml += `<div class="row mb-4">`;
                 
-                if (ownersEstimate) {
-                    ownershipHtml += `<div class="col-12 col-md-6 mb-2">
-                        <strong>Estimated Previous Owners:</strong><br>
-                        <span class="badge bg-warning fs-6">${ownersEstimate}</span>
+                if (v5Date) {
+                    ownershipHtml += `<div class="col-12 col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded border">
+                            <span class="badge bg-primary fs-5 mb-2">V5C Changes Detected: Yes</span><br>
+                            <strong class="fs-4 text-primary">Last V5C Change Date:</strong><br>
+                            <span class="fs-3 fw-bold text-dark">${v5Date}</span><br>
+                            <small class="text-muted">When current V5C was issued</small>
+                        </div>
                     </div>`;
                 }
                 
-                if (regPlace) {
-                    ownershipHtml += `<div class="col-12 col-md-6 mb-2">
-                        <strong>Registration Place:</strong><br>
-                        <span class="badge bg-secondary fs-6">${regPlace}</span>
+                if (ownersEstimate) {
+                    ownershipHtml += `<div class="col-12 col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded border">
+                            <span class="badge bg-warning fs-5 mb-2">Estimated Previous Owners:</span><br>
+                            <span class="fs-2 fw-bold text-warning">${ownersEstimate}</span><br>
+                            <small class="text-muted">Based on V5C history analysis</small>
+                        </div>
                     </div>`;
                 }
                 
                 ownershipHtml += `</div>`;
             }
             
-            if (ownershipAnalysis.v5_changes_detected !== undefined) {
-                ownershipHtml += `<p><strong>V5 Changes Detected:</strong> ${ownershipAnalysis.v5_changes_detected ? 'Yes' : 'No'}</p>`;
-            }
+            // Add trading indicators
             if (ownershipAnalysis.trading_indicators?.length) {
-                ownershipHtml += `<p><strong>Trading Indicators:</strong></p><ul>`;
+                ownershipHtml += `<div class="mb-3">
+                    <strong>Trading Indicators:</strong>
+                    <ul class="mt-2">`;
                 ownershipAnalysis.trading_indicators.forEach(indicator => {
-                    ownershipHtml += `<li>${indicator}</li>`;
+                    ownershipHtml += `<li><span class="badge bg-info text-dark">${indicator}</span></li>`;
                 });
-                ownershipHtml += `</ul>`;
+                ownershipHtml += `</ul></div>`;
             }
+            
+            // Add registration place if available
+            const regPlace = (window.vehicleData && window.vehicleData.registration_place) || 
+                           (window.vehicleData && window.vehicleData.vehicle_details && window.vehicleData.vehicle_details.registration_place);
+            if (regPlace) {
+                ownershipHtml += `<div class="mb-3">
+                    <strong>Registration Place:</strong> <span class="badge bg-secondary">${regPlace}</span>
+                </div>`;
+            }
+            
+
             document.getElementById('ownershipAnalysis').innerHTML = ownershipHtml || '<p class="text-muted">No ownership analysis available.</p>';
         }
     </script>
