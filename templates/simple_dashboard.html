@@ -801,6 +801,65 @@
                 html += '</div>';
             }
 
+            // Mileage Issues Alert (for major rollbacks like the 51,411 mile reduction)
+            var mileageIssues = data.mileage_issues;
+            var mileageAnalysis = (data.mileage_history && data.mileage_history.analysis) || 
+                                 (data.analysis && data.analysis.odometer_issues);
+            
+            if (mileageIssues === "Yes" || (mileageAnalysis && mileageAnalysis.has_issues)) {
+                var mileageClass = 'status-danger';
+                var mileageStatus = 'ISSUES DETECTED';
+                var mileageDetail = 'Mileage discrepancies found';
+                
+                // Check for critical rollbacks
+                if (mileageAnalysis && mileageAnalysis.rollbacks) {
+                    var criticalRollbacks = mileageAnalysis.rollbacks.filter(function(r) {
+                        return r.rollback_amount > 30000;
+                    });
+                    
+                    if (criticalRollbacks.length > 0) {
+                        mileageStatus = 'CRITICAL ROLLBACK';
+                        var maxRollback = Math.max.apply(Math, criticalRollbacks.map(function(r) { return r.rollback_amount; }));
+                        mileageDetail = 'Rollback: ' + maxRollback.toLocaleString() + ' miles';
+                    }
+                }
+                
+                html += '<div class="status-box ' + mileageClass + '" onclick="toggleDropdown(\'mileage\')" style="cursor: pointer;">';
+                html += '<div class="status-title">Mileage Status</div>';
+                html += '<div class="status-value">' + mileageStatus + '</div>';
+                html += '<div class="status-detail">' + mileageDetail + '</div>';
+                html += '</div>';
+                
+                // Add hidden mileage dropdown with rollback details
+                html += '<div id="mileage-dropdown" class="dropdown-content" style="display: none;">';
+                html += '<h4>Mileage Analysis</h4>';
+                
+                if (mileageAnalysis && mileageAnalysis.rollbacks) {
+                    html += '<div style="margin-bottom: 16px;"><strong>Rollbacks Detected:</strong></div>';
+                    for (var i = 0; i < mileageAnalysis.rollbacks.length; i++) {
+                        var rollback = mileageAnalysis.rollbacks[i];
+                        var severityColor = rollback.severity === 'CRITICAL' ? '#dc3545' : 
+                                          rollback.severity === 'HIGH' ? '#fd7e14' : '#ffc107';
+                        
+                        html += '<div style="border-left: 4px solid ' + severityColor + '; padding-left: 12px; margin-bottom: 12px;">';
+                        html += '<div><strong>' + rollback.severity + ' ROLLBACK</strong></div>';
+                        html += '<div>From: ' + rollback.from_mileage.toLocaleString() + ' miles (' + rollback.from_date + ')</div>';
+                        html += '<div>To: ' + rollback.to_mileage.toLocaleString() + ' miles (' + rollback.to_date + ')</div>';
+                        html += '<div style="color: ' + severityColor + '; font-weight: bold;">Reduction: ' + rollback.rollback_amount.toLocaleString() + ' miles</div>';
+                        html += '</div>';
+                    }
+                }
+                
+                if (mileageAnalysis && mileageAnalysis.suspicious_patterns) {
+                    html += '<div style="margin-top: 16px;"><strong>Suspicious Patterns:</strong></div>';
+                    for (var j = 0; j < mileageAnalysis.suspicious_patterns.length; j++) {
+                        html += '<div style="color: #dc3545; font-weight: bold; margin: 8px 0;">' + mileageAnalysis.suspicious_patterns[j] + '</div>';
+                    }
+                }
+                
+                html += '</div>';
+            }
+
             // MOT Status - Updated thresholds: Red (<3 months), Orange (3-6 months), Green (6+ months)
             var motClass = 'status-danger';
             var motStatus = 'No MOT';

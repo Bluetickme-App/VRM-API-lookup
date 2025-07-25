@@ -189,6 +189,88 @@ def save_vehicle_data_to_db(registration, vehicle_data):
         raise
 
 
+def analyze_mot_mileage_rollbacks(mot_tests):
+    """Analyze MOT test data for mileage rollbacks and suspicious patterns"""
+    from datetime import datetime
+    import re
+    
+    if not mot_tests:
+        return {'has_issues': False, 'rollbacks': [], 'suspicious_patterns': []}
+    
+    # Extract mileage data from MOT tests
+    mileage_data = []
+    for test in mot_tests:
+        date_str = test.get('date', '')
+        mileage = test.get('mileage')
+        
+        if date_str and mileage:
+            try:
+                # Parse date
+                if '/' in date_str:
+                    test_date = datetime.strptime(date_str, '%d/%m/%Y')
+                else:
+                    test_date = datetime.strptime(date_str, '%Y-%m-%d')
+                
+                # Extract numeric mileage
+                mileage_match = re.search(r'(\d+)', str(mileage).replace(',', ''))
+                if mileage_match:
+                    mileage_data.append({
+                        'date': test_date,
+                        'date_str': date_str,
+                        'mileage': int(mileage_match.group(1))
+                    })
+            except:
+                continue
+    
+    if len(mileage_data) < 2:
+        return {'has_issues': False, 'rollbacks': [], 'suspicious_patterns': []}
+    
+    # Sort by date (oldest first)
+    mileage_data.sort(key=lambda x: x['date'])
+    
+    # Detect rollbacks
+    rollbacks = []
+    suspicious_patterns = []
+    
+    for i in range(1, len(mileage_data)):
+        current_mileage = mileage_data[i]['mileage']
+        previous_mileage = mileage_data[i-1]['mileage']
+        
+        if current_mileage < previous_mileage:
+            rollback_amount = previous_mileage - current_mileage
+            
+            # Classify severity
+            if rollback_amount > 30000:
+                severity = 'CRITICAL'
+            elif rollback_amount > 10000:
+                severity = 'HIGH'
+            else:
+                severity = 'MEDIUM'
+            
+            rollback_info = {
+                'from_date': mileage_data[i-1]['date_str'],
+                'to_date': mileage_data[i]['date_str'],
+                'from_mileage': previous_mileage,
+                'to_mileage': current_mileage,
+                'rollback_amount': rollback_amount,
+                'severity': severity
+            }
+            rollbacks.append(rollback_info)
+            
+            if rollback_amount > 30000:  # Critical rollbacks like the 51,411 shown
+                suspicious_patterns.append(f"CRITICAL ROLLBACK: {rollback_amount:,} miles reduced between {mileage_data[i-1]['date_str']} and {mileage_data[i]['date_str']}")
+    
+    analysis = {
+        'has_issues': len(rollbacks) > 0,
+        'rollbacks': rollbacks,
+        'suspicious_patterns': suspicious_patterns,
+        'clocking_suspected': len([r for r in rollbacks if r['rollback_amount'] > 30000]) > 0,
+        'total_readings': len(mileage_data)
+    }
+    
+    return analysis
+
+
 def calculate_mot_fields(data):
     """Calculate MOT expiry date, days left, last mileage, and mileage issues from MOT history"""
     from datetime import datetime, date
@@ -239,13 +321,12 @@ def calculate_mot_fields(data):
                 except:
                     pass
         
-        # Check for mileage issues (rollback detection)
-        mileage_history = data.get('mileage_history', {})
-        if mileage_history:
-            analysis = mileage_history.get('analysis', {})
-            odometer_issues = analysis.get('odometer_issues', {})
-            if odometer_issues.get('has_issues', False):
-                mileage_issues = "Yes"
+        # Enhanced mileage rollback detection from MOT data
+        rollback_analysis = analyze_mot_mileage_rollbacks(mot_tests)
+        if rollback_analysis['has_issues']:
+            mileage_issues = "Yes"
+            # Store the rollback analysis for frontend display
+            data['mileage_rollback_analysis'] = rollback_analysis
     
     return mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues
 

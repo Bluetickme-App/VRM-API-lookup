@@ -115,7 +115,10 @@ def format_database_vehicle_response(vehicle_record):
             'co2_emissions': vehicle_record.co2_emissions,
             'tax_12_months': vehicle_record.tax_12_months,
             'tax_6_months': vehicle_record.tax_6_months,
-            'total_keepers': vehicle_record.total_keepers
+            'total_keepers': vehicle_record.total_keepers,
+            'v5c_certificate_count': vehicle_record.v5c_certificate_count,
+            'exported': vehicle_record.exported,
+            'has_outstanding_recall': vehicle_record.has_outstanding_recall
         },
         'mileage': {
             'last_mot_mileage': vehicle_record.last_mot_mileage,

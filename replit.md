@@ -319,6 +319,19 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - COMPREHENSIVE DISPLAY: Shows total tests, passes, failures, and advisories in MOT status detail line
 - DA07FWB EXAMPLE: Successfully displaying "13 tests - 10 passes, 3 fails" for Mercedes-Benz A-Class test vehicle
 
+**July 25, 2025 - COMPREHENSIVE VEHICLE INFORMATION ENHANCEMENT WITH CRITICAL MILEAGE ROLLBACK DETECTION:**
+- RECALL STATUS INTEGRATION: Added outstanding recall detection with red danger status when recalls exist
+- EXPORT STATUS DISPLAY: Added export status with orange warning when vehicle has been exported
+- V5C CERTIFICATE COUNT: Added display of total V5C certificates issued for the vehicle
+- DATABASE SCHEMA EXPANSION: Successfully added exported and has_outstanding_recall columns to PostgreSQL
+- CRITICAL MILEAGE ROLLBACK DETECTION: Enhanced system to detect major mileage rollbacks (>30,000 miles) like 51,411 mile reduction
+- SEVERITY CLASSIFICATION: Rollbacks classified as CRITICAL (>30k), HIGH (>10k), or MEDIUM with color-coded warnings
+- SUSPICIOUS PATTERN ANALYSIS: System flags major rollbacks as potential odometer tampering with detailed breakdown
+- ENHANCED DASHBOARD DISPLAY: Added prominent mileage status box showing "CRITICAL ROLLBACK" with rollback amount
+- DETAILED ROLLBACK DROPDOWN: Clickable mileage status shows complete rollback analysis with dates and amounts
+- AUTHENTIC DATA EXTRACTION: All new fields extracted from genuine DVLA sources with comprehensive pattern matching
+- USER REQUIREMENT FULFILLED: System now properly flags and displays the type of mileage discrepancies shown in user's image
+
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
 - ENHANCED DROPDOWNS: Improved dropdown containers with better visual hierarchy and compact formatting

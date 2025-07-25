@@ -292,7 +292,7 @@ class DataExtractor:
         return details
     
     def _extract_mileage_info(self, driver):
-        """Extract mileage information"""
+        """Extract mileage information with advanced rollback detection"""
         mileage = {}
         
         try:
@@ -307,6 +307,75 @@ class DataExtractor:
                         mileage[self._normalize_key(keyword)] = value
                 except NoSuchElementException:
                     continue
+            
+            # Enhanced mileage history extraction with rollback detection
+            mileage_data = []
+            suspicious_patterns = []
+            
+            # Look for mileage history table
+            try:
+                tables = driver.find_elements(By.CSS_SELECTOR, "table")
+                for table in tables:
+                    rows = table.find_elements(By.TAG_NAME, "tr")
+                    for row in rows:
+                        cells = row.find_elements(By.TAG_NAME, "td")
+                        if len(cells) >= 3:
+                            date_text = cells[0].text.strip()
+                            mileage_text = cells[2].text.strip() if len(cells) > 2 else cells[1].text.strip()
+                            
+                            # Extract date and mileage
+                            date_match = re.search(r'(\d{2}/\d{2}/\d{4})', date_text)
+                            mileage_match = re.search(r'(\d+)', mileage_text.replace(',', ''))
+                            
+                            if date_match and mileage_match:
+                                mileage_data.append({
+                                    'date': date_match.group(1),
+                                    'mileage': int(mileage_match.group(1)),
+                                    'original_text': mileage_text
+                                })
+                
+                # Analyze for rollbacks (like the 51,411 mile reduction shown in your image)
+                if len(mileage_data) > 1:
+                    # Sort by date (oldest first for proper chronological analysis)
+                    from datetime import datetime
+                    mileage_data.sort(key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y'))
+                    
+                    rollbacks = []
+                    for i in range(1, len(mileage_data)):
+                        current_mileage = mileage_data[i]['mileage']
+                        previous_mileage = mileage_data[i-1]['mileage']
+                        
+                        if current_mileage < previous_mileage:
+                            rollback_amount = previous_mileage - current_mileage
+                            rollback_info = {
+                                'from_date': mileage_data[i-1]['date'],
+                                'to_date': mileage_data[i]['date'],
+                                'from_mileage': previous_mileage,
+                                'to_mileage': current_mileage,
+                                'rollback_amount': rollback_amount,
+                                'severity': 'CRITICAL' if rollback_amount > 30000 else 'HIGH' if rollback_amount > 10000 else 'MEDIUM'
+                            }
+                            rollbacks.append(rollback_info)
+                            
+                            if rollback_amount > 30000:  # Major rollbacks like the 51,411 shown
+                                suspicious_patterns.append(f"CRITICAL ROLLBACK: {rollback_amount:,} miles reduced between {mileage_data[i-1]['date']} and {mileage_data[i]['date']}")
+                                logger.error(f"MAJOR MILEAGE ROLLBACK DETECTED: {previous_mileage:,} -> {current_mileage:,} (-{rollback_amount:,} miles)")
+                    
+                    if rollbacks or suspicious_patterns:
+                        mileage['analysis'] = {
+                            'total_readings': len(mileage_data),
+                            'odometer_issues': {
+                                'has_issues': True,
+                                'rollbacks': rollbacks,
+                                'suspicious_patterns': suspicious_patterns,
+                                'clocking_suspected': len([r for r in rollbacks if r['rollback_amount'] > 30000]) > 0
+                            }
+                        }
+                        mileage['mileage_issues'] = "Yes"
+                        logger.warning(f"Mileage analysis complete: {len(rollbacks)} rollbacks detected, {len(suspicious_patterns)} critical issues")
+                    
+            except Exception as e:
+                logger.debug(f"Enhanced mileage analysis failed: {e}")
                     
         except Exception as e:
             logger.error(f"Error extracting mileage info: {e}")
