@@ -243,15 +243,17 @@
 
         .dropdown-content {
             margin-top: 16px;
-            padding: 24px;
+            padding: 20px;
             background: white;
             border: 1px solid #e9ecef;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             color: #2c3e50;
             font-weight: normal;
-            min-width: 500px;
-            max-width: 700px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         .dropdown-content h4 {
@@ -326,33 +328,38 @@
         }
 
         .mot-detailed-history {
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
+            overflow-x: hidden;
             margin-top: 16px;
+            width: 100%;
         }
 
         .mot-test-detailed {
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 16px;
             background: #fafbfc;
-            transition: all 0.2s ease;
-        }
-
-        .mot-test-detailed:hover {
-            border-color: #6c757d;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .mot-test-header {
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 16px;
-            align-items: center;
-            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
             padding-bottom: 12px;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mot-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .mot-date {
@@ -365,6 +372,11 @@
             font-size: 14px;
             color: #6c757d;
             font-weight: 600;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            width: fit-content;
         }
 
         .mot-test-info {
@@ -396,33 +408,42 @@
 
         .mot-comments {
             margin-top: 12px;
+            width: 100%;
         }
 
         .comment-categories {
             margin-top: 8px;
+            width: 100%;
         }
 
         .comment-group {
             margin-bottom: 12px;
+            width: 100%;
         }
 
         .comment-type-header {
-            font-weight: 700;
-            font-size: 15px;
-            margin-bottom: 8px;
-            padding: 10px 14px;
-            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            padding: 8px 12px;
+            border-radius: 6px;
             background: #f8f9fa;
-            border-left: 4px solid #6c757d;
+            border-left: 3px solid #6c757d;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .comment-item {
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.5;
-            border-left: 4px solid transparent;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+            border-left: 3px solid transparent;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .comment-item.failure {
@@ -811,10 +832,12 @@
                     
                     html += '<div class="mot-test-detailed">';
                     html += '<div class="mot-test-header">';
+                    html += '<div class="mot-header-top">';
                     html += '<span class="mot-date"><strong>' + test.date + '</strong></span>';
                     html += '<span class="mot-result ' + resultClass + '">' + test.result + '</span>';
+                    html += '</div>';
                     if (test.mileage) {
-                        html += '<span class="mot-mileage">' + parseInt(test.mileage).toLocaleString() + ' miles</span>';
+                        html += '<div class="mot-mileage">' + parseInt(test.mileage).toLocaleString() + ' miles</div>';
                     }
                     html += '</div>';
                     
