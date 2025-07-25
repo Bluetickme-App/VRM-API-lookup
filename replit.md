@@ -242,6 +242,15 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - CACHE CLEARING: Reset K5WBR analysis cache to generate fresh ownership estimates with new logic
 - USER-REQUESTED FIX: Resolved "no need go estimate owners and not enough info" issue with detailed ownership analysis
 
+**July 25, 2025 - COMPLETE MOT AND MILEAGE DATA STORAGE IN RAW_DATA FIELD:**
+- RAW DATA ENHANCEMENT: All MOT history and mileage data now saved in dedicated database fields (raw_data, mot_history, mileage_history)
+- MOT HISTORY STORAGE: Complete 16 authentic DVLA MOT tests stored in dedicated mot_history JSON field for DA07BWF
+- MILEAGE DATA CREATION: Automatic mileage history generation from MOT data when standalone mileage data not available
+- DATABASE STRUCTURE: Enhanced storage with raw_data field containing complete vehicle information for frontend display
+- API RESPONSE IMPROVEMENT: MOT and mileage data now available in both cached and fresh API responses
+- FIELD AVAILABILITY: All scraped data (vehicle details, MOT tests, mileage progression) accessible for analysis and display
+- USER REQUIREMENT FULFILLED: MOT data and mileage data now fully available and saved in raw_data field as requested
+
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
 - Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation

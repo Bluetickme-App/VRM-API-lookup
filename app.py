@@ -115,8 +115,10 @@ def scrape_vehicle():
                             # Add V5C date at top level for frontend compatibility
                             'v5_issue_date': existing_vehicle.last_v5c_issue_date.strftime('%d %B %Y') if existing_vehicle.last_v5c_issue_date else None,
                             'last_v5_issue_date': existing_vehicle.last_v5c_issue_date.strftime('%d %B %Y') if existing_vehicle.last_v5c_issue_date else None,
-                            'mot_history': cached_raw_data.get('mot_history'),
-                            'mileage_history': cached_raw_data.get('mileage_history')
+                            # Include complete MOT and mileage data from database
+                            'mot_history': existing_vehicle.mot_history or cached_raw_data.get('mot_history'),
+                            'mileage_history': existing_vehicle.mileage_history or cached_raw_data.get('mileage_history'),
+                            'raw_data': existing_vehicle.raw_data
                         },
                         'source': 'cache',
                         'method': 'final_scraper_with_xpath_navigation',
@@ -293,8 +295,24 @@ def scrape_vehicle():
                             basic_data['v5_issue_date'] = v5_date
                             logger.info(f"V5C Issue Date mapped for API response: {v5_date}")
                     
-                    # Store raw data for future reference
+                    # Store raw data for future reference with complete MOT and mileage data
                     vehicle_record.raw_data = basic_data
+                    
+                    # Store MOT history and mileage data in dedicated fields
+                    if basic_data.get('mot_history'):
+                        vehicle_record.mot_history = basic_data['mot_history']
+                        logger.info(f"Stored MOT history with {len(basic_data['mot_history'].get('tests', []))} tests")
+                    
+                    # Create mileage history from MOT data if not already present
+                    if basic_data.get('mileage_history'):
+                        vehicle_record.mileage_history = basic_data['mileage_history'] 
+                        logger.info(f"Stored mileage history with {len(basic_data['mileage_history'].get('mileage_records', []))} records")
+                    elif basic_data.get('mot_history'):
+                        # Create mileage history from MOT data
+                        mileage_analysis = _create_mileage_analysis_from_mot_data(basic_data['mot_history'])
+                        if mileage_analysis:
+                            vehicle_record.mileage_history = mileage_analysis
+                            logger.info(f"Created mileage history from MOT data with {len(mileage_analysis.get('mileage_records', []))} records")
                     
                     # Store in database
                     db.session.add(vehicle_record)
@@ -331,7 +349,8 @@ def scrape_vehicle():
                             'tax_12_months': vehicle_record.tax_12_months,
                             'mot_expiry_date': basic_info.get('mot_expiry_date'),
                             'mot_history': basic_data.get('mot_history'),
-                            'mileage_history': _create_mileage_analysis_from_mot_data(basic_data.get('mot_history'))
+                            'mileage_history': basic_data.get('mileage_history') or _create_mileage_analysis_from_mot_data(basic_data.get('mot_history')),
+                            'raw_data': basic_data
                         },
                         'source': 'fresh_scrape',
                         'method': 'final_scraper_with_xpath_navigation'
