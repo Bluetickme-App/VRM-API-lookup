@@ -1403,12 +1403,15 @@
                         // Display detailed rollback information from mileage anomalies
                         if (ai.mileage && ai.mileage.mileage_anomalies && ai.mileage.mileage_anomalies.length > 0) {
                             var anomaly = ai.mileage.mileage_anomalies[0];
-                            if (anomaly.date_from && anomaly.date_to && anomaly.rollback_amount) {
+                            if (anomaly && anomaly.date_from && anomaly.date_to && anomaly.rollback_amount) {
                                 html += '<p><strong>Rollback Details:</strong></p>';
-                                html += '<p>• <strong>' + anomaly.rollback_amount.toLocaleString() + ' miles</strong> reduction</p>';
-                                html += '<p>• From: <strong>' + anomaly.date_from + '</strong> (' + anomaly.mileage_from.toLocaleString() + ' miles)</p>';
-                                html += '<p>• To: <strong>' + anomaly.date_to + '</strong> (' + anomaly.mileage_to.toLocaleString() + ' miles)</p>';
-                                html += '<p>• Severity: <strong>' + anomaly.severity + '</strong></p>';
+                                var rollbackAmount = Number(anomaly.rollback_amount) || 0;
+                                var mileageFrom = Number(anomaly.mileage_from) || 0;
+                                var mileageTo = Number(anomaly.mileage_to) || 0;
+                                html += '<p>• <strong>' + rollbackAmount.toLocaleString() + ' miles</strong> reduction</p>';
+                                html += '<p>• From: <strong>' + anomaly.date_from + '</strong> (' + mileageFrom.toLocaleString() + ' miles)</p>';
+                                html += '<p>• To: <strong>' + anomaly.date_to + '</strong> (' + mileageTo.toLocaleString() + ' miles)</p>';
+                                html += '<p>• Severity: <strong>' + (anomaly.severity || 'Unknown') + '</strong></p>';
                             }
                         } else if (ai.trade_purchase_recommendation && ai.trade_purchase_recommendation.reasoning) {
                             html += '<p><strong>Details:</strong> ' + ai.trade_purchase_recommendation.reasoning.split('.')[0] + '</p>';
@@ -1422,7 +1425,8 @@
                     }
                     
                     if (ai.mileage && ai.mileage.confidence_score) {
-                        html += '<p><strong>Confidence:</strong> ' + (ai.mileage.confidence_score * 100).toFixed(1) + '%</p>';
+                        var confidenceScore = parseFloat(ai.mileage.confidence_score) || 0;
+                        html += '<p><strong>Confidence:</strong> ' + (confidenceScore * 100).toFixed(1) + '%</p>';
                     }
                     html += '</div>';
                 }
