@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Analytics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f6fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dashboard-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .dashboard-content {
+            padding: 24px;
+        }
+
+        .main-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .main-subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 24px;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-search {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-search:hover {
+            background: #219a52;
+            transform: translateY(-1px);
+        }
+
+        .btn-archive {
+            background: #e67e22;
+            color: white;
+        }
+
+        .btn-archive:hover {
+            background: #d35400;
+            transform: translateY(-1px);
+        }
+
+        .btn-batch {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .btn-batch:hover {
+            background: #8e44ad;
+            transform: translateY(-1px);
+        }
+
+        .btn-add {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .stats-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-title {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .stat-details {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .search-form {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #ecf0f1;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .vehicle-reg {
+            background: #f39c12;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .vehicle-status {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .vehicle-info {
+            margin-bottom: 16px;
+        }
+
+        .vehicle-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .vehicle-subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .value-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .value-item {
+            text-align: center;
+        }
+
+        .value-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+
+        .value-amount {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-edit, .btn-delete {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ecf0f1;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-edit:hover {
+            background: #f8f9fa;
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .btn-delete:hover {
+            background: #f8f9fa;
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ecf0f1;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .analysis-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #9b59b6;
+        }
+
+        .analysis-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .analysis-content {
+            font-size: 14px;
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div>
+                <div class="dashboard-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+            </div>
+            <div style="flex: 1; margin-left: 12px;">
+                <h1 class="header-title">Trade Dashboard</h1>
+                <p class="header-subtitle">Advanced analytics & vehicle management</p>
+            </div>
+            <div>
+                <i class="fas fa-bars" style="font-size: 20px; opacity: 0.8;"></i>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <h2 class="main-title">Vehicle Analytics</h2>
+            <p class="main-subtitle">Comprehensive UK vehicle data intelligence</p>
+
+            <!-- Action Buttons -->
+            <button class="action-button btn-search" onclick="showSearch()">
+                <i class="fas fa-search"></i>
+                Browse & Check Vehicle
+            </button>
+
+            <button class="action-button btn-archive" onclick="showArchive()">
+                <i class="fas fa-archive"></i>
+                Archive
+            </button>
+
+            <button class="action-button btn-batch" onclick="showBatch()">
+                <i class="fas fa-filter"></i>
+                Batch Import
+            </button>
+
+            <button class="action-button btn-add" onclick="showAnalytics()">
+                <i class="fas fa-plus"></i>
+                Add Vehicle
+            </button>
+
+            <!-- Search Form -->
+            <div class="search-form" id="searchForm">
+                <input type="text" 
+                       class="search-input" 
+                       id="vehicleSearch" 
+                       placeholder="Search by VRN, make, or model..."
+                       maxlength="8">
+                <button class="action-button btn-search" onclick="searchVehicle()">
+                    <i class="fas fa-search"></i>
+                    Check Vehicle Data
+                </button>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loadingIndicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>Searching vehicle database...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection"></div>
+
+            <!-- Stats Section -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-car"></i>
+                        Total Vehicles
+                    </div>
+                    <div class="stat-number" id="totalVehicles">0</div>
+                    <div class="stat-details">1 SOR • 0 Owned</div>
+                </div>
+
+                <div class="stat-card" style="border-left-color: #27ae60;">
+                    <div class="stat-title">
+                        <i class="fas fa-pound-sign"></i>
+                        Portfolio Value
+                    </div>
+                    <div class="stat-number" style="color: #27ae60;">£0.00</div>
+                    <div class="stat-details">Estimated market value</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentResults = null;
+
+        function showSearch() {
+            var searchForm = document.getElementById('searchForm');
+            if (searchForm.style.display === 'none' || searchForm.style.display === '') {
+                searchForm.style.display = 'block';
+                document.getElementById('vehicleSearch').focus();
+            } else {
+                searchForm.style.display = 'none';
+            }
+        }
+
+        function showArchive() {
+            alert('Archive functionality coming soon');
+        }
+
+        function showBatch() {
+            alert('Batch import functionality coming soon');
+        }
+
+        function showAnalytics() {
+            alert('Add vehicle functionality coming soon');
+        }
+
+        function searchVehicle() {
+            var registration = document.getElementById('vehicleSearch').value.trim().toUpperCase();
+            
+            if (!registration) {
+                alert('Please enter a vehicle registration number');
+                return;
+            }
+
+            if (registration.length < 2 || registration.length > 8) {
+                alert('Please enter a valid UK registration number');
+                return;
+            }
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultsSection').innerHTML = '';
+
+            fetch('/api/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration: registration
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (data.success) {
+                    displayVehicleData(data.data);
+                    updateStats();
+                } else {
+                    displayError(data.error || 'Vehicle data not found');
+                }
+            })
+            .catch(function(error) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                displayError('Network error. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function displayVehicleData(data) {
+            currentResults = data;
+            var resultsHtml = '<div class="result-card">';
+            
+            // Vehicle Header
+            resultsHtml += '<div class="vehicle-header">';
+            resultsHtml += '<div class="vehicle-reg">' + (data.registration || 'Unknown') + '</div>';
+            resultsHtml += '<div class="vehicle-status">Active</div>';
+            resultsHtml += '</div>';
+
+            // Vehicle Info
+            resultsHtml += '<div class="vehicle-info">';
+            resultsHtml += '<div class="vehicle-title">' + (data.make || 'Unknown') + ' ' + (data.model || '') + '</div>';
+            resultsHtml += '<div class="vehicle-subtitle">' + (data.color || 'Unknown') + ' • ' + (data.fuel_type || 'Unknown') + ' • ' + (data.year || 'Unknown') + '</div>';
+            resultsHtml += '</div>';
+
+            // Vehicle Details
+            resultsHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">';
+            resultsHtml += '<div>';
+            resultsHtml += '<div class="value-label">Transmission</div>';
+            resultsHtml += '<div class="value-amount">' + (data.transmission || 'Unknown') + '</div>';
+            resultsHtml += '</div>';
+            resultsHtml += '<div>';
+            resultsHtml += '<div class="value-label">Engine Size</div>';
+            resultsHtml += '<div class="value-amount">' + (data.engine_size || 'Unknown') + '</div>';
+            resultsHtml += '</div>';
+            resultsHtml += '</div>';
+
+            // Tax Information
+            if (data.tax_6_months || data.tax_12_months) {
+                resultsHtml += '<div class="value-section">';
+                resultsHtml += '<div class="value-item">';
+                resultsHtml += '<div class="value-label">6 Month Tax</div>';
+                resultsHtml += '<div class="value-amount">' + (data.tax_6_months || 'N/A') + '</div>';
+                resultsHtml += '</div>';
+                resultsHtml += '<div class="value-item">';
+                resultsHtml += '<div class="value-label">12 Month Tax</div>';
+                resultsHtml += '<div class="value-amount">' + (data.tax_12_months || 'N/A') + '</div>';
+                resultsHtml += '</div>';
+                resultsHtml += '</div>';
+            }
+
+            // Action Buttons
+            resultsHtml += '<div class="action-buttons">';
+            resultsHtml += '<button class="btn-edit" onclick="analyzeVehicle()">';
+            resultsHtml += '<i class="fas fa-brain"></i> Analyze';
+            resultsHtml += '</button>';
+            resultsHtml += '<button class="btn-delete" onclick="viewDetails()">';
+            resultsHtml += '<i class="fas fa-info-circle"></i> Details';
+            resultsHtml += '</button>';
+            resultsHtml += '</div>';
+
+            resultsHtml += '</div>';
+
+            document.getElementById('resultsSection').innerHTML = resultsHtml;
+        }
+
+        function displayError(message) {
+            var errorHtml = '<div class="result-card" style="border-left: 4px solid #e74c3c;">';
+            errorHtml += '<div style="color: #e74c3c; text-align: center; padding: 20px;">';
+            errorHtml += '<i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 12px;"></i>';
+            errorHtml += '<div style="font-weight: 600; margin-bottom: 8px;">Vehicle Not Found</div>';
+            errorHtml += '<div style="font-size: 14px;">' + message + '</div>';
+            errorHtml += '</div>';
+            errorHtml += '</div>';
+
+            document.getElementById('resultsSection').innerHTML = errorHtml;
+        }
+
+        function analyzeVehicle() {
+            if (!currentResults) return;
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+
+            fetch('/api/intelligent-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration: currentResults.registration
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (data.success) {
+                    displayAnalysis(data.data);
+                } else {
+                    alert('Analysis failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(function(error) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                alert('Analysis failed. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function displayAnalysis(analysisData) {
+            var analysisHtml = '<div class="analysis-section">';
+            analysisHtml += '<div class="analysis-title">';
+            analysisHtml += '<i class="fas fa-brain"></i> AI Analysis Results';
+            analysisHtml += '</div>';
+            
+            if (analysisData.ownership_analysis) {
+                analysisHtml += '<div style="margin-bottom: 16px;">';
+                analysisHtml += '<strong>Ownership:</strong> ' + 
+                    (analysisData.ownership_analysis.estimated_previous_owners || 'Unknown') + ' previous owners';
+                analysisHtml += '</div>';
+            }
+
+            if (analysisData.mot_analysis && analysisData.mot_analysis.recent_performance) {
+                analysisHtml += '<div style="margin-bottom: 16px;">';
+                analysisHtml += '<strong>MOT Performance:</strong> ' + analysisData.mot_analysis.recent_performance;
+                analysisHtml += '</div>';
+            }
+
+            if (analysisData.cost_analysis && analysisData.cost_analysis.estimated_annual_costs) {
+                analysisHtml += '<div style="margin-bottom: 16px;">';
+                analysisHtml += '<strong>Annual Costs:</strong> £' + analysisData.cost_analysis.estimated_annual_costs;
+                analysisHtml += '</div>';
+            }
+
+            analysisHtml += '</div>';
+
+            document.getElementById('resultsSection').innerHTML += analysisHtml;
+        }
+
+        function viewDetails() {
+            if (!currentResults) return;
+            
+            var detailsWindow = window.open('', '_blank', 'width=800,height=600');
+            detailsWindow.document.write('<h1>Vehicle Details</h1><pre>' + JSON.stringify(currentResults, null, 2) + '</pre>');
+        }
+
+        function updateStats() {
+            var totalElement = document.getElementById('totalVehicles');
+            if (totalElement) {
+                var current = parseInt(totalElement.textContent) || 0;
+                totalElement.textContent = current + 1;
+            }
+        }
+
+        // Auto-format registration input
+        document.getElementById('vehicleSearch').addEventListener('input', function(e) {
+            var value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            e.target.value = value;
+        });
+
+        // Enter key support
+        document.getElementById('vehicleSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchVehicle();
+            }
+        });
+    </script>
+</body>
+</html>
