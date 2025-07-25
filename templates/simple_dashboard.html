@@ -627,7 +627,7 @@
                     };
                     rollbacks.push(rollbackInfo);
                     if (rollbackAmount > 30000) {
-                        suspicious_patterns.push('CRITICAL ROLLBACK: ' + rollbackAmount.toLocaleString() + ' miles reduced between ' + mileageData[i-1].date_str + ' and ' + mileageData[i].date_str);
+                        suspicious_patterns.push('CRITICAL ROLLBACK: ' + (Number(rollbackAmount) || 0).toLocaleString() + ' miles reduced between ' + mileageData[i-1].date_str + ' and ' + mileageData[i].date_str);
                     }
                 }
             }
@@ -946,7 +946,7 @@
                     html += '<span class="mot-result ' + resultClass + '">' + test.result + '</span>';
                     html += '</div>';
                     if (test.mileage) {
-                        html += '<div class="mot-mileage">' + parseInt(test.mileage).toLocaleString() + ' miles</div>';
+                        html += '<div class="mot-mileage">' + (parseInt(test.mileage) || 0).toLocaleString() + ' miles</div>';
                     }
                     html += '</div>';
                     // Add certificate number and test number if available
@@ -1072,7 +1072,7 @@
                     if (criticalRollbacks.length > 0) {
                         mileageStatus = 'CRITICAL ROLLBACK';
                         var maxRollback = Math.max.apply(Math, criticalRollbacks.map(function(r) { return r.rollback_amount; }));
-                        mileageDetail = 'Rollback: ' + maxRollback.toLocaleString() + ' miles';
+                        mileageDetail = 'Rollback: ' + (Number(maxRollback) || 0).toLocaleString() + ' miles';
                     }
                 }
             } else {
@@ -1099,9 +1099,9 @@
                                           rollback.severity === 'HIGH' ? '#fd7e14' : '#ffc107';
                         html += '<div style="border-left: 4px solid ' + severityColor + '; padding-left: 12px; margin-bottom: 12px;">';
                         html += '<div><strong>' + rollback.severity + ' ROLLBACK</strong></div>';
-                        html += '<div>From: ' + rollback.from_mileage.toLocaleString() + ' miles (' + rollback.from_date + ')</div>';
-                        html += '<div>To: ' + rollback.to_mileage.toLocaleString() + ' miles (' + rollback.to_date + ')</div>';
-                        html += '<div style="color: ' + severityColor + '; font-weight: bold;">Reduction: ' + rollback.rollback_amount.toLocaleString() + ' miles</div>';
+                        html += '<div>From: ' + (Number(rollback.from_mileage) || 0).toLocaleString() + ' miles (' + rollback.from_date + ')</div>';
+                        html += '<div>To: ' + (Number(rollback.to_mileage) || 0).toLocaleString() + ' miles (' + rollback.to_date + ')</div>';
+                        html += '<div style="color: ' + severityColor + '; font-weight: bold;">Reduction: ' + (Number(rollback.rollback_amount) || 0).toLocaleString() + ' miles</div>';
                         html += '</div>';
                     }
                 }
@@ -1122,7 +1122,7 @@
                     if (test.date && test.mileage) {
                         html += '<div style="padding: 4px 0; border-bottom: 1px solid #f1f3f4; display: flex; justify-content: space-between;">';
                         html += '<span>' + test.date + '</span>';
-                        html += '<span><strong>' + parseInt(test.mileage).toLocaleString() + ' miles</strong></span>';
+                        html += '<span><strong>' + (parseInt(test.mileage) || 0).toLocaleString() + ' miles</strong></span>';
                         html += '</div>';
                     }
                 }
@@ -1449,9 +1449,9 @@
                     if (marketContext.CAP_valuation_data) {
                         var cap = marketContext.CAP_valuation_data;
                         html += '<p><strong>CAP Valuation:</strong></p>';
-                        html += '<p>• Trade Value: <strong>£' + cap.trade_value.toLocaleString() + '</strong></p>';
-                        html += '<p>• CAP Estimate: <strong>£' + cap.cap_estimate.toLocaleString() + '</strong></p>';
-                        html += '<p>• Retail Range: <strong>£' + cap.retail_low.toLocaleString() + ' - £' + cap.retail_high.toLocaleString() + '</strong></p>';
+                        html += '<p>• Trade Value: <strong>£' + (Number(cap.trade_value) || 0).toLocaleString() + '</strong></p>';
+                        html += '<p>• CAP Estimate: <strong>£' + (Number(cap.cap_estimate) || 0).toLocaleString() + '</strong></p>';
+                        html += '<p>• Retail Range: <strong>£' + (Number(cap.retail_low) || 0).toLocaleString() + ' - £' + (Number(cap.retail_high) || 0).toLocaleString() + '</strong></p>';
                         if (cap.confidence) {
                             html += '<p>• Confidence: <strong>' + cap.confidence.charAt(0).toUpperCase() + cap.confidence.slice(1) + '</strong></p>';
                         }
@@ -1461,8 +1461,8 @@
                     if (marketContext.current_market_prices) {
                         var prices = marketContext.current_market_prices;
                         html += '<p><strong>Current Market:</strong></p>';
-                        html += '<p>• Average: <strong>£' + prices.average.toLocaleString() + '</strong></p>';
-                        html += '<p>• Range: <strong>£' + prices.low.toLocaleString() + ' - £' + prices.high.toLocaleString() + '</strong></p>';
+                        html += '<p>• Average: <strong>£' + (Number(prices.average) || 0).toLocaleString() + '</strong></p>';
+                        html += '<p>• Range: <strong>£' + (Number(prices.low) || 0).toLocaleString() + ' - £' + (Number(prices.high) || 0).toLocaleString() + '</strong></p>';
                     }
                     
                     // Legacy market analysis
