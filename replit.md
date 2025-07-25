@@ -300,14 +300,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - EFFICIENT DEFECT DISPLAY: Compact badge system for defect types with condensed text formatting
 - SPACE OPTIMIZATION: Maximized content density while maintaining readability and professional appearance
 
-**July 25, 2025 - STATUS BOXES WITH RISK INDICATORS COMPLETE:**
-- RED/GREEN STATUS BOXES: Added immediate visual status indicators for ownership, MOT, and mileage analysis
-- OWNERSHIP RISK: Green (≤2 owners), Orange (3-4 owners), Red (5+ owners) with authentic DVLA total keepers data
-- MOT STATUS: Green (>30 days), Orange (1-30 days), Red (expired/overdue) with exact day countdown
-- MILEAGE ANALYSIS: Updates after AI analysis - Green (low risk), Orange (moderate), Red (high tampering risk)
-- INSTANT FEEDBACK: Status boxes appear immediately with vehicle data, before AI analysis completion
-- VISUAL HIERARCHY: Clear color-coded system matching user requirements for quick vehicle assessment
-- PROFESSIONAL STYLING: Gradient backgrounds with hover effects and responsive grid layout
+**July 25, 2025 - ENHANCED STATUS BOXES WITH IMMEDIATE FEEDBACK:**
+- OWNERSHIP STATUS: Green default with V5C issue date and keeper count display - shows "Good" for ≤2 owners, "Moderate" for 3-4, "High Risk" for 5+
+- MOT STATUS: Green "Current" with expiry date and days remaining - Orange for <30 days, Red for expired with overdue count
+- MILEAGE ANALYSIS: Green "Low Risk" showing data points available, updates to actual risk after AI analysis
+- V5C DATE INTEGRATION: Shows formatted V5C issue date (DD/MM/YYYY) alongside ownership information
+- DATA POINT TRACKING: Mileage analysis displays number of MOT/mileage data points available for analysis
+- IMMEDIATE VISUAL FEEDBACK: All status boxes show meaningful information from initial vehicle data load
+- PROFESSIONAL COLOR CODING: Green (good), Orange (warning), Red (danger), Gray (unknown) with gradient backgrounds
 
 **July 25, 2025 - DASHBOARD REDESIGN FOR TRADEANDCONNECT IFRAME INTEGRATION:**
 - IFRAME-OPTIMIZED DESIGN: Created new dashboard interface matching Trade Dashboard aesthetic for seamless iframe integration

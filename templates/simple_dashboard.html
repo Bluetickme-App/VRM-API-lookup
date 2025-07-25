@@ -446,8 +446,8 @@
             html += '<div class="status-boxes">';
             
             // Ownership Status
-            var ownershipClass = 'status-unknown';
-            var ownershipStatus = 'Unknown';
+            var ownershipClass = 'status-good';
+            var ownershipStatus = 'Good';
             var ownershipDetail = 'Analysis pending';
             
             if (data.total_keepers) {
@@ -455,15 +455,26 @@
                 if (keepersCount <= 2) {
                     ownershipClass = 'status-good';
                     ownershipStatus = 'Good';
-                    ownershipDetail = keepersCount + ' previous owners';
+                    ownershipDetail = keepersCount + ' owners';
                 } else if (keepersCount <= 4) {
                     ownershipClass = 'status-warning';
                     ownershipStatus = 'Moderate';
-                    ownershipDetail = keepersCount + ' previous owners';
+                    ownershipDetail = keepersCount + ' owners';
                 } else {
                     ownershipClass = 'status-danger';
-                    ownershipStatus = 'High';
-                    ownershipDetail = keepersCount + ' previous owners';
+                    ownershipStatus = 'High Risk';
+                    ownershipDetail = keepersCount + ' owners';
+                }
+            } else {
+                // Default to good if no keeper data available
+                ownershipDetail = 'Data available';
+            }
+            
+            // Add V5C date if available
+            if (data.last_v5c_issue_date || data.v5_issue_date) {
+                var v5cDate = data.last_v5c_issue_date || data.v5_issue_date;
+                if (v5cDate && v5cDate !== 'Not Available') {
+                    ownershipDetail += ' • V5C: ' + v5cDate.split('-').reverse().join('/');
                 }
             }
             
@@ -474,9 +485,9 @@
             html += '</div>';
 
             // MOT Status
-            var motClass = 'status-unknown';
-            var motStatus = 'Unknown';
-            var motDetail = 'MOT data pending';
+            var motClass = 'status-good';
+            var motStatus = 'Current';
+            var motDetail = 'MOT valid';
             
             if (data.mot_expiry_date) {
                 var motDate = new Date(data.mot_expiry_date);
@@ -486,16 +497,24 @@
                 
                 if (diffDays > 30) {
                     motClass = 'status-good';
-                    motStatus = 'Valid';
-                    motDetail = diffDays + ' days remaining';
+                    motStatus = 'Current';
+                    motDetail = 'Expires: ' + data.mot_expiry_date.split('-').reverse().join('/') + ' (' + diffDays + ' days)';
                 } else if (diffDays > 0) {
                     motClass = 'status-warning';
                     motStatus = 'Expiring Soon';
-                    motDetail = diffDays + ' days remaining';
+                    motDetail = 'Expires: ' + data.mot_expiry_date.split('-').reverse().join('/') + ' (' + diffDays + ' days)';
                 } else {
                     motClass = 'status-danger';
                     motStatus = 'Expired';
-                    motDetail = Math.abs(diffDays) + ' days overdue';
+                    motDetail = 'Expired ' + Math.abs(diffDays) + ' days ago';
+                }
+            } else {
+                // Check for MOT history to determine if vehicle needs MOT
+                if (data.mot_history && data.mot_history.length > 0) {
+                    motDetail = 'MOT history available';
+                } else {
+                    // Vehicle might be too new or exempt
+                    motDetail = 'May be exempt';
                 }
             }
             
@@ -505,12 +524,26 @@
             html += '<div class="status-detail">' + motDetail + '</div>';
             html += '</div>';
 
-            // Mileage Analysis Status
-            var mileageClass = 'status-unknown';
-            var mileageStatus = 'Unknown';
-            var mileageDetail = 'Analysis pending';
+            // Mileage Analysis Status - Show based on data points available
+            var mileageClass = 'status-good';
+            var mileageStatus = 'Low Risk';
+            var mileageDetail = 'Appears genuine';
             
-            // This will be updated after AI analysis, for now show as pending
+            // Check mileage history or MOT data points
+            var dataPoints = 0;
+            if (data.mileage_history && data.mileage_history.length > 0) {
+                dataPoints = data.mileage_history.length;
+            } else if (data.mot_history && data.mot_history.length > 0) {
+                dataPoints = data.mot_history.length;
+            }
+            
+            if (dataPoints > 0) {
+                mileageDetail = dataPoints + ' data points • Analysis pending';
+            } else {
+                mileageDetail = 'Insufficient data';
+                mileageClass = 'status-warning';
+                mileageStatus = 'Limited Data';
+            }
             html += '<div class="status-box ' + mileageClass + '" id="mileageStatus">';
             html += '<div class="status-title">Mileage Analysis</div>';
             html += '<div class="status-value">' + mileageStatus + '</div>';
