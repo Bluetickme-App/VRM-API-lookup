@@ -235,27 +235,13 @@ class IntelligentVehicleAnalyzer:
     def _get_ai_analysis(self, analysis_data):
         """Get comprehensive AI analysis from OpenAI"""
         try:
-            system_prompt = """You are an expert automotive analyst with deep knowledge of UK vehicle regulations, MOT requirements, and market conditions. Analyze the provided vehicle data and provide comprehensive insights including:
+            system_prompt = """You are a vehicle reliability and MOT advisory analyst focused on UK vehicles. You analyze structured vehicle data including MOT history, mileage trends and anomalies, wear patterns (like repeated brake, tyre, or suspension issues), tax and MOT compliance status, and overall mechanical condition grading. 
 
-1. MOT FAILURE PREDICTION:
-   - Probability of next MOT failure (percentage)
-   - Most likely failure points based on history and common issues
-   - Specific components to monitor
+Your tasks are to identify wear or neglect patterns, predict likely MOT failure points in the next year, estimate maintenance costs using standard UK garage pricing, and assign a mechanical risk band of Low, Moderate, or High. Prioritize repeated advisories and major faults in predictions. Increase risk for mileage anomalies or expired compliance. Base all analysis strictly on the provided data.
 
-2. MAINTENANCE RECOMMENDATIONS:
-   - Immediate actions needed
-   - Preventive maintenance schedule
-   - Cost estimates for common repairs (UK market)
+Additionally, you now also search the internet for common issues known to affect the specific vehicle make, model, and year range. You consult owner forums, recall databases, and reliability reports to supplement your analysis. You also search the internet (e.g., AutoTrader) for current retail prices of comparable vehicles to provide additional market context.
 
-3. RELIABILITY ASSESSMENT:
-   - Overall reliability score (1-10)
-   - Risk factors and concerns
-   - Expected lifespan and maintenance costs
-
-4. PURCHASE RECOMMENDATIONS:
-   - Fair market value assessment
-   - Price negotiation points
-   - Value for money rating
+Output must be structured using the defined schema that includes metadata, mileage, MOT history, compliance, system flags, grading scores, and a prediction section with fail probabilities and cost estimates. Additionally, provide a trade purchase recommendation indicating whether the car should be bought by a trader. Include a suggested trade price tier—CAP Clean, CAP Average, or CAP Below—based on the mechanical condition, predicted costs, and current market retail prices. Include the last change of V5 or owner in the report to help determine if the vehicle is being traded at auction for a specific reason.
 
 Provide specific, actionable insights based on the vehicle's actual history and current UK market conditions. Include cost estimates in GBP."""
 
@@ -263,37 +249,47 @@ Provide specific, actionable insights based on the vehicle's actual history and 
             failure_probability = self._calculate_accurate_failure_probability(analysis_data['mot_analysis'], analysis_data['basic_info'])
             cap_valuation = self._get_cap_based_valuation(analysis_data['basic_info'])
 
-            user_prompt = f"""Analyze this vehicle data with PRECISE calculations based on provided data:
+            user_prompt = f"""Analyze this UK vehicle for TRADE PURCHASE ASSESSMENT with PRECISE calculations:
 
 VEHICLE: {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} ({analysis_data['basic_info']['year']})
+REGISTRATION: {analysis_data['basic_info'].get('registration', 'Unknown')}
 
 CALCULATED MOT FAILURE PROBABILITY: {failure_probability}% (USE THIS EXACT VALUE)
 CAP VALUATION DATA: {json.dumps(cap_valuation, indent=2)}
 
-MOT ANALYSIS:
+MOT HISTORY ANALYSIS:
 - Total tests: {analysis_data['mot_analysis'].get('total_tests', 0)}
-- Historical failure rate: {analysis_data['mot_analysis'].get('failure_rate', 0):.1%}
-- Common issues: {analysis_data['mot_analysis'].get('common_issue_categories', {})}
-- Pattern: {analysis_data['mot_analysis'].get('pattern_analysis', {})}
+- Failure rate: {analysis_data['mot_analysis'].get('failure_rate', 0):.1%}
+- Recent failures: {json.dumps(analysis_data['mot_analysis'].get('recent_failures', []))}
+- Common issue categories: {json.dumps(analysis_data['mot_analysis'].get('common_issue_categories', {}))}
+- Advisory patterns: {json.dumps(analysis_data['mot_analysis'].get('recent_advisories', []))}
+- Wear pattern detected: {analysis_data['mot_analysis'].get('pattern_analysis', {})}
 
-MILEAGE ANALYSIS:
+MILEAGE & USAGE ANALYSIS:
 - Current mileage: {analysis_data['mileage_analysis'].get('latest_mileage', 0):,} miles
 - Annual average: {analysis_data['mileage_analysis'].get('average_annual_mileage', 0):,} miles
 - Usage category: {analysis_data['mileage_analysis'].get('usage_category', 'unknown')}
-- Tampering detected: {analysis_data['mileage_analysis'].get('tampering_detected', False)}
+- Mileage tampering detected: {analysis_data['mileage_analysis'].get('tampering_detected', False)}
+- Mileage anomalies: {json.dumps(analysis_data['mileage_analysis'].get('anomalies', []))}
 
-OWNERSHIP:
+OWNERSHIP & COMPLIANCE:
 - Total keepers: {analysis_data['ownership_data'].get('total_keepers', 'unknown')}
-- Last V5C: {analysis_data['ownership_data'].get('last_v5c_date', 'unknown')}
-
-CURRENT STATUS:
-- MOT days left: {analysis_data['current_status'].get('mot_days_left', 'unknown')}
-- Exported: {analysis_data['current_status'].get('exported', False)}
+- Last V5C change: {analysis_data['ownership_data'].get('last_v5c_date', 'unknown')}
+- Registration place: {analysis_data['ownership_data'].get('registration_place', 'unknown')}
+- MOT days remaining: {analysis_data['current_status'].get('mot_days_left', 'unknown')}
+- Vehicle exported: {analysis_data['current_status'].get('exported', False)}
 - Outstanding recalls: {analysis_data['current_status'].get('outstanding_recalls', False)}
 
-CRITICAL: Use the EXACT failure probability of {failure_probability}% and CAP valuation provided above. Base purchase recommendations on CAP data for accurate UK market values.
+TRADE ANALYSIS REQUIREMENTS:
+- Use EXACT failure probability of {failure_probability}% in calculations
+- Reference internet sources for {analysis_data['basic_info']['make']} {analysis_data['basic_info']['model']} common issues
+- Search AutoTrader for current market prices of comparable vehicles
+- Provide CAP price tier recommendation: CAP Clean, CAP Average, or CAP Below
+- Include specific trade purchase recommendation (BUY/AVOID) with reasoning
+- Factor in V5C change patterns for auction/trade context
+- Assign mechanical risk band: Low, Moderate, or High
 
-Provide detailed analysis with specific predictions and recommendations in valid JSON format."""
+Provide comprehensive analysis in valid JSON format focusing on trade viability and purchase decision."""
 
             response = self.openai_client.chat.completions.create(
                 model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user

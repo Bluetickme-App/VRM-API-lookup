@@ -392,13 +392,17 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - FAILURE POINT HIGHLIGHTING: Specific highlighting for failure points that caused MOT failures
 - ADVISORY PROMINENCE: Clear distinction between advisories and actual defects with appropriate visual styling
 
-**July 25, 2025 - COMPREHENSIVE MILEAGE DATA INTEGRATION FOR OPENAI ANALYSIS:**
-- ENHANCED MILEAGE FLOW: All mileage data from both dedicated mileage history and MOT test readings now sent to OpenAI
-- COMPREHENSIVE PROGRESSION ANALYSIS: Added complete mileage progression analysis with up to 15 MOT readings for pattern detection
-- ANOMALY DETECTION: Enhanced OpenAI prompt with specific instructions for mileage tampering detection and usage pattern analysis
-- DETAILED MILEAGE SCHEMA: Expanded JSON schema to include total_mileage_readings, mileage_progression, tampering_risk, and usage_patterns
-- DUAL-SOURCE INTEGRATION: System now processes both dedicated mileage_history records and MOT-based mileage readings for comprehensive analysis
-- ENHANCED ANALYSIS INSTRUCTIONS: Updated system prompt with critical mileage analysis requirements including anomaly detection and clocking pattern identification
+**July 25, 2025 - ENHANCED TRADE PURCHASE ANALYSIS WITH INTERNET RESEARCH INTEGRATION:**
+- INTERNET RESEARCH INTEGRATION: System now searches internet for common issues, recall databases, and AutoTrader pricing for enhanced analysis
+- TRADE PURCHASE RECOMMENDATIONS: Added comprehensive trade purchase assessment with BUY/AVOID recommendations and reasoning
+- CAP PRICING TIERS: System provides specific CAP Clean, CAP Average, or CAP Below price tier recommendations based on condition
+- MARKET CONTEXT ENHANCEMENT: Analysis includes current retail prices from AutoTrader and comparable vehicle market data
+- V5C TRADING PATTERNS: Enhanced ownership analysis includes V5C change patterns to identify auction/trade context
+- MECHANICAL RISK BANDING: Comprehensive risk assessment with Low, Moderate, or High mechanical risk bands
+- WEAR PATTERN ANALYSIS: Advanced detection of repeated brake, tyre, suspension issues from MOT history patterns
+- TRADE-SPECIFIC PROMPTING: Updated system prompt focuses on trade viability, purchase decisions, and market positioning
+- COMPREHENSIVE MILEAGE FLOW: All mileage data from both dedicated mileage history and MOT test readings sent to OpenAI for pattern analysis
+- ENHANCED ANALYSIS SCHEMA: Expanded JSON response includes trade recommendations, CAP tiers, and internet research findings
 
 **July 25, 2025 - FRONTEND SEARCH FORM DESIGN IMPROVEMENTS:**
 - ENHANCED INPUT FIELD: Improved placeholder text and added proper validation patterns for UK registration format
