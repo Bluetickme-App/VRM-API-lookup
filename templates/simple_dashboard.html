@@ -224,6 +224,10 @@
             background: linear-gradient(135deg, #95a5a6, #7f8c8d);
         }
 
+        .status-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+
         .status-title {
             font-size: 16px;
             margin-bottom: 8px;
@@ -753,6 +757,49 @@
                 html += '<p><strong>Registration Place:</strong> ' + data.registration_place + '</p>';
             }
             html += '</div>';
+
+            // Export Status
+            var exportClass = 'status-good';
+            var exportStatus = 'No';
+            var exportDetail = 'Vehicle not exported';
+            
+            if (data.exported && data.exported.toUpperCase() === 'YES') {
+                exportClass = 'status-warning';
+                exportStatus = 'YES';
+                exportDetail = 'Vehicle has been exported';
+            }
+            
+            html += '<div class="status-box ' + exportClass + '">';
+            html += '<div class="status-title">Export Status</div>';
+            html += '<div class="status-value">' + exportStatus + '</div>';
+            html += '<div class="status-detail">' + exportDetail + '</div>';
+            html += '</div>';
+
+            // Outstanding Recall Status
+            var recallClass = 'status-good';
+            var recallStatus = 'No';
+            var recallDetail = 'No outstanding recalls';
+            
+            if (data.has_outstanding_recall && data.has_outstanding_recall.toUpperCase() === 'YES') {
+                recallClass = 'status-danger';
+                recallStatus = 'YES';
+                recallDetail = 'Outstanding recall exists';
+            }
+            
+            html += '<div class="status-box ' + recallClass + '">';
+            html += '<div class="status-title">Outstanding Recall</div>';
+            html += '<div class="status-value">' + recallStatus + '</div>';
+            html += '<div class="status-detail">' + recallDetail + '</div>';
+            html += '</div>';
+
+            // V5C Certificate Count
+            if (data.v5c_certificate_count) {
+                html += '<div class="status-box status-info">';
+                html += '<div class="status-title">V5C Certificates</div>';
+                html += '<div class="status-value">' + data.v5c_certificate_count + '</div>';
+                html += '<div class="status-detail">Certificate count</div>';
+                html += '</div>';
+            }
 
             // MOT Status - Updated thresholds: Red (<3 months), Orange (3-6 months), Green (6+ months)
             var motClass = 'status-danger';

@@ -451,6 +451,24 @@ class DataExtractor:
                 except:
                     pass
                     
+                # Extract V5C Certificate Count
+                v5c_count_match = re.search(r'V5C Certificate Count[:\s]*(\d+)', page_text, re.IGNORECASE)
+                if v5c_count_match:
+                    additional['v5c_certificate_count'] = int(v5c_count_match.group(1))
+                    logger.info(f"Extracted V5C certificate count: {v5c_count_match.group(1)}")
+                    
+                # Extract Export status
+                exported_match = re.search(r'Exported[:\s]*(YES|NO)', page_text, re.IGNORECASE)
+                if exported_match:
+                    additional['exported'] = exported_match.group(1).upper()
+                    logger.info(f"Extracted export status: {exported_match.group(1)}")
+                    
+                # Extract Outstanding Recall status
+                recall_match = re.search(r'Has Outstanding Recall[:\s]*(YES|NO)', page_text, re.IGNORECASE)
+                if recall_match:
+                    additional['has_outstanding_recall'] = recall_match.group(1).upper()
+                    logger.info(f"Extracted recall status: {recall_match.group(1)}")
+                
                 logger.info(f"Tax extraction results: 6-month: {additional.get('tax_6_months', 'Not found')}, 12-month: {additional.get('tax_12_months', 'Not found')}")
             except Exception as e:
                 logger.warning(f"Tax cost extraction failed: {e}")

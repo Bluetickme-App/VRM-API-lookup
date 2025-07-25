@@ -270,6 +270,9 @@ def update_vehicle_record(record, data):
     record.last_v5c_issue_date = data.get('last_v5c_issue_date')
     record.registration_place = data.get('registration_place')
     record.total_keepers = data.get('total_keepers')
+    record.v5c_certificate_count = data.get('v5c_certificate_count')
+    record.exported = data.get('exported')
+    record.has_outstanding_recall = data.get('has_outstanding_recall')
     record.mot_history = data.get('mot_history', {})
     record.mileage_history = data.get('mileage_history', {})
     record.raw_data = data
@@ -308,6 +311,9 @@ def create_vehicle_record(registration, data):
     new_record.last_v5c_issue_date = data.get('last_v5c_issue_date')
     new_record.registration_place = data.get('registration_place')
     new_record.total_keepers = data.get('total_keepers')
+    new_record.v5c_certificate_count = data.get('v5c_certificate_count')
+    new_record.exported = data.get('exported')
+    new_record.has_outstanding_recall = data.get('has_outstanding_recall')
     new_record.mot_history = data.get('mot_history', {})
     new_record.mileage_history = data.get('mileage_history', {})
     new_record.raw_data = data
@@ -342,6 +348,9 @@ def prepare_data_for_analysis(vehicle_record):
         'last_v5_issue_date': vehicle_record.last_v5c_issue_date,
         'registration_place': vehicle_record.registration_place,
         'total_keepers': vehicle_record.total_keepers,
+        'v5c_certificate_count': vehicle_record.v5c_certificate_count,
+        'exported': vehicle_record.exported,
+        'has_outstanding_recall': vehicle_record.has_outstanding_recall,
         'mot_history': vehicle_record.mot_history or {},
         'mileage_history': vehicle_record.mileage_history or {},
         'basic_info': raw_data.get('basic_info', {}),
@@ -402,7 +411,10 @@ def format_complete_vehicle_response(vehicle_record):
             'total_keepers': vehicle_record.total_keepers,
             'last_v5c_issue_date': vehicle_record.last_v5c_issue_date,
             'registration_place': vehicle_record.registration_place,
-            'date_first_registered': vehicle_record.date_first_registered
+            'date_first_registered': vehicle_record.date_first_registered,
+            'v5c_certificate_count': vehicle_record.v5c_certificate_count,
+            'exported': vehicle_record.exported,
+            'has_outstanding_recall': vehicle_record.has_outstanding_recall
         },
         'tax_info': {
             'tax_status': vehicle_record.tax_status,

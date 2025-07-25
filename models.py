@@ -67,6 +67,8 @@ class VehicleData(db.Model):
     tax_6_months = db.Column(db.String(20))
     total_keepers = db.Column(db.Integer)
     v5c_certificate_count = db.Column(db.Integer)
+    exported = db.Column(db.String(10))
+    has_outstanding_recall = db.Column(db.String(10))
     
     # Raw data storage for future reference
     raw_data = db.Column(JSON)
