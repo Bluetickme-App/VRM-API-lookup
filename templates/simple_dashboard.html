@@ -612,6 +612,35 @@
                 html += '</div>';
             }
             
+            // Add MOT expiry date if available
+            if (data.mot_expiry_date || (data.mot_summary && data.mot_summary.mot_expiry_date)) {
+                var motExpiry = data.mot_expiry_date || data.mot_summary.mot_expiry_date;
+                html += '<div class="detail-item">';
+                html += '<div class="detail-label">MOT Expiry</div>';
+                html += '<div class="detail-value">' + motExpiry + '</div>';
+                html += '</div>';
+            }
+            
+            // Add last MOT mileage if available
+            if (data.last_mot_mileage || (data.mot_summary && data.mot_summary.last_mot_mileage)) {
+                var lastMileage = data.last_mot_mileage || data.mot_summary.last_mot_mileage;
+                html += '<div class="detail-item">';
+                html += '<div class="detail-label">Last MOT Mileage</div>';
+                html += '<div class="detail-value">' + lastMileage.toLocaleString() + ' miles</div>';
+                html += '</div>';
+            }
+            
+            // Add mileage issues indicator if available
+            if (data.mileage_issues || (data.mot_summary && data.mot_summary.mileage_issues)) {
+                var mileageIssues = data.mileage_issues || data.mot_summary.mileage_issues;
+                if (mileageIssues !== 'No') {
+                    html += '<div class="detail-item">';
+                    html += '<div class="detail-label">Mileage Issues</div>';
+                    html += '<div class="detail-value" style="color: #dc3545;">' + mileageIssues + '</div>';
+                    html += '</div>';
+                }
+            }
+            
             html += '</div>';
 
             // Tax Information

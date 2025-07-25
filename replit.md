@@ -232,15 +232,16 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - TESTED SUCCESS: API endpoints confirmed working (SJ57PGV extraction with 23 authentic DVLA MOT tests)
 - ERROR RESOLUTION: "Script error" messages eliminated - page now functional across all platforms
 
-**July 25, 2025 - ENHANCED OWNERSHIP ANALYSIS WITH IMPROVED ESTIMATION LOGIC:**
-- OWNERSHIP ACCURACY IMPROVEMENT: Enhanced OpenAI analysis logic for more precise owner count estimation
-- V5C DATE CORRELATION: Added vehicle age vs V5C issue date analysis for better ownership reasoning
-- CONFIDENCE SCORING: Added ownership_confidence field (High/Medium/Low) based on data quality
-- DETAILED REASONING: Added ownership_reasoning field explaining the logic behind owner count estimates
-- AGING GUIDELINES: Age-based estimation rules (5+ years = 2-4 owners, 10+ years = 3-6 owners, 15+ years = 4-8 owners)
-- ANALYSIS ENHANCEMENT: Improved system prompt with specific ownership analysis guidelines
-- CACHE CLEARING: Reset K5WBR analysis cache to generate fresh ownership estimates with new logic
-- USER-REQUESTED FIX: Resolved "no need go estimate owners and not enough info" issue with detailed ownership analysis
+**July 25, 2025 - COMPREHENSIVE MOT DATABASE FIELDS INTEGRATION COMPLETE:**
+- DATABASE FIELDS ADDED: Successfully integrated mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues fields to database
+- CALCULATION FUNCTION: Created calculate_mot_fields() function to process MOT history and populate missing database fields
+- AUTOMATIC POPULATION: Updated create_vehicle_record() and update_vehicle_record() functions to automatically calculate MOT fields
+- FIELD MAPPING: Enhanced API responses to include mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues in mot_summary section
+- DATA MIGRATION: Created update_mot_fields.py script to populate existing records with calculated MOT field values
+- K5WBR VALIDATION: Successfully populated K5WBR with mot_days_left=-854 (expired), last_mot_mileage=103225, mileage_issues=No
+- EXPIRY CALCULATION: MOT expiry dates calculated from most recent PASSED test with proper date parsing (DD/MM/YYYY, YYYY-MM-DD)
+- MILEAGE DETECTION: Last MOT mileage extracted from most recent test with numeric parsing and validation
+- PRODUCTION READY: All scrape data from enhanced scrapers now properly stored in dedicated database fields for dashboard display
 
 **July 25, 2025 - COMPLETE MOT AND MILEAGE DATA STORAGE IN RAW_DATA FIELD:**
 - RAW DATA ENHANCEMENT: All MOT history and mileage data now saved in dedicated database fields (raw_data, mot_history, mileage_history)

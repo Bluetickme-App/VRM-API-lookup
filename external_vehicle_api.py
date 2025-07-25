@@ -189,6 +189,67 @@ def save_vehicle_data_to_db(registration, vehicle_data):
         raise
 
 
+def calculate_mot_fields(data):
+    """Calculate MOT expiry date, days left, last mileage, and mileage issues from MOT history"""
+    from datetime import datetime, date
+    
+    mot_expiry_date = None
+    mot_days_left = None
+    last_mot_mileage = None
+    mileage_issues = "No"
+    
+    # Get MOT history
+    mot_history = data.get('mot_history', {})
+    mot_tests = mot_history.get('tests', []) or mot_history.get('mot_tests', [])
+    
+    if mot_tests:
+        # Sort tests by date (newest first)
+        sorted_tests = sorted(mot_tests, key=lambda x: x.get('test_date') or x.get('date', ''), reverse=True)
+        
+        # Find the most recent PASSED test for expiry date
+        for test in sorted_tests:
+            if 'pass' in (test.get('result', '').lower()):
+                expiry = test.get('expiry_date') or test.get('expiry')
+                if expiry and expiry.strip():
+                    try:
+                        # Parse expiry date and calculate days left
+                        if '/' in expiry:
+                            mot_expiry_date = datetime.strptime(expiry, '%d/%m/%Y').date()
+                        elif '-' in expiry:
+                            mot_expiry_date = datetime.strptime(expiry, '%Y-%m-%d').date()
+                        
+                        if mot_expiry_date:
+                            today = date.today()
+                            mot_days_left = (mot_expiry_date - today).days
+                        break
+                    except Exception as e:
+                        continue
+        
+        # Get last MOT mileage from most recent test
+        if sorted_tests:
+            latest_test = sorted_tests[0]
+            mileage = latest_test.get('mileage')
+            if mileage:
+                try:
+                    # Extract numeric mileage
+                    import re
+                    mileage_match = re.search(r'(\d+)', str(mileage))
+                    if mileage_match:
+                        last_mot_mileage = int(mileage_match.group(1))
+                except:
+                    pass
+        
+        # Check for mileage issues (rollback detection)
+        mileage_history = data.get('mileage_history', {})
+        if mileage_history:
+            analysis = mileage_history.get('analysis', {})
+            odometer_issues = analysis.get('odometer_issues', {})
+            if odometer_issues.get('has_issues', False):
+                mileage_issues = "Yes"
+    
+    return mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues
+
+
 def update_vehicle_record(record, data):
     """Update existing vehicle record with new data"""
     record.make = data.get('make', 'Unknown')
@@ -213,35 +274,49 @@ def update_vehicle_record(record, data):
     record.mileage_history = data.get('mileage_history', {})
     record.raw_data = data
     record.last_updated = datetime.utcnow()
+    
+    # Calculate and populate MOT fields
+    mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues = calculate_mot_fields(data)
+    record.mot_expiry_date = str(mot_expiry_date) if mot_expiry_date else None
+    record.mot_days_left = mot_days_left
+    record.last_mot_mileage = last_mot_mileage
+    record.mileage_issues = mileage_issues
 
 
 def create_vehicle_record(registration, data):
     """Create new vehicle record"""
-    new_record = VehicleData(
-        registration=registration,
-        make=data.get('make', 'Unknown'),
-        model=data.get('model', 'Unknown'),
-        year=data.get('year'),
-        color=data.get('color'),
-        fuel_type=data.get('fuel_type'),
-        transmission=data.get('transmission'),
-        engine_size=data.get('engine_size'),
-        body_style=data.get('body_style'),
-        co2_emissions=data.get('co2_emissions'),
-        date_first_registered=data.get('date_first_registered'),
-        tax_status=data.get('tax_status'),
-        mot_status=data.get('mot_status'),
-        mot_expiry=data.get('mot_expiry'),
-        tax_6_months=data.get('tax_6_months'),
-        tax_12_months=data.get('tax_12_months'),
-        last_v5c_issue_date=data.get('last_v5c_issue_date'),
-        registration_place=data.get('registration_place'),
-        total_keepers=data.get('total_keepers'),
-        mot_history=data.get('mot_history', {}),
-        mileage_history=data.get('mileage_history', {}),
-        raw_data=data,
-        last_updated=datetime.utcnow()
-    )
+    # Calculate MOT fields
+    mot_expiry_date, mot_days_left, last_mot_mileage, mileage_issues = calculate_mot_fields(data)
+    
+    new_record = VehicleData()
+    new_record.registration = registration
+    new_record.make = data.get('make', 'Unknown')
+    new_record.model = data.get('model', 'Unknown')
+    new_record.year = data.get('year')
+    new_record.color = data.get('color')
+    new_record.fuel_type = data.get('fuel_type')
+    new_record.transmission = data.get('transmission')
+    new_record.engine_size = data.get('engine_size')
+    new_record.body_style = data.get('body_style')
+    new_record.co2_emissions = data.get('co2_emissions')
+    new_record.date_first_registered = data.get('date_first_registered')
+    new_record.tax_status = data.get('tax_status')
+    new_record.mot_status = data.get('mot_status')
+    new_record.mot_expiry = data.get('mot_expiry')
+    new_record.tax_6_months = data.get('tax_6_months')
+    new_record.tax_12_months = data.get('tax_12_months')
+    new_record.last_v5c_issue_date = data.get('last_v5c_issue_date')
+    new_record.registration_place = data.get('registration_place')
+    new_record.total_keepers = data.get('total_keepers')
+    new_record.mot_history = data.get('mot_history', {})
+    new_record.mileage_history = data.get('mileage_history', {})
+    new_record.raw_data = data
+    new_record.last_updated = datetime.utcnow()
+    # Populate the missing MOT fields
+    new_record.mot_expiry_date = str(mot_expiry_date) if mot_expiry_date else None
+    new_record.mot_days_left = mot_days_left
+    new_record.last_mot_mileage = last_mot_mileage
+    new_record.mileage_issues = mileage_issues
     db.session.add(new_record)
 
 
@@ -337,6 +412,10 @@ def format_complete_vehicle_response(vehicle_record):
         'mot_summary': {
             'mot_status': vehicle_record.mot_status,
             'mot_expiry': vehicle_record.mot_expiry,
+            'mot_expiry_date': vehicle_record.mot_expiry_date,
+            'mot_days_left': vehicle_record.mot_days_left,
+            'last_mot_mileage': vehicle_record.last_mot_mileage,
+            'mileage_issues': vehicle_record.mileage_issues,
             'total_tests': total_tests,
             'passed_tests': passed_tests,
             'failed_tests': failed_tests,
