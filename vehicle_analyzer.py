@@ -96,6 +96,16 @@ Your analysis tasks:
 5. Provide trade purchase recommendations with CAP pricing tiers
 6. Analyze mileage progression for anomalies or tampering signs
 
+OWNERSHIP ANALYSIS GUIDELINES:
+- Recent V5C change (within 12 months) = likely ownership change
+- V5C date close to registration date = potentially first owner still
+- Vehicle age vs V5C date analysis for ownership estimation
+- For vehicle age 5+ years with recent V5C: estimate 2-4 owners
+- For vehicle age 10+ years with old V5C: estimate 3-6 owners  
+- For vehicle age 15+ years: estimate 4-8 owners
+- Always provide ownership_reasoning explaining the logic
+- Use ownership_confidence based on available data quality
+
 Focus on recurring advisories (brakes, tyres, suspension) and escalating faults. Consider vehicle age, mileage appropriateness, and compliance status in your assessment.
 
 CRITICAL: For mileage_analysis.current_mileage, use the EXACT mileage number from the most recent MOT test (e.g. if MOT shows "116639 miles", use 116639 not 116).
@@ -154,7 +164,9 @@ Output must be structured JSON using this schema:
     "v5_issue_date": "07 August 2024",
     "last_v5c_change_date": "07 August 2024",
     "registration_place": "Chester/Glasgow/Birmingham", 
-    "estimated_previous_owners": "2-3 owners",
+    "estimated_previous_owners": "1 owner",
+    "ownership_confidence": "High|Medium|Low",
+    "ownership_reasoning": "string explaining owner count logic",
     "v5_changes_detected": "boolean",
     "trading_indicators": ["string"],
     "auction_risk_factors": ["string"]

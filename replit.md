@@ -232,6 +232,16 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - TESTED SUCCESS: API endpoints confirmed working (SJ57PGV extraction with 23 authentic DVLA MOT tests)
 - ERROR RESOLUTION: "Script error" messages eliminated - page now functional across all platforms
 
+**July 25, 2025 - ENHANCED OWNERSHIP ANALYSIS WITH IMPROVED ESTIMATION LOGIC:**
+- OWNERSHIP ACCURACY IMPROVEMENT: Enhanced OpenAI analysis logic for more precise owner count estimation
+- V5C DATE CORRELATION: Added vehicle age vs V5C issue date analysis for better ownership reasoning
+- CONFIDENCE SCORING: Added ownership_confidence field (High/Medium/Low) based on data quality
+- DETAILED REASONING: Added ownership_reasoning field explaining the logic behind owner count estimates
+- AGING GUIDELINES: Age-based estimation rules (5+ years = 2-4 owners, 10+ years = 3-6 owners, 15+ years = 4-8 owners)
+- ANALYSIS ENHANCEMENT: Improved system prompt with specific ownership analysis guidelines
+- CACHE CLEARING: Reset K5WBR analysis cache to generate fresh ownership estimates with new logic
+- USER-REQUESTED FIX: Resolved "no need go estimate owners and not enough info" issue with detailed ownership analysis
+
 **July 22, 2025 - Enhanced 16-Test MOT Extraction System Implementation:**
 - MAJOR UPGRADE: Comprehensive 16-test extraction system implemented for complete MOT histories
 - Enhanced pagination logic with multi-method extraction: expand buttons, scrolling, pagination navigation
