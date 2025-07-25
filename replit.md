@@ -337,6 +337,14 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 - MOT DATE PRECISION: Enhanced MOT status to show exact expiry dates for expired vehicles (e.g., "Expired on: 03/06/2025 (129 days ago)")
 - COMPREHENSIVE MILEAGE DROPDOWN: Single dropdown contains complete MOT mileage records and rollback analysis details
 
+**July 25, 2025 - FERRARI DETECTION FIX FOR ACCURATE VEHICLE IDENTIFICATION:**
+- PATTERN SPECIFICITY: Fixed overly broad Ferrari detection patterns that incorrectly identified "Ferrari 488" for every registration
+- ENHANCED PATTERNS: Updated patterns to require "Ferrari" text near model numbers (488, 458, F430) to prevent false matches
+- ACCURATE IDENTIFICATION: System now only detects Ferrari vehicles when genuine Ferrari references exist in DVLA data
+- SJ56PVG EXAMPLE: Registration SJ56PVG no longer incorrectly shows as "Ferrari 488" - proper vehicle identification restored
+- PATTERN IMPROVEMENTS: Added bidirectional pattern matching (Ferrari+model and model+Ferrari) for better accuracy
+- PORSCHE PATTERNS: Enhanced Porsche 911 detection with similar specificity requirements
+
 **July 25, 2025 - COMPACT DESIGN OPTIMIZATION WITH DROPDOWN CONTAINERS:**
 - COMPACT LAYOUT: Optimized spacing and padding for more efficient use of screen space
 - ENHANCED DROPDOWNS: Improved dropdown containers with better visual hierarchy and compact formatting

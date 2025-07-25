@@ -1,0 +1,38 @@
+O:WDM:====== WebDriver manager ======
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Driver [/home/runner/.wdm/drivers/geckodriver/linux64/v0.36.0/geckodriver] found in cache
+INFO:vehicle_scraper:WebDriver initialized successfully
+INFO:vehicle_scraper:Navigated directly to: https://www.checkcardetails.co.uk/cardetails/sj56pvg
+INFO:vehicle_scraper:Vehicle page loaded successfully
+INFO:vehicle_scraper:Page title: Free Car Check - Check any UK vehicle instantly
+INFO:data_extractor:Detected Ferrari 488 using pattern: 488
+INFO:data_extractor:Tax extraction results: 6-month: Not found, 12-month: Not found
+INFO:vehicle_scraper:Basic info extracted: {'make': 'Ferrari', 'model': '488', 'image_url': 'https://www.checkcardetails.co.uk/images/account.png'}
+INFO:vehicle_scraper:Vehicle details extracted: {}
+INFO:vehicle_scraper:Successfully extracted basic data for SJ56PVG
+INFO:vehicle_scraper:Starting from main page: https://www.checkcardetails.co.uk/cardetails/sj56pvg
+INFO:vehicle_scraper:Found MOT link: '' -> https://www.checkcardetails.co.uk/mot-check
+INFO:vehicle_scraper:Found MOT link: 'MOT check' -> https://www.checkcardetails.co.uk/mot-check
+INFO:vehicle_scraper:Found MOT link: 'GOV.UK MOT history' -> https://www.gov.uk/check-mot-history
+INFO:vehicle_scraper:No clickable MOT link found - staying on current page to extract available data
+INFO:vehicle_scraper:MOT page contains: 31988 characters
+INFO:vehicle_scraper:Page may contain MOT data, attempting extraction
+INFO:vehicle_scraper:Found 0 elements with 'mot' in class name
+INFO:vehicle_scraper:Backup selector 'table.main-mileage-table tr' found 0 elements
+INFO:vehicle_scraper:Backup selector 'td.dvla-date' found 0 elements
+INFO:vehicle_scraper:Backup selector 'td.odometervalue' found 0 elements
+INFO:vehicle_scraper:Backup selector 'div.mot-history-wrapper-pass div.mot-history-timeline' found 0 elements
+INFO:vehicle_scraper:Backup selector 'div.mot-history-wrapper-fail div.mot-history-timeline' found 0 elements
+INFO:vehicle_scraper:Backup selector '.total-tests' found 0 elements
+INFO:vehicle_scraper:Backup selector 'div.mot-history-summary' found 0 elements
+INFO:vehicle_scraper:Backup selector 'body > div.container > div:nth-child(6) *' found 0 elements
+INFO:vehicle_scraper:No MOT tests found
+INFO:vehicle_scraper:WebDriver closed successfully
+INFO:app:MAPPING DEBUG - vehicle_details keys: []
+INFO:app:MAPPING DEBUG - model_variant: None
+INFO:app:MAPPING DEBUG - description: None
+INFO:app:MAPPING DEBUG - primary_colour: None
+INFO:app:V5C date mapping - raw value: ''
+INFO:app:TAX EXTRACTION DEBUG: 6-month: None, 12-month: None, Total keepers: None
+INFO:app:FIXED: Comprehensive fields mapped - transmission: Fals
