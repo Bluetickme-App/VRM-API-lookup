@@ -353,9 +353,15 @@ def scrape_vehicle():
                 basic_data = scraper.scrape_vehicle_data(registration)
                 
                 if basic_data:
-                    # Create new vehicle record
-                    vehicle_record = VehicleData()
-                    vehicle_record.registration = registration
+                    # Check if vehicle already exists (for fresh data updates)
+                    vehicle_record = VehicleData.query.filter_by(registration=registration).first()
+                    if vehicle_record:
+                        logger.info(f"Updating existing record for {registration} with fresh data")
+                    else:
+                        # Create new vehicle record
+                        vehicle_record = VehicleData()
+                        vehicle_record.registration = registration
+                        logger.info(f"Creating new record for {registration}")
                     
                     # Extract data from working scraper format  
                     basic_info = basic_data.get('basic_info', {})

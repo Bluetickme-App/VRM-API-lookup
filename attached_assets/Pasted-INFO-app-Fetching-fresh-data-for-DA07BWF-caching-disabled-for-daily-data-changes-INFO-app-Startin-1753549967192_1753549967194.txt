@@ -1,0 +1,93 @@
+INFO:app:Fetching fresh data for DA07BWF - caching disabled for daily data changes
+INFO:app:Starting working vehicle scraper for registration: DA07BWF
+INFO:WDM:====== WebDriver manager ======
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Get LATEST geckodriver version for 127.0 firefox
+INFO:WDM:Driver [/home/runner/.wdm/drivers/geckodriver/linux64/v0.36.0/geckodriver] found in cache
+INFO:vehicle_scraper:WebDriver initialized successfully
+INFO:vehicle_scraper:Navigated directly to: https://www.checkcardetails.co.uk/cardetails/da07bwf
+INFO:vehicle_scraper:Vehicle page loaded successfully
+INFO:vehicle_scraper:Page title: Free Car Check Report For DA07BWF | Check Car Details
+INFO:data_extractor:Detected Mercedes-Benz A-Class using pattern: A\s*Class
+INFO:data_extractor:Tax extraction results: 6-month: £236, 12-month: £430
+INFO:data_extractor:Extracted total keepers: 6
+INFO:vehicle_scraper:Basic info extracted: {'make': 'Mercedes-Benz', 'model': 'A-Class', 'image_url': 'https://www.checkcardetails.co.uk/images/account.png'}
+INFO:vehicle_scraper:Vehicle details extracted: {'model_variant': 'A6', 'description': 'A6 SE TDI Quattro Auto', 'primary_colour': 'Grey', 'fuel_type': 'DIESEL', 'transmission': 'Auto 6 Gears', 'engine': '2696 cc', 'body_style': 'Estate', 'year_manufacture': '2007', 'euro_status': '4', 'vehicle_age': '18 years 2 months', 'registration_place': 'Chester', 'registration_date': '08/05/2007', 'last_v5c_issue_date': '22 January 2025', 'type_approval': 'M1', 'wheel_plan': '2 Axle Rigid Body'}
+INFO:vehicle_scraper:Successfully extracted basic data for DA07BWF
+INFO:vehicle_scraper:Starting from main page: https://www.checkcardetails.co.uk/cardetails/da07bwf
+INFO:vehicle_scraper:Found MOT link using user's JS selector: #viewfullmothistory > span:nth-child(1)
+INFO:vehicle_scraper:Found 'View Full MOT History' button by ID (fallback)
+INFO:vehicle_scraper:Found MOT link: '' -> https://www.checkcardetails.co.uk/mot-check
+INFO:vehicle_scraper:Found MOT link: 'Book MOT or Service' -> https://bookmygarage.com/partners/checkcardetails/?vrm=DA07BWF
+INFO:vehicle_scraper:No clickable MOT link found - staying on current page to extract available data
+INFO:vehicle_scraper:MOT page contains: 44560 characters
+INFO:vehicle_scraper:Page may contain MOT data, attempting extraction
+INFO:vehicle_scraper:Found 20 elements with 'mot' in class name
+INFO:vehicle_scraper:MOT element class: ['main-tax-and-mot'] - tag: h2
+INFO:vehicle_scraper:MOT element class: ['main-tax-and-mot'] - tag: h2
+INFO:vehicle_scraper:MOT element class: ['bookmot'] - tag: div
+INFO:vehicle_scraper:Found 7 elements with class containing 'mot-history-summary'
+INFO:vehicle_scraper:Found 7 elements with class containing 'history-summary'
+INFO:vehicle_scraper:Found 'View Full MOT History' button, clicking to expand data
+INFO:vehicle_scraper:Found main container using user's selector: body > div.container
+INFO:vehicle_scraper:Found MOT summary in container: 16 total tests
+INFO:vehicle_scraper:Searching for MOT wrappers within user's container selector
+INFO:vehicle_scraper:Found 16 mot-history-wrapper elements from authentic DVLA data
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 04/06/2024 - PASSED - 113202 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 02/06/2023 - PASSED - 107496 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 02/06/2023 - FAILED - 107496 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 10/06/2022 - PASSED - 106101 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 28/04/2021 - PASSED - 104447 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 28/04/2021 - FAILED - 104447 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 10/05/2019 - PASSED - 99616 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 27/04/2018 - PASSED - 96584 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 04/05/2017 - PASSED - 90288 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 05/05/2016 - PASSED - 141699 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 09/05/2015 - PASSED - 76524 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 20/05/2014 - PASSED - 67527 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 11/05/2013 - PASSED - 57044 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 11/05/2012 - PASSED - 48764 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 07/05/2011 - PASSED - 37476 miles
+INFO:vehicle_scraper:Extracted authentic DVLA MOT: 30/04/2010 - PASSED - 27677 miles
+INFO:vehicle_scraper:Found user XPath element on main page: View Full MOT History
+INFO:vehicle_scraper:Backup selector 'table.main-mileage-table tr' found 0 elements
+INFO:vehicle_scraper:Backup selector 'td.dvla-date' found 0 elements
+INFO:vehicle_scraper:Backup selector 'td.odometervalue' found 0 elements
+INFO:vehicle_scraper:Backup selector 'div.mot-history-wrapper-pass div.mot-history-timeline' found 0 elements
+INFO:vehicle_scraper:Backup selector 'div.mot-history-wrapper-fail div.mot-history-timeline' found 0 elements
+INFO:vehicle_scraper:Backup selector '.total-tests' found 0 elements
+INFO:vehicle_scraper:Backup selector 'div.mot-history-summary' found 0 elements
+INFO:vehicle_scraper:Backup selector 'body > div.container > div:nth-child(6) *' found 0 elements
+INFO:vehicle_scraper:Extracted 16 MOT tests
+INFO:vehicle_scraper:WebDriver closed successfully
+INFO:app:EXTRACTION DEBUG - basic_info: {'make': 'Mercedes-Benz', 'model': 'A-Class', 'image_url': 'https://www.checkcardetails.co.uk/images/account.png'}
+INFO:app:EXTRACTION DEBUG - vehicle_details keys: ['model_variant', 'description', 'primary_colour', 'fuel_type', 'transmission', 'engine', 'body_style', 'year_manufacture', 'euro_status', 'vehicle_age', 'registration_place', 'registration_date', 'last_v5c_issue_date', 'type_approval', 'wheel_plan']
+INFO:app:EXTRACTION DEBUG - model_variant: A6
+INFO:app:EXTRACTION DEBUG - description: A6 SE TDI Quattro Auto
+INFO:app:PRIORITY DEBUG - basic_make: 'Mercedes-Benz', basic_model: 'A-Class'
+INFO:app:PRIORITY DEBUG - model_variant: 'A6', description: 'A6 SE TDI Quattro Auto'
+INFO:app:🔍 PATTERN MATCHING - model_variant: 'A6', description: 'A6 SE TDI Quattro Auto'
+INFO:app:✅ AUDI DETECTED from model_variant: 'A6'
+INFO:app:✅ MODEL SUCCESS - Using model_variant: 'A6'
+INFO:app:V5C date mapping - raw value: '22 January 2025'
+INFO:app:V5C date successfully parsed: '22 January 2025' -> 2025-01-22
+INFO:app:Stored total keepers: 6
+INFO:app:TAX EXTRACTION DEBUG: 6-month: £236, 12-month: £430, Total keepers: 6
+INFO:app:FIXED: Comprehensive fields mapped - transmission: True, engine: True, body: True
+INFO:app:V5C Issue Date mapped for API response: 22 January 2025
+INFO:app:Stored MOT history with 16 tests
+INFO:app:Created mileage history from MOT data with 16 records
+ERROR:app:Scraping failed for DA07BWF: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "ix_vehicle_data_registration"
+DETAIL:  Key (registration)=(DA07BWF) already exists.
+
+[SQL: INSERT INTO vehicle_data (registration, make, model, variant, description, year, color, fuel_type, transmission, engine_size, body_style, registration_date, registration_place, last_v5c_issue_date, euro_status, type_approval, wheel_plan, vehicle_age, tax_expiry, tax_days_left, mot_expiry, mot_days_left, last_mot_mileage, mileage_issues, average_mileage, mileage_status, power_bhp, max_speed_mph, torque_ftlb, urban_mpg, extra_urban_mpg, combined_mpg, child_safety_rating, adult_safety_rating, pedestrian_safety_rating, co2_emissions, tax_12_months, tax_6_months, total_keepers, v5c_certificate_count, exported, has_outstanding_recall, raw_data, mot_history, mileage_history, analysis_completed, analysis_timestamp, last_analyzed, created_at, updated_at, data_source, tax_status, mot_status, date_first_registered) VALUES (%(registration)s, %(make)s, %(model)s, %(variant)s, %(description)s, %(year)s, %(color)s, %(fuel_type)s, %(transmission)s, %(engine_size)s, %(body_style)s, %(registration_date)s, %(registration_place)s, %(last_v5c_issue_date)s, %(euro_status)s, %(type_approval)s, %(wheel_plan)s, %(vehicle_age)s, %(tax_expiry)s, %(tax_days_left)s, %(mot_expiry)s, %(mot_days_left)s, %(last_mot_mileage)s, %(mileage_issues)s, %(average_mileage)s, %(mileage_status)s, %(power_bhp)s, %(max_speed_mph)s, %(torque_ftlb)s, %(urban_mpg)s, %(extra_urban_mpg)s, %(combined_mpg)s, %(child_safety_rating)s, %(adult_safety_rating)s, %(pedestrian_safety_rating)s, %(co2_emissions)s, %(tax_12_months)s, %(tax_6_months)s, %(total_keepers)s, %(v5c_certificate_count)s, %(exported)s, %(has_outstanding_recall)s, %(raw_data)s::JSON, %(mot_history)s::JSON, %(mileage_history)s::JSON, %(analysis_completed)s, %(analysis_timestamp)s, %(last_analyzed)s, %(created_at)s, %(updated_at)s, %(data_source)s, %(tax_status)s, %(mot_status)s, %(date_first_registered)s) RETURNING vehicle_data.id]
+[parameters: {'registration': 'DA07BWF', 'make': 'Audi', 'model': 'A6', 'variant': None, 'description': 'A6 SE TDI Quattro Auto', 'year': 2007, 'color': 'Grey', 'fuel_type': 'DIESEL', 'transmission': 'Auto 6 Gears', 'engine_size': '2696 cc', 'body_style': 'Estate', 'registration_date': datetime.date(2007, 5, 8), 'registration_place': 'Chester', 'last_v5c_issue_date': datetime.date(2025, 1, 22), 'euro_status': '4', 'type_approval': 'M1', 'wheel_plan': None, 'vehicle_age': None, 'tax_expiry': None, 'tax_days_left': None, 'mot_expiry': None, 'mot_days_left': None, 'last_mot_mileage': None, 'mileage_issues': None, 'average_mileage': None, 'mileage_status': None, 'power_bhp': None, 'max_speed_mph': None, 'torque_ftlb': None, 'urban_mpg': None, 'extra_urban_mpg': None, 'combined_mpg': None, 'child_safety_rating': None, 'adult_safety_rating': None, 'pedestrian_safety_rating': None, 'co2_emissions': None, 'tax_12_months': '£430', 'tax_6_months': '£236', 'total_keepers': 6, 'v5c_certificate_count': None, 'exported': None, 'has_outstanding_recall': None, 'raw_data': '{"basic_info": {"make": "Mercedes-Benz", "model": "A-Class", "image_url": "https://www.checkcardetails.co.uk/images/account.png"}, "tax_mot": {}, "ve ... (6062 characters truncated) ... ry notices."], "source": "DVLA_wrapper_authentic"}], "total_tests": 16}, "last_v5_issue_date": "22 January 2025", "v5_issue_date": "22 January 2025"}', 'mot_history': '{"tests": [{"date": "04/06/2024", "result": "PASSED", "mileage": 113202, "expiry_date": "09/06/2025", "comments": ["Vehicle passed MOT with no adviso ... (5166 characters truncated) ... , "expiry_date": "08/05/2011", "comments": ["Vehicle passed MOT with no advisory notices."], "source": "DVLA_wrapper_authentic"}], "total_tests": 16}', 'mileage_history': '{"analysis": {"odometer_issues": {"has_issues": false, "severity": "NONE", "status": "No odometer discrepancies detected", "reduction_amount": 0}, "p ... (1650 characters truncated) ... ": "PASSED"}], "summary": {"total_records": 16, "latest_mileage": 141699, "earliest_mileage": 27677, "total_increase": 114022, "status": "Complete"}}', 'analysis_completed': False, 'analysis_timestamp': None, 'last_analyzed': None, 'created_at': datetime.datetime(2025, 7, 26, 17, 12, 35, 762516), 'updated_at': datetime.datetime(2025, 7, 26, 17, 12, 35, 762520), 'data_source': 'checkcardetails.co.uk', 'tax_status': None, 'mot_status': None, 'date_first_registered': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+ERROR:app:Database error for DA07BWF: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "ix_vehicle_data_registration"
+DETAIL:  Key (registration)=(DA07BWF) already exists.
+
+[SQL: INSERT INTO vehicle_data (registration, make, model, variant, description, year, color, fuel_type, transmission, engine_size, body_style, registration_date, registration_place, last_v5c_issue_date, euro_status, type_approval, wheel_plan, vehicle_age, tax_expiry, tax_days_left, mot_expiry, mot_days_left, last_mot_mileage, mileage_issues, average_mileage, mileage_status, power_bhp, max_speed_mph, torque_ftlb, urban_mpg, extra_urban_mpg, combined_mpg, child_safety_rating, adult_safety_rating, pedestrian_safety_rating, co2_emissions, tax_12_months, tax_6_months, total_keepers, v5c_certificate_count, exported, has_outstanding_recall, raw_data, mot_history, mileage_history, analysis_completed, analysis_timestamp, last_analyzed, created_at, updated_at, data_source, tax_status, mot_status, date_first_registered) VALUES (%(registration)s, %(make)s, %(model)s, %(variant)s, %(description)s, %(year)s, %(color)s, %(fuel_type)s, %(transmission)s, %(engine_size)s, %(body_style)s, %(registration_date)s, %(registration_place)s, %(last_v5c_issue_date)s, %(euro_status)s, %(type_approval)s, %(wheel_plan)s, %(vehicle_age)s, %(tax_expiry)s, %(tax_days_left)s, %(mot_expiry)s, %(mot_days_left)s, %(last_mot_mileage)s, %(mileage_issues)s, %(average_mileage)s, %(mileage_status)s, %(power_bhp)s, %(max_speed_mph)s, %(torque_ftlb)s, %(urban_mpg)s, %(extra_urban_mpg)s, %(combined_mpg)s, %(child_safety_rating)s, %(adult_safety_rating)s, %(pedestrian_safety_rating)s, %(co2_emissions)s, %(tax_12_months)s, %(tax_6_months)s, %(total_keepers)s, %(v5c_certificate_count)s, %(exported)s, %(has_outstanding_recall)s, %(raw_data)s::JSON, %(mot_history)s::JSON, %(mileage_history)s::JSON, %(analysis_completed)s, %(analysis_timestamp)s, %(last_analyzed)s, %(created_at)s, %(updated_at)s, %(data_source)s, %(tax_status)s, %(mot_status)s, %(date_first_registered)s) RETURNING vehicle_data.id]
+[parameters: {'registration': 'DA07BWF', 'make': 'Audi', 'model': 'A6', 'variant': None, 'description': 'A6 SE TDI Quattro Auto', 'year': 2007, 'color': 'Grey', 'fuel_type': 'DIESEL', 'transmission': 'Auto 6 Gears', 'engine_size': '2696 cc', 'body_style': 'Estate', 'registration_date': datetime.date(2007, 5, 8), 'registration_place': 'Chester', 'last_v5c_issue_date': datetime.date(2025, 1, 22), 'euro_status': '4', 'type_approval': 'M1', 'wheel_plan': None, 'vehicle_age': None, 'tax_expiry': None, 'tax_days_left': None, 'mot_expiry': None, 'mot_days_left': None, 'last_mot_mileage': None, 'mileage_issues': None, 'average_mileage': None, 'mileage_status': None, 'power_bhp': None, 'max_speed_mph': None, 'torque_ftlb': None, 'urban_mpg': None, 'extra_urban_mpg': None, 'combined_mpg': None, 'child_safety_rating': None, 'adult_safety_rating': None, 'pedestrian_safety_rating': None, 'co2_emissions': None, 'tax_12_months': '£430', 'tax_6_months': '£236', 'total_keepers': 6, 'v5c_certificate_count': None, 'exported': None, 'has_outstanding_recall': None, 'raw_data': '{"basic_info": {"make": "Mercedes-Benz", "model": "A-Class", "image_url": "https://www.checkcardetails.co.uk/images/account.png"}, "tax_mot": {}, "ve ... (6062 characters truncated) ... ry notices."], "source": "DVLA_wrapper_authentic"}], "total_tests": 16}, "last_v5_issue_date": "22 January 2025", "v5_issue_date": "22 January 2025"}', 'mot_history': '{"tests": [{"date": "04/06/2024", "result": "PASSED", "mileage": 113202, "expiry_date": "09/06/2025", "comments": ["Vehicle passed MOT with no adviso ... (5166 characters truncated) ... , "expiry_date": "08/05/2011", "comments": ["Vehicle passed MOT with no advisory notices."], "source": "DVLA_wrapper_authentic"}], "total_tests": 16}', 'mileage_history': '{"analysis": {"odometer_issues": {"has_issues": false, "severity": "NONE", "status": "No odometer discrepancies detected", "reduction_amount": 0}, "p ... (1650 characters truncated) ... ": "PASSED"}], "summary": {"total_records": 16, "latest_mileage": 141699, "earliest_mileage": 27677, "total_increase": 114022, "status": "Complete"}}', 'analysis_completed': False, 'analysis_timestamp': None, 'last_analyzed': None, 'created_at': datetime.datetime(2025, 7, 26, 17, 12, 35, 762516), 'updated_at': datetime.datetime(2025, 7, 26, 17, 12, 35, 762520), 'data_source': 'checkcardetails.co.uk', 'tax_status': None, 'mot_status': None, 'date_first_registered': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+/home/runner/workspace/app.py:684: SAWarning: Session's state has been changed on a non-active transaction - this state will be discarded.
+  db.session.rollback()

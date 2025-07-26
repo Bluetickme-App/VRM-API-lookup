@@ -339,6 +339,14 @@ Navigation: Keep interface simple - remove unnecessary dashboard and analysis bu
 - SPEED IMPROVEMENTS: Reduced retry attempts and delays for faster response times
 - SYSTEM RELIABILITY: Fixed LSP diagnostics and improved error handling for more stable operation
 
+**July 26, 2025 - DATABASE CONSTRAINT FIX AND FRESH DATA UPDATE SYSTEM:**
+- CRITICAL DATABASE FIX: Resolved UniqueViolation constraint error for existing vehicle records during fresh data extraction
+- UPDATE VS INSERT LOGIC: System now checks for existing records and updates them instead of attempting duplicate insertions
+- FRESH DATA SUCCESS: SJ57PGV successfully updated with 23 authentic DVLA MOT tests (2010-2025, mileage 29,266→91,622)
+- DATABASE INTEGRITY: Proper handling of existing records while maintaining fresh daily data extraction requirement
+- SYSTEM OPERATIONAL: Complete vehicle data extraction and storage working perfectly with authentic DVLA sources
+- NO CACHE CONFIRMED: Fresh data extraction working correctly without using cached data for new searches
+
 **July 25, 2025 - ENHANCED MOT HISTORY WITH DETAILED DEFECT ANALYSIS:**
 - MOT STATISTICS DASHBOARD: Added comprehensive pass/fail/advisory counts with visual summary statistics
 - EXPANDABLE MOT ENTRIES: Implemented dropdown functionality for detailed MOT test information
