@@ -26,7 +26,7 @@
         .main-container {
             background: white;
             margin: 20px auto;
-            max-width: 1200px;
+            max-width: 1400px;
             padding: 2rem;
         }
         
@@ -34,10 +34,10 @@
             background: white;
             border: 1px solid #dee2e6;
             border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
         }
         
         .history-card:hover {
@@ -60,10 +60,10 @@
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             color: white;
             border-radius: 8px;
-            padding: 1.5rem;
+            padding: 2.5rem;
             margin-bottom: 2rem;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         
         .stat-item {
@@ -84,9 +84,9 @@
         
         .vehicle-info {
             background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-top: 1rem;
         }
         
         .badge-custom {
@@ -100,10 +100,42 @@
         }
         
         .btn-custom {
-            border-radius: 25px;
-            padding: 8px 20px;
+            border-radius: 8px;
+            padding: 12px 24px;
             margin-right: 10px;
-            font-size: 0.9rem;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 120px;
+        }
+        
+        .btn-primary.btn-custom {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+        
+        .btn-outline-primary.btn-custom {
+            background: white;
+            border: 2px solid #007bff !important;
+            color: #007bff;
+        }
+        
+        .btn-outline-secondary.btn-custom {
+            background: white;
+            border: 2px solid #6c757d !important;
+            color: #6c757d;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary.btn-custom:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            color: white;
         }
         
         .search-meta {
@@ -126,18 +158,20 @@
         
         .filter-controls {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
         }
         
         .popular-searches {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
         }
         
         .popular-item {
@@ -162,7 +196,7 @@
         </div>
     </div>
 
-    <div class="container mt-4">
+    <div class="container-fluid mt-4">
         <div class="main-container">
             <!-- Header -->
             <div class="row">
@@ -221,15 +255,15 @@
             {% if searches %}
             <!-- Filter Controls -->
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="filter-controls">
                         <div class="row align-items-center">
-                            <div class="col-md-4">
-                                <label for="searchFilter" class="form-label">Filter by Registration:</label>
+                            <div class="col-md-3">
+                                <label for="searchFilter" class="form-label fw-bold">Filter by Registration:</label>
                                 <input type="text" class="form-control" id="searchFilter" placeholder="Enter registration...">
                             </div>
-                            <div class="col-md-4">
-                                <label for="statusFilter" class="form-label">Filter by Status:</label>
+                            <div class="col-md-3">
+                                <label for="statusFilter" class="form-label fw-bold">Filter by Status:</label>
                                 <select class="form-select" id="statusFilter">
                                     <option value="">All Searches</option>
                                     <option value="success">Successful Only</option>
@@ -237,22 +271,20 @@
                                     <option value="cache">From Cache</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <label for="sortOrder" class="form-label">Sort Order:</label>
+                            <div class="col-md-3">
+                                <label for="sortOrder" class="form-label fw-bold">Sort Order:</label>
                                 <select class="form-select" id="sortOrder">
                                     <option value="newest">Newest First</option>
                                     <option value="oldest">Oldest First</option>
                                     <option value="alphabetical">Alphabetical</option>
                                 </select>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="popular-searches">
-                        <h5><i class="bi bi-star text-warning"></i> Popular Searches</h5>
-                        <div id="popularSearches">
-                            <div class="text-muted">Loading...</div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Popular Searches:</label>
+                                <div id="popularSearches" style="max-height: 100px; overflow-y: auto;">
+                                    <div class="text-muted">Loading...</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
