@@ -170,12 +170,36 @@ def intelligent_vehicle_analysis():
                 if 'prediction' in analysis_result.get('ai_analysis', {}):
                     analysis_result['ai_analysis']['prediction']['enhanced_failure_analysis'] = failure_predictions
                 
+                # Create comprehensive enhanced failure analysis section - FORCE INTO OUTPUT
+                enhanced_section = {
+                    'overall_failure_probability': failure_predictions.get('failure_probability', 0),
+                    'specific_component_predictions': failure_predictions.get('specific_predictions', []),
+                    'repeat_failure_risk': failure_predictions.get('repeat_failure_risk', {}),
+                    'next_test_prediction': failure_predictions.get('next_test_date', 'Unknown'),
+                    'total_prevention_cost': failure_predictions.get('repeat_failure_risk', {}).get('prevention_cost', 0),
+                    'enhanced_analysis_available': True,
+                    'component_count': len(failure_predictions.get('specific_predictions', [])),
+                    'analysis_timestamp': datetime.utcnow().isoformat()
+                }
+                
+                # FORCE enhanced section into multiple locations in analysis result
+                analysis_result['ai_analysis']['enhanced_failure_analysis'] = enhanced_section
+                analysis_result['enhanced_failure_analysis'] = enhanced_section  # Also at top level
+                
                 # Override the mot_history_analysis with enhanced data
                 if 'mot_history_analysis' in analysis_result.get('ai_analysis', {}):
-                    analysis_result['ai_analysis']['mot_history_analysis']['enhanced_predictions'] = failure_predictions
-                    # Update failure probability
-                    if 'failure_probability' in failure_predictions:
-                        analysis_result['ai_analysis']['mot_history_analysis']['failure_probability'] = failure_predictions['failure_probability']
+                    original_analysis = analysis_result['ai_analysis']['mot_history_analysis']
+                    enhanced_analysis = {
+                        **original_analysis,
+                        'enhanced_predictions': failure_predictions,
+                        'failure_probability': failure_predictions.get('failure_probability', original_analysis.get('failure_rate', 0)),
+                        'specific_failure_predictions': failure_predictions.get('specific_predictions', []),
+                        'component_repeat_risks': failure_predictions.get('repeat_failure_risk', {}),
+                        'enhanced_analysis_available': True,
+                        'enhanced_failure_rate': failure_predictions.get('failure_probability', 0),
+                        'enhanced_predictions_count': len(failure_predictions.get('specific_predictions', []))
+                    }
+                    analysis_result['ai_analysis']['mot_history_analysis'] = enhanced_analysis
                 
                 logging.info("Enhanced failure predictions successfully merged into analysis structure")
         except Exception as e:
@@ -194,12 +218,17 @@ def intelligent_vehicle_analysis():
                 'error': formatted_result['error']
             }), 500
 
-        # Cache the analysis result to avoid future OpenAI API calls
+        # Cache the analysis result to avoid future OpenAI API calls - with enhanced error handling
         try:
+            # Create a new session to avoid connection issues
+            from app import db
+            db.session.rollback()  # Clear any existing transaction
+            
             vehicle_record.analysis_data = formatted_result['display_data']
             vehicle_record.analysis_completed = True
             vehicle_record.analysis_timestamp = datetime.utcnow()
             vehicle_record.last_analyzed = datetime.utcnow()
+            
             db.session.commit()
             logging.info(
                 f"Cached analysis result for {registration} - future requests will use cached data"
@@ -207,6 +236,10 @@ def intelligent_vehicle_analysis():
         except Exception as e:
             logging.warning(
                 f"Failed to cache analysis for {registration}: {e}")
+            try:
+                db.session.rollback()
+            except:
+                pass
 
         logging.info(
             f"Successfully completed intelligent analysis for {registration}")
@@ -325,7 +358,39 @@ def analyze_vehicle_by_registration(registration):
 
         # Perform analysis
         analysis_result = analyze_vehicle_data(vehicle_data)
-        formatted_result = format_analysis_for_display(analysis_result)
+        
+        # Generate enhanced failure predictions
+        logging.info("Generating enhanced MOT failure predictions...")
+        try:
+            from enhanced_failure_analyzer import analyze_vehicle_failures
+            failure_predictions = analyze_vehicle_failures(vehicle_data)
+            logging.info(f"Enhanced failure predictions generated: {failure_predictions.keys() if failure_predictions else 'None'}")
+            
+            # Merge failure predictions into main analysis
+            if analysis_result and failure_predictions:
+                if 'ai_analysis' not in analysis_result:
+                    analysis_result['ai_analysis'] = {}
+                
+                # Add enhanced predictions to multiple sections
+                analysis_result['ai_analysis']['enhanced_mot_predictions'] = failure_predictions
+                analysis_result['ai_analysis']['mot_predictions'] = failure_predictions
+                
+                # Override MOT history analysis with enhanced data
+                if 'mot_history_analysis' in analysis_result.get('ai_analysis', {}):
+                    analysis_result['ai_analysis']['mot_history_analysis']['enhanced_predictions'] = failure_predictions
+                    if 'failure_probability' in failure_predictions:
+                        analysis_result['ai_analysis']['mot_history_analysis']['failure_probability'] = failure_predictions['failure_probability']
+                
+                logging.info("Enhanced failure predictions successfully merged")
+        except Exception as e:
+            logging.error(f"Failed to generate enhanced failure predictions: {e}")
+        
+        # Format result directly
+        formatted_result = {
+            'success': True,
+            'display_data': analysis_result,
+            'raw_analysis': analysis_result
+        }
 
         if not formatted_result['success']:
             return jsonify({
@@ -495,7 +560,39 @@ def scrape_and_analyze():
         # Perform intelligent analysis
         logging.info(f"Analyzing scraped data for {registration}")
         analysis_result = analyze_vehicle_data(vehicle_data)
-        formatted_result = format_analysis_for_display(analysis_result)
+        
+        # Generate enhanced failure predictions
+        logging.info("Generating enhanced MOT failure predictions...")
+        try:
+            from enhanced_failure_analyzer import analyze_vehicle_failures
+            failure_predictions = analyze_vehicle_failures(vehicle_data)
+            logging.info(f"Enhanced failure predictions generated: {failure_predictions.keys() if failure_predictions else 'None'}")
+            
+            # Merge failure predictions into main analysis
+            if analysis_result and failure_predictions:
+                if 'ai_analysis' not in analysis_result:
+                    analysis_result['ai_analysis'] = {}
+                
+                # Add enhanced predictions to multiple sections
+                analysis_result['ai_analysis']['enhanced_mot_predictions'] = failure_predictions
+                analysis_result['ai_analysis']['mot_predictions'] = failure_predictions
+                
+                # Override MOT history analysis with enhanced data
+                if 'mot_history_analysis' in analysis_result.get('ai_analysis', {}):
+                    analysis_result['ai_analysis']['mot_history_analysis']['enhanced_predictions'] = failure_predictions
+                    if 'failure_probability' in failure_predictions:
+                        analysis_result['ai_analysis']['mot_history_analysis']['failure_probability'] = failure_predictions['failure_probability']
+                
+                logging.info("Enhanced failure predictions successfully merged")
+        except Exception as e:
+            logging.error(f"Failed to generate enhanced failure predictions: {e}")
+        
+        # Format result directly
+        formatted_result = {
+            'success': True,
+            'display_data': analysis_result,
+            'raw_analysis': analysis_result
+        }
 
         if not formatted_result['success']:
             return jsonify({
