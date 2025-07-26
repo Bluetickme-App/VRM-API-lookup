@@ -20,7 +20,9 @@ Navigation: Keep interface simple - remove unnecessary dashboard and analysis bu
 - POPULAR SEARCHES: Displaying most frequently searched registrations (LM65USE: 21 searches, DA07BWF: 14 searches)
 - NAVIGATION CONSISTENCY: Traffic light amber (#f39c12) applied to "Search History" navigation links with hover effects
 - USER INTERFACE: Beautiful card-based layout with proper color-coded status indicators and vehicle information display
-- SEARCH ACTIONS: Working direct links to view analysis or search again from history entries
+- CACHED DATA DISPLAY: Fixed "View Saved Data" to show cached vehicle information without triggering new AI analysis
+- SEARCH ACTIONS: "View Saved Data" shows cached results, "Search Again" triggers fresh extraction  
+- NO AI ANALYSIS ON HISTORY: History page now displays saved data only - no OpenAI API calls when viewing past searches
 - DESIGN COMPLETION: Consistent traffic light design across dashboard, history page, analysis page, and all navigation elements
 **July 22, 2025 - CRITICAL DATA EXTRACTION FAILURE IDENTIFIED:**
 - EXTRACTION SUCCESS RATE: Only 33.3% field success (3/9 critical fields) confirmed by database analysis

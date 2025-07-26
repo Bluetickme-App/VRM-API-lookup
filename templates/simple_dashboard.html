@@ -659,6 +659,52 @@
                 </div>
             </div>
         </div>
+        {% if show_cached and cached_vehicle %}
+        <!-- Cached Vehicle Data Display -->
+        <div class="vehicle-card">
+            <div class="vehicle-header">
+                <div>
+                    <div class="vehicle-reg">{{ cached_vehicle.registration }}</div>
+                </div>
+                <div class="vehicle-status">From History</div>
+            </div>
+            <div class="vehicle-info">
+                <div class="vehicle-title">{{ cached_vehicle.make or 'Unknown' }} {{ cached_vehicle.model or 'Unknown' }}</div>
+                <div class="vehicle-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Year</div>
+                        <div class="detail-value">{{ cached_vehicle.year or 'Unknown' }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Colour</div>
+                        <div class="detail-value">{{ cached_vehicle.color or 'Unknown' }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Fuel Type</div>
+                        <div class="detail-value">{{ cached_vehicle.fuel_type or 'Unknown' }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Engine</div>
+                        <div class="detail-value">{{ cached_vehicle.engine_capacity or 'Unknown' }}cc</div>
+                    </div>
+                </div>
+                {% if cached_vehicle.analysis_data %}
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #2c3e50; margin-bottom: 10px;">Saved Analysis</h4>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <em>Analysis data available from {{ cached_vehicle.analysis_timestamp.strftime('%d %b %Y at %H:%M') if cached_vehicle.analysis_timestamp else 'previous search' }}</em>
+                    </div>
+                </div>
+                {% endif %}
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="searchAgain('{{ cached_vehicle.registration }}')" class="search-btn">
+                        🔄 Run Fresh Search
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
         <!-- Loading Indicator -->
         <div class="loading" id="loadingIndicator">
             <div class="spinner"></div>
@@ -1924,6 +1970,12 @@
                 searchVehicle();
             }
         });
+        
+        // Function to trigger a fresh search (used by history page)
+        function searchAgain(registration) {
+            document.getElementById('vehicleSearch').value = registration;
+            searchVehicle();
+        }
     </script>
 </body>
 </html>

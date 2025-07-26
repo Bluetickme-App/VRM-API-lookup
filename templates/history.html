@@ -328,9 +328,9 @@
                                 <div class="col-md-4">
                                     <div class="search-actions">
                                         {% if data.vehicle %}
-                                            <a href="/analysis/{{ registration }}" class="btn btn-primary btn-custom">
-                                                <i class="bi bi-graph-up"></i> View Analysis
-                                            </a>
+                                            <button class="btn btn-primary btn-custom" onclick="showCachedAnalysis('{{ registration }}')">
+                                                <i class="bi bi-eye"></i> View Saved Data
+                                            </button>
                                         {% endif %}
                                         <button class="btn btn-outline-secondary btn-custom" onclick="searchAgain('{{ registration }}')">
                                             <i class="bi bi-arrow-repeat"></i> Search Again
@@ -464,6 +464,11 @@
         function searchAgain(registration) {
             // Navigate to search page with pre-filled registration
             window.location.href = `/full-dashboard?reg=${encodeURIComponent(registration)}`;
+        }
+
+        function showCachedAnalysis(registration) {
+            // Navigate to main dashboard to show cached vehicle data without new AI analysis
+            window.location.href = `/?reg=${encodeURIComponent(registration)}&cache=true`;
         }
     </script>
 </body>

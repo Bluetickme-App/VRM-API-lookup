@@ -56,6 +56,19 @@ ocr_processor = NumberPlateOCR()
 @app.route('/')
 def index():
     """Render the simple dashboard interface for iframe integration"""
+    # Check if showing cached data for a specific registration
+    reg = request.args.get('reg')
+    cache_only = request.args.get('cache')
+    
+    if reg and cache_only:
+        # Show cached vehicle data without triggering new AI analysis
+        from models import VehicleData
+        vehicle = VehicleData.query.filter_by(registration=reg.upper()).first()
+        if vehicle:
+            return render_template('simple_dashboard.html', 
+                                 cached_vehicle=vehicle, 
+                                 show_cached=True)
+    
     return render_template('simple_dashboard.html')
 
 @app.route('/api/ocr-process', methods=['POST'])
