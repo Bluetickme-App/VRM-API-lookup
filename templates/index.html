@@ -642,6 +642,51 @@
             document.getElementById('errorSection').style.display = 'none';
             document.getElementById('analysisResults').style.display = 'none';
         }
+
+        // Handle URL parameters for cached data display
+        document.addEventListener('DOMContentLoaded', function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var registration = urlParams.get('reg');
+            var isCache = urlParams.get('cache') === 'true';
+            var isFresh = urlParams.get('fresh') === 'true';
+            
+            if (registration) {
+                document.getElementById('registration').value = registration;
+                
+                if (isCache) {
+                    // Load cached data from history
+                    loadCachedVehicleData(registration);
+                } else if (isFresh) {
+                    // Perform fresh search
+                    searchVehicle(registration);
+                }
+            }
+        });
+
+        function loadCachedVehicleData(registration) {
+            showLoading();
+            
+            // Fetch cached data from database
+            fetch('/api/vehicle-data/' + encodeURIComponent(registration))
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success && data.data) {
+                    displayVehicleData(data.data);
+                    // Auto-scroll to results when loaded from history
+                    setTimeout(function() {
+                        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                    }, 500);
+                } else {
+                    showError('Cached data not found. Please try a fresh search.');
+                }
+            })
+            .catch(function(error) {
+                console.error('Error loading cached data:', error);
+                showError('Failed to load cached data. Please try a fresh search.');
+            });
+        }
     </script>
 </body>
 </html>

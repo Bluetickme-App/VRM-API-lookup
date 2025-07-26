@@ -8,59 +8,62 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
             min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 0;
+            padding: 3rem 0;
+            margin: 0;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            background: white;
             margin: 20px auto;
             max-width: 1200px;
-            padding: 40px;
+            padding: 2rem;
         }
         
         .history-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 20px;
-            padding: 25px;
-            border-left: 5px solid;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
         }
         
         .history-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
         .success-card {
-            border-left-color: #27ae60;
-            background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), rgba(46, 204, 113, 0.05));
+            border-left-color: #28a745;
         }
         
         .error-card {
-            border-left-color: #e74c3c;
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(192, 57, 43, 0.05));
+            border-left-color: #dc3545;
         }
         
         .cache-card {
-            border-left-color: #f39c12;
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.05), rgba(230, 126, 34, 0.05));
+            border-left-color: #ffc107;
         }
         
         .stats-card {
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             color: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
             text-align: center;
-            box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .stat-item {
@@ -151,24 +154,29 @@
     </style>
 </head>
 <body>
-    <div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <h1><i class="bi bi-clock-history"></i> Vehicle Search History</h1>
+            <p class="mb-0">Review all your previous vehicle searches and comprehensive data</p>
+        </div>
+    </div>
+
+    <div class="container mt-4">
         <div class="main-container">
             <!-- Header -->
             <div class="row">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h1 class="h2 mb-0">
-                                <i class="bi bi-clock-history text-primary"></i>
-                                Vehicle Search History
-                            </h1>
+                            <h2 class="h3 mb-0">Search History Dashboard</h2>
                             <p class="text-muted mb-0">View and recall your past vehicle lookups</p>
                         </div>
                         <div>
                             <a href="/" class="btn btn-outline-primary btn-custom">
                                 <i class="bi bi-house"></i> Home
                             </a>
-                            <a href="/full-dashboard" class="btn btn-primary btn-custom">
+                            <a href="/" class="btn btn-primary btn-custom">
                                 <i class="bi bi-search"></i> New Search
                             </a>
                         </div>
@@ -351,7 +359,7 @@
                         <i class="bi bi-clock-history"></i>
                         <h3>No Search History Yet</h3>
                         <p>Your vehicle searches will appear here once you start using the system.</p>
-                        <a href="/full-dashboard" class="btn btn-primary btn-lg btn-custom">
+                        <a href="/" class="btn btn-primary btn-lg btn-custom">
                             <i class="bi bi-search"></i> Start Your First Search
                         </a>
                     </div>
@@ -462,13 +470,13 @@
         }
 
         function searchAgain(registration) {
-            // Navigate to search page with pre-filled registration
-            window.location.href = `/full-dashboard?reg=${encodeURIComponent(registration)}`;
+            // Navigate to main page to perform fresh search
+            window.location.href = `/?reg=${encodeURIComponent(registration)}&fresh=true`;
         }
 
         function showCachedAnalysis(registration) {
-            // Navigate to main dashboard to show cached vehicle data without new AI analysis
-            window.location.href = `/?reg=${encodeURIComponent(registration)}&cache=true`;
+            // Navigate to main dashboard to show comprehensive cached vehicle data
+            window.location.href = `/?reg=${encodeURIComponent(registration)}&cache=true&full=true`;
         }
     </script>
 </body>

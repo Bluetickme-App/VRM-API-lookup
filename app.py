@@ -703,6 +703,66 @@ def scrape_vehicle():
             'error': 'Internal server error'
         }), 500
 
+@app.route('/api/vehicle-data/<registration>', methods=['GET'])
+def get_cached_vehicle_data(registration):
+    """API endpoint to retrieve cached vehicle data for history display"""
+    from models import VehicleData
+    
+    try:
+        registration = registration.strip().upper()
+        
+        # Get cached vehicle data from database
+        vehicle_record = VehicleData.query.filter_by(registration=registration).first()
+        
+        if not vehicle_record:
+            return jsonify({
+                'success': False,
+                'error': 'Vehicle data not found in cache'
+            }), 404
+        
+        # Return comprehensive cached data in same format as fresh scrape
+        response_data = {
+            'registration': vehicle_record.registration,
+            'make': vehicle_record.make,
+            'model': vehicle_record.model,
+            'variant': vehicle_record.variant,
+            'description': vehicle_record.description,
+            'color': vehicle_record.color,
+            'fuel_type': vehicle_record.fuel_type,
+            'year': vehicle_record.year,
+            'transmission': vehicle_record.transmission,
+            'engine_size': vehicle_record.engine_size,
+            'body_style': vehicle_record.body_style,
+            'euro_status': vehicle_record.euro_status,
+            'type_approval': vehicle_record.type_approval,
+            'registration_place': vehicle_record.registration_place,
+            'registration_date': vehicle_record.registration_date.isoformat() if vehicle_record.registration_date else None,
+            'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
+            'v5_issue_date': vehicle_record.last_v5c_issue_date.strftime('%d %B %Y') if vehicle_record.last_v5c_issue_date else None,
+            'last_v5_issue_date': vehicle_record.last_v5c_issue_date.strftime('%d %B %Y') if vehicle_record.last_v5c_issue_date else None,
+            'tax_6_months': vehicle_record.tax_6_months,
+            'tax_12_months': vehicle_record.tax_12_months,
+            'total_keepers': vehicle_record.total_keepers,
+            'mot_expiry_date': vehicle_record.mot_expiry.strftime('%d/%m/%Y') if vehicle_record.mot_expiry else None,
+            'mot_history': vehicle_record.mot_history,
+            'mileage_history': vehicle_record.mileage_history,
+            'raw_data': vehicle_record.raw_data
+        }
+        
+        return jsonify({
+            'success': True,
+            'data': response_data,
+            'source': 'cached_database',
+            'cached_at': vehicle_record.updated_at.isoformat() if vehicle_record.updated_at else None
+        })
+        
+    except Exception as e:
+        logger.error(f"Error retrieving cached vehicle data: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve cached data'
+        }), 500
+
 def _enhance_mot_data_with_realistic_info(registration: str, basic_data: dict) -> dict:
     """Enhance MOT data with realistic dates and mileage for demonstration vehicles"""
     
