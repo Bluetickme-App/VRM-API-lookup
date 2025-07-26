@@ -63,8 +63,8 @@ class VehicleData(db.Model):
     
     # Additional information
     co2_emissions = db.Column(db.String(20))
-    tax_12_months = db.Column(db.String(20))
-    tax_6_months = db.Column(db.String(20))
+    tax_12_months = db.Column(db.String(50))  # Increased to handle longer tax strings
+    tax_6_months = db.Column(db.String(50))   # Increased to handle longer tax strings
     total_keepers = db.Column(db.Integer)
     v5c_certificate_count = db.Column(db.Integer)
     exported = db.Column(db.String(10))

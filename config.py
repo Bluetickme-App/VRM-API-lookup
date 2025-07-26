@@ -4,10 +4,11 @@ Configuration settings for the vehicle scraper
 
 SCRAPER_CONFIG = {
     'base_url': 'https://www.checkcardetails.co.uk/',
-    'timeout': 10,  # Selenium wait timeout in seconds
-    'retry_attempts': 3,
-    'delay_between_requests': 1,  # Delay in seconds
-    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    'timeout': 8,  # Reduced timeout for faster response
+    'retry_attempts': 2,  # Reduced retries to prevent worker timeout
+    'delay_between_requests': 0.5,  # Reduced delay for speed
+    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'max_execution_time': 20  # Maximum total execution time in seconds
 }
 
 # CSS selectors for different elements

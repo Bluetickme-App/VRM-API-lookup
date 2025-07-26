@@ -30,17 +30,21 @@ class VehicleScraper:
         self.driver = None
         self.wait = None
         self.data_extractor = DataExtractor()
+        self.start_time = time.time()
         
     def _setup_driver(self):
-        """Initialize Firefox WebDriver with appropriate options"""
+        """Initialize Firefox WebDriver with optimized options for speed"""
         try:
             firefox_options = Options()
             firefox_options.add_argument('--headless')  # Run in background
             firefox_options.add_argument('--no-sandbox')
             firefox_options.add_argument('--disable-dev-shm-usage')
             firefox_options.add_argument('--disable-gpu')
-            firefox_options.add_argument('--window-size=1920,1080')
+            firefox_options.add_argument('--disable-images')  # Speed optimization
+            firefox_options.add_argument('--window-size=1280,720')  # Smaller window
             firefox_options.set_preference("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0")
+            firefox_options.set_preference("media.volume_scale", "0.0")
+            firefox_options.set_preference("dom.ipc.plugins.enabled.libflashplayer.so", "false")
             
             # Use webdriver-manager to automatically manage GeckoDriver
             service = Service(GeckoDriverManager().install())
@@ -75,17 +79,24 @@ class VehicleScraper:
             logger.error(f"Error navigating to vehicle page: {e}")
             return False
     
+    def _check_timeout(self):
+        """Check if execution time limit exceeded"""
+        if time.time() - self.start_time > SCRAPER_CONFIG.get('max_execution_time', 20):
+            raise TimeoutException("Maximum execution time exceeded")
+    
     def scrape_vehicle_data(self, registration):
         """Main method to scrape vehicle data with MOT and mileage history"""
         try:
+            self.start_time = time.time()
             self._setup_driver()
             
             # Navigate and search for basic data
             if not self._navigate_to_search(registration):
                 return None
             
-            # Wait a bit for page to fully load
-            time.sleep(2)
+            self._check_timeout()
+            # Reduced wait for faster response
+            time.sleep(1)
             
             # Debug: Save page source to see what we're working with
             page_source = self.driver.page_source
@@ -105,6 +116,9 @@ class VehicleScraper:
             
             if vehicle_data:
                 logger.info(f"Successfully extracted basic data for {registration}")
+                
+                # Check timeout before MOT extraction
+                self._check_timeout()
                 
                 # Now add MOT history - navigate directly to MOT page
                 self._add_mot_history(registration, vehicle_data)
@@ -132,7 +146,8 @@ class VehicleScraper:
             logger.info(f"Starting from main page: {main_url}")
             
             self.driver.get(main_url)
-            time.sleep(3)
+            self._check_timeout()
+            time.sleep(2)  # Reduced for speed
             
             # Try to find and click MOT History link on the main page
             try:
