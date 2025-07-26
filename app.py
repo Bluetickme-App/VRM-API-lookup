@@ -650,9 +650,17 @@ def scrape_vehicle():
                             'last_v5_issue_date': vehicle_record.last_v5c_issue_date.strftime('%d %B %Y') if vehicle_record.last_v5c_issue_date else None,
                             'tax_6_months': vehicle_record.tax_6_months,
                             'tax_12_months': vehicle_record.tax_12_months,
-                            'mot_expiry_date': basic_info.get('mot_expiry_date'),
-                            'mot_history': basic_data.get('mot_history'),
-                            'mileage_history': basic_data.get('mileage_history') or _create_mileage_analysis_from_mot_data(basic_data.get('mot_history')),
+                            'mot_expiry_date': vehicle_record.mot_expiry.strftime('%d/%m/%Y') if vehicle_record.mot_expiry else None,
+                            'mot_history': vehicle_record.mot_history or basic_data.get('mot_history'),
+                            'mileage_history': vehicle_record.mileage_history or basic_data.get('mileage_history') or _create_mileage_analysis_from_mot_data(basic_data.get('mot_history')),
+                            'total_keepers': vehicle_record.total_keepers,
+                            # Add MOT summary data
+                            'mot_summary': {
+                                'total_tests': len(vehicle_record.mot_history) if vehicle_record.mot_history and isinstance(vehicle_record.mot_history, list) else 0,
+                                'last_test_date': vehicle_record.mot_history[0].get('date') if vehicle_record.mot_history and isinstance(vehicle_record.mot_history, list) and vehicle_record.mot_history else None,
+                                'expiry_date': vehicle_record.mot_expiry.strftime('%d/%m/%Y') if vehicle_record.mot_expiry else None,
+                                'last_mileage': vehicle_record.last_mot_mileage
+                            },
                             'raw_data': basic_data
                         },
                         'source': 'fresh_scrape',
@@ -746,6 +754,13 @@ def get_cached_vehicle_data(registration):
             'mot_expiry_date': vehicle_record.mot_expiry.strftime('%d/%m/%Y') if vehicle_record.mot_expiry else None,
             'mot_history': vehicle_record.mot_history,
             'mileage_history': vehicle_record.mileage_history,
+            # Add MOT summary for cached data
+            'mot_summary': {
+                'total_tests': len(vehicle_record.mot_history) if vehicle_record.mot_history and isinstance(vehicle_record.mot_history, list) else 0,
+                'last_test_date': vehicle_record.mot_history[0].get('date') if vehicle_record.mot_history and isinstance(vehicle_record.mot_history, list) and vehicle_record.mot_history else None,
+                'expiry_date': vehicle_record.mot_expiry.strftime('%d/%m/%Y') if vehicle_record.mot_expiry else None,
+                'last_mileage': vehicle_record.last_mot_mileage
+            },
             'raw_data': vehicle_record.raw_data
         }
         
