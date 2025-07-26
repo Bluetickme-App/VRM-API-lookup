@@ -6,7 +6,8 @@ Provides OpenAI GPT-4o powered vehicle analysis endpoints
 from flask import Blueprint, request, jsonify, render_template
 from datetime import datetime
 import logging
-from vehicle_analyzer import analyze_vehicle_data, format_analysis_for_display
+from vehicle_analyzer import analyze_vehicle_data
+from enhanced_failure_analyzer import analyze_vehicle_failures
 
 
 def _normalize_mot_history_structure(mot_history):
@@ -148,9 +149,29 @@ def intelligent_vehicle_analysis():
             f"Performing fresh OpenAI analysis for {registration} - first time extraction"
         )
         analysis_result = analyze_vehicle_data(vehicle_data)
-
-        # Format for display
-        formatted_result = format_analysis_for_display(analysis_result)
+        
+        # Generate enhanced failure predictions
+        logging.info("Generating enhanced MOT failure predictions...")
+        try:
+            failure_predictions = analyze_vehicle_failures(vehicle_data)
+            logging.info(f"Enhanced failure predictions generated: {failure_predictions.keys() if failure_predictions else 'None'}")
+            
+            # Merge failure predictions into main analysis
+            if analysis_result and failure_predictions:
+                if 'ai_analysis' not in analysis_result:
+                    analysis_result['ai_analysis'] = {}
+                analysis_result['ai_analysis']['enhanced_mot_predictions'] = failure_predictions
+                analysis_result['ai_analysis']['mot_predictions'] = failure_predictions  # Also add as regular mot_predictions
+                logging.info("Enhanced failure predictions successfully merged into analysis")
+        except Exception as e:
+            logging.error(f"Failed to generate enhanced failure predictions: {e}")
+        
+        # Use the analysis result directly (no format_analysis_for_display function)
+        formatted_result = {
+            'success': True,
+            'display_data': analysis_result,
+            'raw_analysis': analysis_result
+        }
 
         if not formatted_result['success']:
             return jsonify({

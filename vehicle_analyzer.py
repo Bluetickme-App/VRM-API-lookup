@@ -150,9 +150,13 @@ COMPREHENSIVE MOT & DEFECT ANALYSIS:
   - Lights: bulbs, connections, lens condition
   - Emissions: catalytic converter, lambda sensors, EGR systems
 
-CRITICAL: Your JSON response MUST include ALL sections below. Do not omit any section.
+CRITICAL REQUIREMENTS:
+1. You MUST analyze ALL 16 MOT tests from the MOT history data provided
+2. Your JSON response MUST include ALL sections below - no exceptions
+3. For each component that has failed before, predict if it will fail again
+4. Research current UK market prices on AutoTrader for this specific vehicle
 
-Output must be structured JSON using this MANDATORY schema:
+MANDATORY JSON SCHEMA - Include every section:
 {
   "vehicle_summary": {
     "registration": "string",
@@ -237,8 +241,18 @@ Output must be structured JSON using this MANDATORY schema:
     "v5_changes_detected": "boolean",
     "trading_indicators": ["string"],
     "auction_risk_factors": ["string"]
+  },
+  "mot_history_analysis": {
+    "total_tests_analyzed": "number",
+    "pass_rate": "number (0-100)",
+    "failure_rate": "number (0-100)",
+    "tests_passed": "number",
+    "tests_failed": "number",
+    "recent_test_trend": "Improving|Declining|Stable"
   }
-}"""
+}
+
+CRITICAL ENFORCEMENT: Your response must contain EVERY section above. Do not skip market_analysis, mot_predictions, or any other section. All sections are mandatory."""
 
 
 def create_analysis_prompt(vehicle_data):
