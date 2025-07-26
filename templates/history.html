@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Search History - VRN API</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 1200px;
+            padding: 40px;
+        }
+        
+        .history-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 20px;
+            padding: 25px;
+            border-left: 5px solid;
+        }
+        
+        .history-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .success-card {
+            border-left-color: #28a745;
+        }
+        
+        .error-card {
+            border-left-color: #dc3545;
+        }
+        
+        .cache-card {
+            border-left-color: #17a2b8;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: inline-block;
+            margin: 10px 20px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .vehicle-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .badge-custom {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .search-actions {
+            margin-top: 15px;
+        }
+        
+        .btn-custom {
+            border-radius: 25px;
+            padding: 8px 20px;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .search-meta {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .filter-controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .popular-searches {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .popular-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .popular-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h2 mb-0">
+                                <i class="bi bi-clock-history text-primary"></i>
+                                Vehicle Search History
+                            </h1>
+                            <p class="text-muted mb-0">View and recall your past vehicle lookups</p>
+                        </div>
+                        <div>
+                            <a href="/" class="btn btn-outline-primary btn-custom">
+                                <i class="bi bi-house"></i> Home
+                            </a>
+                            <a href="/full-dashboard" class="btn btn-primary btn-custom">
+                                <i class="bi bi-search"></i> New Search
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="stats-card" id="statsCard">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="totalSearches">-</span>
+                                    <span class="stat-label">Total Searches</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="uniqueVehicles">-</span>
+                                    <span class="stat-label">Unique Vehicles</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="successRate">-</span>
+                                    <span class="stat-label">Success Rate</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="recentActivity">-</span>
+                                    <span class="stat-label">This Week</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if searches %}
+            <!-- Filter Controls -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="filter-controls">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <label for="searchFilter" class="form-label">Filter by Registration:</label>
+                                <input type="text" class="form-control" id="searchFilter" placeholder="Enter registration...">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="statusFilter" class="form-label">Filter by Status:</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Searches</option>
+                                    <option value="success">Successful Only</option>
+                                    <option value="error">Failed Only</option>
+                                    <option value="cache">From Cache</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="sortOrder" class="form-label">Sort Order:</label>
+                                <select class="form-select" id="sortOrder">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="alphabetical">Alphabetical</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="popular-searches">
+                        <h5><i class="bi bi-star text-warning"></i> Popular Searches</h5>
+                        <div id="popularSearches">
+                            <div class="text-muted">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search History -->
+            <div class="row">
+                <div class="col-12">
+                    <div id="historyContainer">
+                        {% for registration, data in searches.items() %}
+                        <div class="history-card {% if data.search.success %}success-card{% elif data.search.error_message and 'cache' in data.search.error_message %}cache-card{% else %}error-card{% endif %}" 
+                             data-registration="{{ registration }}" 
+                             data-status="{% if data.search.success %}success{% elif data.search.error_message and 'cache' in data.search.error_message %}cache{% else %}error{% endif %}">
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h5 class="mb-0 me-3">
+                                            <i class="bi bi-car-front text-primary"></i>
+                                            {{ registration }}
+                                        </h5>
+                                        {% if data.search.success %}
+                                            <span class="badge bg-success badge-custom">
+                                                <i class="bi bi-check-circle"></i> Success
+                                            </span>
+                                        {% elif data.search.error_message and 'cache' in data.search.error_message %}
+                                            <span class="badge bg-info badge-custom">
+                                                <i class="bi bi-database"></i> From Cache
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger badge-custom">
+                                                <i class="bi bi-exclamation-triangle"></i> Failed
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if data.vehicle %}
+                                    <div class="vehicle-info">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>{{ data.vehicle.make or 'Unknown' }} {{ data.vehicle.model or 'Unknown' }}</strong><br>
+                                                <small class="text-muted">
+                                                    {% if data.vehicle.year %}{{ data.vehicle.year }} • {% endif %}
+                                                    {% if data.vehicle.color %}{{ data.vehicle.color }} • {% endif %}
+                                                    {% if data.vehicle.fuel_type %}{{ data.vehicle.fuel_type }}{% endif %}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                {% if data.vehicle.mot_expiry %}
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar-check"></i>
+                                                        MOT: {{ data.vehicle.mot_expiry.strftime('%d %b %Y') }}
+                                                    </small><br>
+                                                {% endif %}
+                                                {% if data.vehicle.last_mot_mileage %}
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-speedometer2"></i>
+                                                        Last: {{ "{:,}".format(data.vehicle.last_mot_mileage) }} miles
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="search-meta">
+                                        <i class="bi bi-clock"></i>
+                                        Searched {{ data.search.search_timestamp.strftime('%d %b %Y at %H:%M') }}
+                                        •
+                                        <i class="bi bi-globe"></i>
+                                        {{ data.search.request_source.title() }}
+                                        {% if data.search.error_message and 'cache' not in data.search.error_message %}
+                                            <br><small class="text-danger">
+                                                <i class="bi bi-exclamation-circle"></i>
+                                                {{ data.search.error_message }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="search-actions">
+                                        {% if data.vehicle %}
+                                            <a href="/analysis/{{ registration }}" class="btn btn-primary btn-custom">
+                                                <i class="bi bi-graph-up"></i> View Analysis
+                                            </a>
+                                        {% endif %}
+                                        <button class="btn btn-outline-secondary btn-custom" onclick="searchAgain('{{ registration }}')">
+                                            <i class="bi bi-arrow-repeat"></i> Search Again
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="empty-state">
+                        <i class="bi bi-clock-history"></i>
+                        <h3>No Search History Yet</h3>
+                        <p>Your vehicle searches will appear here once you start using the system.</p>
+                        <a href="/full-dashboard" class="btn btn-primary btn-lg btn-custom">
+                            <i class="bi bi-search"></i> Start Your First Search
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load statistics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            setupFilters();
+        });
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/search-stats');
+                const stats = await response.json();
+                
+                if (stats.error) {
+                    console.error('Error loading stats:', stats.error);
+                    return;
+                }
+                
+                document.getElementById('totalSearches').textContent = stats.total_searches || 0;
+                document.getElementById('uniqueVehicles').textContent = stats.unique_vehicles || 0;
+                document.getElementById('successRate').textContent = (stats.success_rate || 0) + '%';
+                document.getElementById('recentActivity').textContent = stats.recent_activity || 0;
+                
+                // Load popular searches
+                const popularContainer = document.getElementById('popularSearches');
+                if (stats.popular_searches && stats.popular_searches.length > 0) {
+                    popularContainer.innerHTML = stats.popular_searches.slice(0, 5).map(item => `
+                        <div class="popular-item">
+                            <span onclick="searchAgain('${item.registration}')" style="cursor: pointer; color: #007bff;">
+                                ${item.registration}
+                            </span>
+                            <span class="badge bg-secondary">${item.count}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    popularContainer.innerHTML = '<div class="text-muted">No popular searches yet</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        function setupFilters() {
+            const searchFilter = document.getElementById('searchFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const sortOrder = document.getElementById('sortOrder');
+            
+            if (searchFilter) {
+                searchFilter.addEventListener('input', filterHistory);
+            }
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterHistory);
+            }
+            if (sortOrder) {
+                sortOrder.addEventListener('change', filterHistory);
+            }
+        }
+
+        function filterHistory() {
+            const searchTerm = document.getElementById('searchFilter')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const sortOrder = document.getElementById('sortOrder')?.value || 'newest';
+            
+            const cards = Array.from(document.querySelectorAll('.history-card'));
+            
+            // Filter cards
+            cards.forEach(card => {
+                const registration = card.dataset.registration.toLowerCase();
+                const status = card.dataset.status;
+                
+                const matchesSearch = registration.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                
+                card.style.display = (matchesSearch && matchesStatus) ? 'block' : 'none';
+            });
+            
+            // Sort visible cards
+            const visibleCards = cards.filter(card => card.style.display !== 'none');
+            const container = document.getElementById('historyContainer');
+            
+            visibleCards.sort((a, b) => {
+                const regA = a.dataset.registration;
+                const regB = b.dataset.registration;
+                
+                switch (sortOrder) {
+                    case 'alphabetical':
+                        return regA.localeCompare(regB);
+                    case 'oldest':
+                        return 1; // Keep original order for oldest
+                    case 'newest':
+                    default:
+                        return -1; // Keep reverse order for newest
+                }
+            });
+            
+            // Re-append sorted cards
+            visibleCards.forEach(card => container.appendChild(card));
+        }
+
+        function searchAgain(registration) {
+            // Navigate to search page with pre-filled registration
+            window.location.href = `/full-dashboard?reg=${encodeURIComponent(registration)}`;
+        }
+    </script>
+</body>
+</html>

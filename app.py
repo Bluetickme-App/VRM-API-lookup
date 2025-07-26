@@ -113,6 +113,69 @@ def test_page():
     """Render the test frontend page"""
     return render_template('test.html')
 
+@app.route('/history')
+def search_history():
+    """Display search history with past lookups"""
+    from models import SearchHistory, VehicleData
+    from sqlalchemy import desc
+    
+    try:
+        # Get recent search history (last 50 searches)
+        recent_searches = SearchHistory.query.order_by(desc(SearchHistory.search_timestamp)).limit(50).all()
+        
+        # Group by registration to avoid duplicates and get vehicle data
+        unique_searches = {}
+        for search in recent_searches:
+            if search.registration not in unique_searches:
+                # Get the vehicle data if available
+                vehicle_data = VehicleData.query.filter_by(registration=search.registration).first()
+                unique_searches[search.registration] = {
+                    'search': search,
+                    'vehicle': vehicle_data
+                }
+        
+        return render_template('history.html', searches=unique_searches)
+        
+    except Exception as e:
+        logger.error(f"Error loading search history: {e}")
+        return render_template('history.html', searches={}, error="Unable to load search history")
+
+@app.route('/api/search-stats')
+def search_stats():
+    """Get search statistics for the history page"""
+    from models import SearchHistory, VehicleData
+    from sqlalchemy import func, desc
+    from datetime import datetime, timedelta
+    
+    try:
+        # Get basic stats
+        total_searches = SearchHistory.query.count()
+        successful_searches = SearchHistory.query.filter_by(success=True).count()
+        unique_vehicles = VehicleData.query.count()
+        
+        # Get recent activity (last 7 days)
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        recent_searches = SearchHistory.query.filter(SearchHistory.search_timestamp >= week_ago).count()
+        
+        # Get most searched registrations
+        popular_searches = db.session.query(
+            SearchHistory.registration,
+            func.count(SearchHistory.registration).label('search_count')
+        ).group_by(SearchHistory.registration).order_by(desc('search_count')).limit(10).all()
+        
+        return jsonify({
+            'total_searches': total_searches,
+            'successful_searches': successful_searches,
+            'unique_vehicles': unique_vehicles,
+            'recent_activity': recent_searches,
+            'success_rate': round((successful_searches / total_searches * 100) if total_searches > 0 else 0, 1),
+            'popular_searches': [{'registration': reg, 'count': count} for reg, count in popular_searches]
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting search stats: {e}")
+        return jsonify({'error': 'Unable to load statistics'}), 500
+
 @app.route('/api/intelligent-analysis', methods=['POST'])
 def intelligent_analysis():
     """Advanced AI-powered vehicle analysis endpoint"""

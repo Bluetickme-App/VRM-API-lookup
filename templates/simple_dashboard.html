@@ -547,10 +547,57 @@
                 text-align: center;
             }
         }
+        
+        .nav-bar {
+            background: white;
+            padding: 15px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .nav-link:hover {
+            background: #f8f9fa;
+            color: #2980b9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <h1 class="nav-title">Vehicle Check</h1>
+            <div class="nav-links">
+                <a href="/full-dashboard" class="nav-link">Dashboard</a>
+                <a href="/history" class="nav-link">Search History</a>
+                <a href="/analysis" class="nav-link">Analysis</a>
+            </div>
+        </div>
+        
         <!-- Search Section -->
         <div class="search-section">
             <h2 style="margin-bottom: 20px; color: #2c3e50;">Vehicle Registration Check</h2>
