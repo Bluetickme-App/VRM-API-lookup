@@ -39,24 +39,28 @@
         }
         
         .success-card {
-            border-left-color: #28a745;
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), rgba(46, 204, 113, 0.05));
         }
         
         .error-card {
-            border-left-color: #dc3545;
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(192, 57, 43, 0.05));
         }
         
         .cache-card {
-            border-left-color: #17a2b8;
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.05), rgba(230, 126, 34, 0.05));
         }
         
         .stats-card {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
             color: white;
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 30px;
             text-align: center;
+            box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
         }
         
         .stat-item {
@@ -263,15 +267,15 @@
                                             {{ registration }}
                                         </h5>
                                         {% if data.search.success %}
-                                            <span class="badge bg-success badge-custom">
+                                            <span class="badge badge-custom" style="background: linear-gradient(135deg, #27ae60, #2ecc71); box-shadow: 0 0 10px rgba(39, 174, 96, 0.3);">
                                                 <i class="bi bi-check-circle"></i> Success
                                             </span>
                                         {% elif data.search.error_message and 'cache' in data.search.error_message %}
-                                            <span class="badge bg-info badge-custom">
+                                            <span class="badge badge-custom" style="background: linear-gradient(135deg, #f39c12, #e67e22); box-shadow: 0 0 10px rgba(243, 156, 18, 0.3);">
                                                 <i class="bi bi-database"></i> From Cache
                                             </span>
                                         {% else %}
-                                            <span class="badge bg-danger badge-custom">
+                                            <span class="badge badge-custom" style="background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);">
                                                 <i class="bi bi-exclamation-triangle"></i> Failed
                                             </span>
                                         {% endif %}

@@ -7,7 +7,7 @@ body {
 
 /* Header styles */
 header {
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -50,12 +50,14 @@ header {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
     border: none;
+    box-shadow: 0 0 15px rgba(39, 174, 96, 0.3);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
+    background: linear-gradient(135deg, #229954, #28a745);
+    box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
 }
 
 /* Loading indicator */
