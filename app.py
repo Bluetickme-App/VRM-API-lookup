@@ -122,7 +122,6 @@ def search_history():
     try:
         # Get recent search history (last 50 searches)
         recent_searches = SearchHistory.query.order_by(desc(SearchHistory.search_timestamp)).limit(50).all()
-        
         # Group by registration to avoid duplicates and get vehicle data
         unique_searches = {}
         for search in recent_searches:
