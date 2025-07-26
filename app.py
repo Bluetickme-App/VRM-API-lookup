@@ -293,55 +293,9 @@ def scrape_vehicle():
         search_record.request_source = 'web'
         
         try:
-            # Check if we already have this vehicle in database (24-hour cache)  
-            twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
-            existing_vehicle = VehicleData.query.filter_by(registration=registration)\
-                .filter(VehicleData.updated_at >= twenty_four_hours_ago).first()
-            
-            if existing_vehicle and existing_vehicle.updated_at:
-                # Check if data is less than 24 hours old
-                time_diff = datetime.utcnow() - existing_vehicle.updated_at
-                if time_diff < timedelta(hours=24):
-                    search_record.success = True
-                    search_record.error_message = 'Data served from cache'
-                    db.session.add(search_record)
-                    db.session.commit()
-                    
-                    # Return cached data
-                    cached_raw_data = existing_vehicle.raw_data or {}
-                    
-                    return jsonify({
-                        'success': True,
-                        'data': {
-                            'registration': existing_vehicle.registration,
-                            'make': existing_vehicle.make,
-                            'model': existing_vehicle.model,
-                            'description': existing_vehicle.description,
-                            'color': existing_vehicle.color,
-                            'fuel_type': existing_vehicle.fuel_type,
-                            'year': existing_vehicle.year,
-                            # Add comprehensive vehicle fields to cached response
-                            'transmission': existing_vehicle.transmission,
-                            'engine_size': existing_vehicle.engine_size,
-                            'body_style': existing_vehicle.body_style,
-                            'euro_status': existing_vehicle.euro_status,
-                            'type_approval': existing_vehicle.type_approval,
-                            'registration_place': existing_vehicle.registration_place,
-                            'registration_date': existing_vehicle.registration_date.isoformat() if existing_vehicle.registration_date else None,
-                            'last_v5c_issue_date': existing_vehicle.last_v5c_issue_date.isoformat() if existing_vehicle.last_v5c_issue_date else None,
-                            # Add V5C date at top level for frontend compatibility
-                            'v5_issue_date': existing_vehicle.last_v5c_issue_date.strftime('%d %B %Y') if existing_vehicle.last_v5c_issue_date else None,
-                            'last_v5_issue_date': existing_vehicle.last_v5c_issue_date.strftime('%d %B %Y') if existing_vehicle.last_v5c_issue_date else None,
-                            # Include complete MOT and mileage data from database
-                            'mot_history': existing_vehicle.mot_history or cached_raw_data.get('mot_history'),
-                            'mileage_history': existing_vehicle.mileage_history or cached_raw_data.get('mileage_history'),
-                            'raw_data': existing_vehicle.raw_data
-                        },
-                        'source': 'cache',
-                        'method': 'final_scraper_with_xpath_navigation',
-                        'cached': True,
-                        'cache_age_hours': round(time_diff.total_seconds() / 3600, 2)
-                    })
+            # CACHE DISABLED: Always fetch fresh data since vehicle data changes daily
+            # Cache only used for history display, never for new searches
+            logger.info(f"Fetching fresh data for {registration} - caching disabled for daily data changes")
             
             # Use original working scraper for basic data plus MOT/mileage history
             try:

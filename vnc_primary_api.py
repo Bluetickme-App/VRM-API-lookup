@@ -51,41 +51,8 @@ def vnc_primary_lookup():
             request_source='vnc_primary'
         )
         
-        # Check cache first for performance
-        existing_vehicle = VehicleData.query.filter_by(registration=registration).first()
-        
-        if existing_vehicle and existing_vehicle.make and existing_vehicle.updated_at:
-            cache_age = datetime.now() - existing_vehicle.updated_at
-            
-            # Return fresh cache (< 6 hours for VNC-primary)
-            if cache_age < timedelta(hours=6):
-                search_record.success = True
-                search_record.error_message = 'VNC cache hit'
-                db.session.add(search_record)
-                db.session.commit()
-                
-                return jsonify({
-                    'success': True,
-                    'data': {
-                        'registration': existing_vehicle.registration,
-                        'make': existing_vehicle.make,
-                        'model': existing_vehicle.model,
-                        'description': existing_vehicle.description,
-                        'color': existing_vehicle.color,
-                        'fuel_type': existing_vehicle.fuel_type,
-                        'transmission': existing_vehicle.transmission,
-                        'engine_size': existing_vehicle.engine_size,
-                        'body_style': existing_vehicle.body_style,
-                        'year': existing_vehicle.year,
-                        'registration_date': existing_vehicle.registration_date.strftime('%d/%m/%Y') if existing_vehicle.registration_date else None,
-                        'tax_expiry': existing_vehicle.tax_expiry.isoformat() if existing_vehicle.tax_expiry else None,
-                        'mot_expiry': existing_vehicle.mot_expiry.isoformat() if existing_vehicle.mot_expiry else None,
-                        'total_keepers': existing_vehicle.total_keepers
-                    },
-                    'source': 'vnc_cache',
-                    'cache_age_hours': round(cache_age.total_seconds() / 3600, 1),
-                    'method': 'cached_vnc_data'
-                })
+        # CACHE DISABLED: Always fetch fresh data since vehicle data changes daily
+        logger.info(f"VNC Primary fetching fresh data for {registration} - caching disabled for daily data changes")
         
         # Execute VNC automation with maximum reliability
         try:

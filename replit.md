@@ -10,6 +10,12 @@ Data quality: All vehicles have complete MOT and mileage history from DVLA sourc
 Navigation: Keep interface simple - remove unnecessary dashboard and analysis buttons from navigation.
 
 ## Recent Changes
+**July 26, 2025 - FRESH DATA DAILY SEARCH IMPLEMENTATION COMPLETE:**
+- CACHE DISABLED FOR NEW SEARCHES: All new vehicle searches now fetch fresh data since vehicle data changes daily
+- CACHE PRESERVED FOR HISTORY: Historical search results remain cached for viewing past searches without API calls
+- FRESH DATA GUARANTEE: Primary app.py, fast_vnc_api.py, and vnc_primary_api.py endpoints always fetch current data
+- USER REQUIREMENT FULFILLED: System now honors daily data changes by never serving cached data for new searches
+- SEARCH HISTORY INTACT: "View Saved Data" functionality preserved for accessing historical search records
 **July 26, 2025 - SEARCH HISTORY FUNCTION COMPLETED WITH TRAFFIC LIGHT DESIGN:**
 - HISTORY SYSTEM SUCCESS: Comprehensive search history functionality fully operational - displaying 71 searches from database
 - TRAFFIC LIGHT DESIGN: Applied consistent color scheme throughout application (green #27ae60, amber #f39c12, red #e74c3c)
