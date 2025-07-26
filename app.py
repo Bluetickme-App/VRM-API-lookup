@@ -55,13 +55,18 @@ ocr_processor = NumberPlateOCR()
 
 @app.route('/')
 def index():
-    """Render the main dashboard interface"""
-    return render_template('dashboard.html')
+    """Render the main interface"""
+    return render_template('index.html')
 
 @app.route('/simple')
 def simple_dashboard():
     """Render the simple dashboard interface for iframe integration"""
     return render_template('simple_dashboard.html')
+
+@app.route('/dashboard')
+def dashboard():
+    """Render the enhanced dashboard interface"""
+    return render_template('dashboard.html')
 
 @app.route('/api/ocr-process', methods=['POST'])
 def process_ocr():
