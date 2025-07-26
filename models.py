@@ -183,3 +183,25 @@ class MOTHistory(db.Model):
     
     def __repr__(self):
         return f'<MOTHistory {self.registration} - {self.test_date}>'
+
+
+class UserLookup(db.Model):
+    """Track user lookup history for easy revisiting"""
+    __tablename__ = 'user_lookups'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), nullable=False, index=True)  # Browser session identifier
+    user_ip = db.Column(db.String(50))
+    registration = db.Column(db.String(20), nullable=False)
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle_data.id'), nullable=False)
+    lookup_timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # User interaction tracking
+    analysis_requested = db.Column(db.Boolean, default=False)
+    analysis_timestamp = db.Column(db.DateTime)
+    
+    # Relationship
+    vehicle = db.relationship('VehicleData', backref=db.backref('user_lookups', lazy=True))
+    
+    def __repr__(self):
+        return f'<UserLookup {self.registration} - {self.lookup_timestamp}>'

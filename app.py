@@ -36,7 +36,7 @@ db.init_app(app)
 # Create database tables
 with app.app_context():
     # Import models to ensure they are registered
-    from models import VehicleData, SearchHistory, MOTHistory
+    from models import VehicleData, SearchHistory, MOTHistory, UserLookup
     
     # Create all tables
     try:
@@ -55,6 +55,11 @@ ocr_processor = NumberPlateOCR()
 
 @app.route('/')
 def index():
+    """Render the main dashboard interface"""
+    return render_template('dashboard.html')
+
+@app.route('/simple')
+def simple_dashboard():
     """Render the simple dashboard interface for iframe integration"""
     return render_template('simple_dashboard.html')
 
@@ -174,6 +179,9 @@ def intelligent_analysis():
             vehicle_record.analysis_timestamp = datetime.now()
             db.session.commit()
             
+            # Update analysis tracking for user lookup
+            _update_analysis_tracking(registration, request)
+            
             return jsonify({
                 'success': True,
                 'analysis': analysis_result,
@@ -231,6 +239,9 @@ def scrape_vehicle():
                     search_record.error_message = 'Data served from cache'
                     db.session.add(search_record)
                     db.session.commit()
+                    
+                    # Add user lookup record for history tracking
+                    _track_user_lookup(registration, existing_vehicle.id, request)
                     
                     # Return cached data
                     cached_raw_data = existing_vehicle.raw_data or {}
@@ -540,6 +551,9 @@ def scrape_vehicle():
                     search_record.success = True
                     db.session.add(search_record)
                     db.session.commit()
+                    
+                    # Add user lookup record for history tracking
+                    _track_user_lookup(registration, vehicle_record.id, request)
                     
                     logger.info(f"Successfully scraped and stored data for {registration}")
                     
@@ -1013,6 +1027,108 @@ with app.app_context():
     # Import models to ensure tables are created
     import models
     db.create_all()
+
+def _track_user_lookup(registration, vehicle_id, request):
+    """Track user lookup for history functionality"""
+    try:
+        from models import UserLookup
+        import hashlib
+        
+        # Create session identifier from IP and User-Agent
+        session_string = f"{request.remote_addr}_{request.headers.get('User-Agent', '')}"
+        session_id = hashlib.md5(session_string.encode()).hexdigest()
+        
+        # Check if user already looked up this vehicle recently (within 24 hours)
+        from datetime import datetime, timedelta
+        twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
+        
+        existing_lookup = UserLookup.query.filter_by(
+            session_id=session_id,
+            registration=registration
+        ).filter(UserLookup.lookup_timestamp >= twenty_four_hours_ago).first()
+        
+        if not existing_lookup:
+            # Create new lookup record
+            lookup_record = UserLookup()
+            lookup_record.session_id = session_id
+            lookup_record.user_ip = request.remote_addr
+            lookup_record.registration = registration
+            lookup_record.vehicle_id = vehicle_id
+            
+            db.session.add(lookup_record)
+            db.session.commit()
+            logger.info(f"Tracked user lookup for {registration}")
+    except Exception as e:
+        logger.error(f"Error tracking user lookup: {e}")
+
+def _update_analysis_tracking(registration, request):
+    """Update analysis tracking for user lookup"""
+    try:
+        from models import UserLookup
+        import hashlib
+        from datetime import datetime
+        
+        session_string = f"{request.remote_addr}_{request.headers.get('User-Agent', '')}"
+        session_id = hashlib.md5(session_string.encode()).hexdigest()
+        
+        user_lookup = UserLookup.query.filter_by(
+            session_id=session_id,
+            registration=registration
+        ).first()
+        
+        if user_lookup:
+            user_lookup.analysis_requested = True
+            user_lookup.analysis_timestamp = datetime.utcnow()
+            db.session.commit()
+            logger.info(f"Updated analysis tracking for {registration}")
+    except Exception as e:
+        logger.error(f"Error updating analysis tracking: {e}")
+
+@app.route('/api/user-history', methods=['GET'])
+def get_user_history():
+    """Get user's recent vehicle lookups"""
+    try:
+        from models import UserLookup, VehicleData
+        import hashlib
+        
+        # Create session identifier from IP and User-Agent
+        session_string = f"{request.remote_addr}_{request.headers.get('User-Agent', '')}"
+        session_id = hashlib.md5(session_string.encode()).hexdigest()
+        
+        # Get user's recent lookups (last 30 days)
+        from datetime import datetime, timedelta
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        user_lookups = db.session.query(UserLookup, VehicleData).join(
+            VehicleData, UserLookup.vehicle_id == VehicleData.id
+        ).filter(
+            UserLookup.session_id == session_id,
+            UserLookup.lookup_timestamp >= thirty_days_ago
+        ).order_by(UserLookup.lookup_timestamp.desc()).limit(20).all()
+        
+        history = []
+        for lookup, vehicle in user_lookups:
+            history.append({
+                'registration': vehicle.registration,
+                'make': vehicle.make,
+                'model': vehicle.model,
+                'year': vehicle.year,
+                'lookup_date': lookup.lookup_timestamp.isoformat(),
+                'analysis_requested': lookup.analysis_requested
+            })
+        
+        return jsonify({
+            'success': True,
+            'history': history,
+            'count': len(history)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting user history: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Could not retrieve lookup history'
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

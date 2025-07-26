@@ -3,694 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Analytics Dashboard</title>
+    <title>Vehicle Intelligence Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/feather-icons@4.29.0/dist/feather.css" rel="stylesheet">
     <style>
         body {
-            background: #f5f6fa;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .dashboard-container {
-            max-width: 100%;
-            margin: 0;
-            background: white;
-            border-radius: 0;
-            box-shadow: none;
-            overflow: visible;
-            min-height: 100vh;
-        }
-
-        .dashboard-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .dashboard-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .header-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .header-subtitle {
-            font-size: 12px;
-            opacity: 0.8;
-            margin: 0;
-        }
-
-        .dashboard-content {
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
-
-        .main-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 8px;
+        
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-
-        .main-subtitle {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 24px;
+        
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-
-        .action-button {
-            width: 100%;
-            padding: 16px;
+        
+        .history-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .vehicle-result {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .analysis-result {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-group {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .form-control {
             border: none;
-            border-radius: 12px;
+            padding: 15px 20px;
             font-size: 16px;
+        }
+        
+        .btn-primary {
+            border: none;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 15px 25px;
             font-weight: 600;
-            margin-bottom: 12px;
+        }
+        
+        .btn-success {
+            border: none;
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: #333;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        
+        .history-item {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
-
-        .btn-search {
-            background: #27ae60;
-            color: white;
+        
+        .history-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
         }
-
-        .btn-search:hover {
-            background: #219a52;
-            transform: translateY(-1px);
-        }
-
-        .btn-archive {
-            background: #e67e22;
-            color: white;
-        }
-
-        .btn-archive:hover {
-            background: #d35400;
-            transform: translateY(-1px);
-        }
-
-        .btn-batch {
-            background: #9b59b6;
-            color: white;
-        }
-
-        .btn-batch:hover {
-            background: #8e44ad;
-            transform: translateY(-1px);
-        }
-
-        .btn-add {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-add:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        .stats-section {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid #ecf0f1;
-        }
-
-        .stat-card {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border-left: 4px solid #3498db;
-        }
-
-        .stat-title {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .stat-number {
-            font-size: 32px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 4px;
-        }
-
-        .stat-details {
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-
-        .search-form {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #ecf0f1;
-            border-radius: 12px;
-            font-size: 16px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .result-card {
-            background: white;
-            border: 1px solid #ecf0f1;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .vehicle-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .vehicle-reg {
-            background: #f39c12;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .vehicle-status {
-            background: #27ae60;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .vehicle-info {
-            margin-bottom: 16px;
-        }
-
-        .vehicle-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 4px;
-        }
-
-        .vehicle-subtitle {
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .value-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .value-item {
-            text-align: center;
-        }
-
-        .value-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 4px;
-        }
-
-        .value-amount {
-            font-size: 16px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn-edit, .btn-delete {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ecf0f1;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .btn-edit:hover {
-            background: #f8f9fa;
-            border-color: #3498db;
-            color: #3498db;
-        }
-
-        .btn-delete:hover {
-            background: #f8f9fa;
-            border-color: #e74c3c;
-            color: #e74c3c;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #ecf0f1;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        
         .analysis-section {
-            margin-top: 20px;
+            border-left: 4px solid;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .trade-recommend {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .trade-avoid {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .trade-consider {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+        
+        .risk-low {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .risk-moderate {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+        
+        .risk-high {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
             padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border-left: 4px solid #9b59b6;
         }
-
-        .analysis-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 12px;
+        
+        .spinner-border {
+            color: #667eea;
         }
-
-        .analysis-content {
-            font-size: 14px;
-            color: #7f8c8d;
-            line-height: 1.5;
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 10px;
+            }
+            
+            .dashboard-header,
+            .search-section,
+            .history-section,
+            .vehicle-result,
+            .analysis-result {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
-            <div>
-                <div class="dashboard-icon">
-                    <i class="fas fa-car"></i>
+        <!-- Header -->
+        <div class="dashboard-header text-center">
+            <h1 class="mb-3">Vehicle Intelligence Dashboard</h1>
+            <p class="text-muted">Comprehensive UK vehicle data analysis with AI-powered insights</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <h3 class="mb-4">Vehicle Lookup</h3>
+            <form id="searchForm">
+                <div class="input-group mb-3">
+                    <input type="text" id="registrationInput" class="form-control" 
+                           placeholder="Enter UK registration (e.g., AB12 CDE)" 
+                           pattern="[A-Za-z0-9\s]{1,8}" maxlength="8" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-feather="search"></i> Search Vehicle
+                    </button>
                 </div>
-            </div>
-            <div style="flex: 1; margin-left: 12px;">
-                <h1 class="header-title">Trade Dashboard</h1>
-                <p class="header-subtitle">Advanced analytics & vehicle management</p>
-            </div>
-            <div>
-                <i class="fas fa-bars" style="font-size: 20px; opacity: 0.8;"></i>
+            </form>
+            
+            <div id="loading" class="loading">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Searching...</span>
+                </div>
+                <p class="mt-2">Analyzing vehicle data...</p>
             </div>
         </div>
 
-        <!-- Dashboard Content -->
-        <div class="dashboard-content">
-            <h2 class="main-title">Vehicle Analytics</h2>
-            <p class="main-subtitle">Comprehensive UK vehicle data intelligence</p>
-
-            <!-- Action Buttons -->
-            <button class="action-button btn-search" onclick="showSearch()">
-                <i class="fas fa-search"></i>
-                Browse & Check Vehicle
-            </button>
-
-            <button class="action-button btn-archive" onclick="showArchive()">
-                <i class="fas fa-archive"></i>
-                Archive
-            </button>
-
-            <button class="action-button btn-batch" onclick="showBatch()">
-                <i class="fas fa-filter"></i>
-                Batch Import
-            </button>
-
-            <button class="action-button btn-add" onclick="showAnalytics()">
-                <i class="fas fa-plus"></i>
-                Add Vehicle
-            </button>
-
-            <!-- Search Form - Always Visible -->
-            <div class="search-form" id="searchForm" style="display: block;">
-                <input type="text" 
-                       class="search-input" 
-                       id="vehicleSearch" 
-                       placeholder="Enter vehicle registration (e.g. ABC123)..."
-                       maxlength="8">
-                <button class="action-button btn-search" onclick="searchVehicle()">
-                    <i class="fas fa-search"></i>
-                    Check Vehicle Data
-                </button>
+        <!-- Recent Lookups -->
+        <div class="history-section">
+            <h3 class="mb-4">Recent Lookups</h3>
+            <div id="historyContainer">
+                <p class="text-muted">Your recent vehicle searches will appear here</p>
             </div>
+            <button id="loadHistoryBtn" class="btn btn-outline-primary btn-sm">
+                <i data-feather="clock"></i> Load History
+            </button>
+        </div>
 
-            <!-- Loading Indicator -->
-            <div class="loading" id="loadingIndicator" style="display: none;">
-                <div class="spinner"></div>
-                <p>Searching vehicle database...</p>
-            </div>
+        <!-- Vehicle Results -->
+        <div id="vehicleResult" class="vehicle-result hidden">
+            <h3 class="mb-4">Vehicle Information</h3>
+            <div id="vehicleDetails"></div>
+            <button id="analyzeBtn" class="btn btn-success mt-3">
+                <i data-feather="brain"></i> Analyze with AI
+            </button>
+        </div>
 
-            <!-- Results Section -->
-            <div id="resultsSection"></div>
-
-            <!-- Stats Section -->
-            <div class="stats-section">
-                <div class="stat-card">
-                    <div class="stat-title">
-                        <i class="fas fa-car"></i>
-                        Total Vehicles
-                    </div>
-                    <div class="stat-number" id="totalVehicles">0</div>
-                    <div class="stat-details">1 SOR • 0 Owned</div>
-                </div>
-
-                <div class="stat-card" style="border-left-color: #27ae60;">
-                    <div class="stat-title">
-                        <i class="fas fa-pound-sign"></i>
-                        Portfolio Value
-                    </div>
-                    <div class="stat-number" style="color: #27ae60;">£0.00</div>
-                    <div class="stat-details">Estimated market value</div>
-                </div>
-            </div>
+        <!-- Analysis Results -->
+        <div id="analysisResult" class="analysis-result hidden">
+            <h3 class="mb-4">AI Analysis Results</h3>
+            <div id="analysisDetails"></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.0/dist/feather.min.js"></script>
     <script>
-        var currentResults = null;
+        // Initialize Feather icons
+        feather.replace();
 
-        function showSearch() {
-            // Search is always visible now
-            document.getElementById('vehicleSearch').focus();
-        }
+        var currentVehicleData = null;
 
-        function showArchive() {
-            alert('Archive functionality coming soon');
-        }
-
-        function showBatch() {
-            alert('Batch import functionality coming soon');
-        }
-
-        function showAnalytics() {
-            alert('Add vehicle functionality coming soon');
-        }
-
-        function searchVehicle() {
-            var registration = document.getElementById('vehicleSearch').value.trim().toUpperCase();
-            
-            if (!registration) {
-                alert('Please enter a vehicle registration number');
-                return;
+        // Search form submission
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var registration = document.getElementById('registrationInput').value.trim().toUpperCase();
+            if (registration) {
+                searchVehicle(registration);
             }
+        });
 
-            if (registration.length < 2 || registration.length > 8) {
-                alert('Please enter a valid UK registration number');
-                return;
+        // Analyze button
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            if (currentVehicleData) {
+                analyzeVehicle(currentVehicleData.registration);
             }
+        });
 
-            document.getElementById('loadingIndicator').style.display = 'block';
-            document.getElementById('resultsSection').innerHTML = '';
+        // Load history button
+        document.getElementById('loadHistoryBtn').addEventListener('click', loadUserHistory);
+
+        function searchVehicle(registration) {
+            showLoading(true);
+            hideResults();
 
             fetch('/api/scrape', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    registration: registration
-                })
+                body: JSON.stringify({ registration: registration })
             })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                document.getElementById('loadingIndicator').style.display = 'none';
-                
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
                 if (data.success) {
+                    currentVehicleData = data.data;
                     displayVehicleData(data.data);
-                    updateStats();
+                    loadUserHistory(); // Refresh history
                 } else {
-                    displayError(data.error || 'Vehicle data not found');
+                    showError('Vehicle not found: ' + (data.error || 'Unknown error'));
                 }
             })
-            .catch(function(error) {
-                document.getElementById('loadingIndicator').style.display = 'none';
-                displayError('Network error. Please try again.');
-                console.error('Error:', error);
+            .catch(error => {
+                showLoading(false);
+                showError('Search failed: ' + error.message);
             });
         }
 
-        function displayVehicleData(data) {
-            currentResults = data;
-            var resultsHtml = '<div class="result-card">';
-            
-            // Vehicle Header
-            resultsHtml += '<div class="vehicle-header">';
-            resultsHtml += '<div class="vehicle-reg">' + (data.registration || 'Unknown') + '</div>';
-            resultsHtml += '<div class="vehicle-status">Active</div>';
-            resultsHtml += '</div>';
-
-            // Vehicle Info
-            resultsHtml += '<div class="vehicle-info">';
-            resultsHtml += '<div class="vehicle-title">' + (data.make || 'Unknown') + ' ' + (data.model || '') + '</div>';
-            resultsHtml += '<div class="vehicle-subtitle">' + (data.color || 'Unknown') + ' • ' + (data.fuel_type || 'Unknown') + ' • ' + (data.year || 'Unknown') + '</div>';
-            resultsHtml += '</div>';
-
-            // Vehicle Details
-            resultsHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">';
-            resultsHtml += '<div>';
-            resultsHtml += '<div class="value-label">Transmission</div>';
-            resultsHtml += '<div class="value-amount">' + (data.transmission || 'Unknown') + '</div>';
-            resultsHtml += '</div>';
-            resultsHtml += '<div>';
-            resultsHtml += '<div class="value-label">Engine Size</div>';
-            resultsHtml += '<div class="value-amount">' + (data.engine_size || 'Unknown') + '</div>';
-            resultsHtml += '</div>';
-            resultsHtml += '</div>';
-
-            // Tax Information
-            if (data.tax_6_months || data.tax_12_months) {
-                resultsHtml += '<div class="value-section">';
-                resultsHtml += '<div class="value-item">';
-                resultsHtml += '<div class="value-label">6 Month Tax</div>';
-                resultsHtml += '<div class="value-amount">' + (data.tax_6_months || 'N/A') + '</div>';
-                resultsHtml += '</div>';
-                resultsHtml += '<div class="value-item">';
-                resultsHtml += '<div class="value-label">12 Month Tax</div>';
-                resultsHtml += '<div class="value-amount">' + (data.tax_12_months || 'N/A') + '</div>';
-                resultsHtml += '</div>';
-                resultsHtml += '</div>';
-            }
-
-            // Action Buttons
-            resultsHtml += '<div class="action-buttons">';
-            resultsHtml += '<button class="btn-edit" onclick="analyzeVehicle()">';
-            resultsHtml += '<i class="fas fa-brain"></i> Analyze';
-            resultsHtml += '</button>';
-            resultsHtml += '<button class="btn-delete" onclick="viewDetails()">';
-            resultsHtml += '<i class="fas fa-info-circle"></i> Details';
-            resultsHtml += '</button>';
-            resultsHtml += '</div>';
-
-            resultsHtml += '</div>';
-
-            document.getElementById('resultsSection').innerHTML = resultsHtml;
-        }
-
-        function displayError(message) {
-            var errorHtml = '<div class="result-card" style="border-left: 4px solid #e74c3c;">';
-            errorHtml += '<div style="color: #e74c3c; text-align: center; padding: 20px;">';
-            errorHtml += '<i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 12px;"></i>';
-            errorHtml += '<div style="font-weight: 600; margin-bottom: 8px;">Vehicle Not Found</div>';
-            errorHtml += '<div style="font-size: 14px;">' + message + '</div>';
-            errorHtml += '</div>';
-            errorHtml += '</div>';
-
-            document.getElementById('resultsSection').innerHTML = errorHtml;
-        }
-
-        function analyzeVehicle() {
-            if (!currentResults) return;
-
-            document.getElementById('loadingIndicator').style.display = 'block';
+        function analyzeVehicle(registration) {
+            var analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
 
             fetch('/api/intelligent-analysis', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    registration: currentResults.registration
-                })
+                body: JSON.stringify({ registration: registration })
             })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                document.getElementById('loadingIndicator').style.display = 'none';
-                
+            .then(response => response.json())
+            .then(data => {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<i data-feather="brain"></i> Analyze with AI';
+                feather.replace();
+
                 if (data.success) {
-                    displayAnalysis(data.data);
+                    displayAnalysisData(data.analysis);
                 } else {
-                    alert('Analysis failed: ' + (data.error || 'Unknown error'));
+                    showError('Analysis failed: ' + (data.error || 'Unknown error'));
                 }
             })
-            .catch(function(error) {
-                document.getElementById('loadingIndicator').style.display = 'none';
-                alert('Analysis failed. Please try again.');
-                console.error('Error:', error);
+            .catch(error => {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<i data-feather="brain"></i> Analyze with AI';
+                feather.replace();
+                showError('Analysis failed: ' + error.message);
             });
         }
 
-        function displayAnalysis(analysisData) {
-            var analysisHtml = '<div class="analysis-section">';
-            analysisHtml += '<div class="analysis-title">';
-            analysisHtml += '<i class="fas fa-brain"></i> AI Analysis Results';
-            analysisHtml += '</div>';
+        function loadUserHistory() {
+            fetch('/api/user-history')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.history.length > 0) {
+                    displayHistory(data.history);
+                } else {
+                    document.getElementById('historyContainer').innerHTML = 
+                        '<p class="text-muted">No recent searches found</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading history:', error);
+            });
+        }
+
+        function displayHistory(history) {
+            var container = document.getElementById('historyContainer');
+            var html = '';
+
+            history.forEach(function(item) {
+                var date = new Date(item.lookup_date).toLocaleDateString();
+                html += '<div class="history-item" onclick="searchVehicle(\'' + item.registration + '\')">';
+                html += '<div class="row">';
+                html += '<div class="col-md-8">';
+                html += '<h6 class="mb-1">' + item.registration + '</h6>';
+                html += '<p class="mb-1">' + item.make + ' ' + item.model + ' (' + item.year + ')</p>';
+                html += '</div>';
+                html += '<div class="col-md-4 text-end">';
+                html += '<small class="text-muted">' + date + '</small>';
+                if (item.analysis_requested) {
+                    html += '<br><small class="text-success">✓ Analyzed</small>';
+                }
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function displayVehicleData(data) {
+            var container = document.getElementById('vehicleDetails');
+            var html = '<div class="row">';
             
-            // Ownership Analysis
-            if (analysisData.ownership_analysis) {
-                analysisHtml += '<div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 12px;">';
-                analysisHtml += '<strong>🔐 Ownership History</strong><br>';
-                analysisHtml += 'Previous Owners: ' + (analysisData.ownership_analysis.estimated_previous_owners || 'Unknown') + '<br>';
-                if (analysisData.ownership_analysis.ownership_confidence) {
-                    analysisHtml += 'Confidence: ' + analysisData.ownership_analysis.ownership_confidence + '<br>';
-                }
-                if (analysisData.ownership_analysis.ownership_reasoning) {
-                    analysisHtml += 'Analysis: ' + analysisData.ownership_analysis.ownership_reasoning;
-                }
-                analysisHtml += '</div>';
-            }
-
-            // MOT Analysis
-            if (analysisData.mot_analysis) {
-                analysisHtml += '<div style="background: #e8f5e8; padding: 12px; border-radius: 8px; margin-bottom: 12px;">';
-                analysisHtml += '<strong>🔧 MOT Performance</strong><br>';
-                if (analysisData.mot_analysis.recent_performance) {
-                    analysisHtml += 'Recent Tests: ' + analysisData.mot_analysis.recent_performance + '<br>';
-                }
-                if (analysisData.mot_analysis.failure_trends) {
-                    analysisHtml += 'Trends: ' + analysisData.mot_analysis.failure_trends + '<br>';
-                }
-                if (analysisData.mot_analysis.upcoming_risks) {
-                    analysisHtml += 'Risk Assessment: ' + analysisData.mot_analysis.upcoming_risks;
-                }
-                analysisHtml += '</div>';
-            }
-
-            // Cost Analysis  
-            if (analysisData.cost_analysis) {
-                analysisHtml += '<div style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-bottom: 12px;">';
-                analysisHtml += '<strong>💰 Cost Analysis</strong><br>';
-                if (analysisData.cost_analysis.estimated_annual_costs) {
-                    analysisHtml += 'Annual Costs: £' + analysisData.cost_analysis.estimated_annual_costs + '<br>';
-                }
-                if (analysisData.cost_analysis.repair_risk_level) {
-                    analysisHtml += 'Repair Risk: ' + analysisData.cost_analysis.repair_risk_level + '<br>';
-                }
-                if (analysisData.cost_analysis.maintenance_recommendations) {
-                    analysisHtml += 'Recommendations: ' + analysisData.cost_analysis.maintenance_recommendations;
-                }
-                analysisHtml += '</div>';
-            }
-
-            // Mileage Analysis
-            if (analysisData.mileage_analysis) {
-                analysisHtml += '<div style="background: #f3e5f5; padding: 12px; border-radius: 8px; margin-bottom: 12px;">';
-                analysisHtml += '<strong>📊 Mileage Analysis</strong><br>';
-                if (analysisData.mileage_analysis.tampering_risk) {
-                    analysisHtml += 'Tampering Risk: ' + analysisData.mileage_analysis.tampering_risk + '<br>';
-                }
-                if (analysisData.mileage_analysis.usage_patterns) {
-                    analysisHtml += 'Usage Pattern: ' + analysisData.mileage_analysis.usage_patterns + '<br>';
-                }
-                if (analysisData.mileage_analysis.total_mileage_readings) {
-                    analysisHtml += 'Data Points: ' + analysisData.mileage_analysis.total_mileage_readings + ' readings';
-                }
-                analysisHtml += '</div>';
-            }
-
-            analysisHtml += '</div>';
-
-            document.getElementById('resultsSection').innerHTML += analysisHtml;
-        }
-
-        function viewDetails() {
-            if (!currentResults) return;
+            // Basic info
+            html += '<div class="col-md-6">';
+            html += '<h5>Basic Information</h5>';
+            html += '<p><strong>Registration:</strong> ' + data.registration + '</p>';
+            html += '<p><strong>Make:</strong> ' + data.make + '</p>';
+            html += '<p><strong>Model:</strong> ' + data.model + '</p>';
+            html += '<p><strong>Year:</strong> ' + data.year + '</p>';
+            html += '<p><strong>Color:</strong> ' + data.color + '</p>';
+            html += '<p><strong>Fuel Type:</strong> ' + data.fuel_type + '</p>';
+            html += '</div>';
             
-            var detailsWindow = window.open('', '_blank', 'width=800,height=600');
-            detailsWindow.document.write('<h1>Vehicle Details</h1><pre>' + JSON.stringify(currentResults, null, 2) + '</pre>');
+            // Additional info
+            html += '<div class="col-md-6">';
+            html += '<h5>Additional Details</h5>';
+            html += '<p><strong>Transmission:</strong> ' + (data.transmission || 'Unknown') + '</p>';
+            html += '<p><strong>Engine Size:</strong> ' + (data.engine_size || 'Unknown') + '</p>';
+            html += '<p><strong>Body Style:</strong> ' + (data.body_style || 'Unknown') + '</p>';
+            if (data.last_v5_issue_date) {
+                html += '<p><strong>Last V5C Date:</strong> ' + data.last_v5_issue_date + '</p>';
+            }
+            html += '</div>';
+            
+            html += '</div>';
+            
+            // MOT Info
+            if (data.mot_history && data.mot_history.tests) {
+                html += '<hr><h5>MOT History</h5>';
+                html += '<p><strong>Total Tests:</strong> ' + data.mot_history.tests.length + '</p>';
+                if (data.mot_history.summary) {
+                    html += '<p><strong>Pass Rate:</strong> ' + 
+                        Math.round((data.mot_history.summary.total_passed / data.mot_history.summary.total_tests) * 100) + '%</p>';
+                }
+            }
+            
+            container.innerHTML = html;
+            document.getElementById('vehicleResult').classList.remove('hidden');
         }
 
-        function updateStats() {
-            var totalElement = document.getElementById('totalVehicles');
-            if (totalElement) {
-                var current = parseInt(totalElement.textContent) || 0;
-                totalElement.textContent = current + 1;
+        function displayAnalysisData(analysis) {
+            var container = document.getElementById('analysisDetails');
+            var html = '';
+
+            // Dynamic analysis display based on available data
+            if (analysis.trade_recommendation) {
+                var recommendation = analysis.trade_recommendation.recommendation || 'CONSIDER';
+                var tradeClass = 'trade-' + recommendation.toLowerCase();
+                
+                html += '<div class="analysis-section ' + tradeClass + '">';
+                html += '<h5><i data-feather="trending-up"></i> Trade Recommendation</h5>';
+                html += '<p><strong>Recommendation:</strong> ' + recommendation + '</p>';
+                if (analysis.trade_recommendation.reasoning) {
+                    html += '<p><strong>Reasoning:</strong> ' + analysis.trade_recommendation.reasoning + '</p>';
+                }
+                if (analysis.trade_recommendation.cap_tier) {
+                    html += '<p><strong>CAP Tier:</strong> ' + analysis.trade_recommendation.cap_tier + '</p>';
+                }
+                html += '</div>';
             }
+
+            if (analysis.risk_assessment) {
+                var risk = (analysis.risk_assessment.mechanical_risk || 'moderate').toLowerCase();
+                var riskClass = 'risk-' + risk;
+                
+                html += '<div class="analysis-section ' + riskClass + '">';
+                html += '<h5><i data-feather="alert-triangle"></i> Risk Assessment</h5>';
+                html += '<p><strong>Mechanical Risk:</strong> ' + (analysis.risk_assessment.mechanical_risk || 'Unknown') + '</p>';
+                if (analysis.risk_assessment.failure_probability) {
+                    html += '<p><strong>Failure Probability:</strong> ' + 
+                        Math.round(analysis.risk_assessment.failure_probability * 100) + '%</p>';
+                }
+                html += '</div>';
+            }
+
+            if (analysis.cost_analysis) {
+                html += '<div class="analysis-section">';
+                html += '<h5><i data-feather="pound-sterling"></i> Cost Analysis</h5>';
+                if (analysis.cost_analysis.estimated_repairs) {
+                    html += '<p><strong>Estimated Repairs:</strong> £' + analysis.cost_analysis.estimated_repairs + '</p>';
+                }
+                if (analysis.cost_analysis.annual_maintenance) {
+                    html += '<p><strong>Annual Maintenance:</strong> £' + analysis.cost_analysis.annual_maintenance + '</p>';
+                }
+                html += '</div>';
+            }
+
+            if (analysis.market_analysis) {
+                html += '<div class="analysis-section">';
+                html += '<h5><i data-feather="bar-chart-2"></i> Market Analysis</h5>';
+                if (analysis.market_analysis.demand_level) {
+                    html += '<p><strong>Demand Level:</strong> ' + analysis.market_analysis.demand_level + '</p>';
+                }
+                if (analysis.market_analysis.market_position) {
+                    html += '<p><strong>Market Position:</strong> ' + analysis.market_analysis.market_position + '</p>';
+                }
+                html += '</div>';
+            }
+
+            if (analysis.ownership_analysis) {
+                html += '<div class="analysis-section">';
+                html += '<h5><i data-feather="users"></i> Ownership Analysis</h5>';
+                if (analysis.ownership_analysis.estimated_owners) {
+                    html += '<p><strong>Estimated Owners:</strong> ' + analysis.ownership_analysis.estimated_owners + '</p>';
+                }
+                if (analysis.ownership_analysis.ownership_pattern) {
+                    html += '<p><strong>Ownership Pattern:</strong> ' + analysis.ownership_analysis.ownership_pattern + '</p>';
+                }
+                html += '</div>';
+            }
+
+            // Fallback for any unstructured data
+            if (!html && analysis.vehicle_assessment) {
+                html += '<div class="analysis-section">';
+                html += '<h5><i data-feather="info"></i> Vehicle Assessment</h5>';
+                for (var key in analysis.vehicle_assessment) {
+                    html += '<p><strong>' + key.replace(/_/g, ' ').toUpperCase() + ':</strong> ' + 
+                           analysis.vehicle_assessment[key] + '</p>';
+                }
+                html += '</div>';
+            }
+
+            if (!html) {
+                html = '<p class="text-muted">Analysis completed but results are in an unexpected format. Please contact support.</p>';
+            }
+
+            container.innerHTML = html;
+            feather.replace();
+            document.getElementById('analysisResult').classList.remove('hidden');
         }
 
-        // Auto-format registration input
-        document.getElementById('vehicleSearch').addEventListener('input', function(e) {
-            var value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            e.target.value = value;
-        });
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
 
-        // Enter key support
-        document.getElementById('vehicleSearch').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchVehicle();
-            }
+        function hideResults() {
+            document.getElementById('vehicleResult').classList.add('hidden');
+            document.getElementById('analysisResult').classList.add('hidden');
+        }
+
+        function showError(message) {
+            var container = document.getElementById('vehicleResult');
+            container.innerHTML = '<div class="alert alert-danger" role="alert">' + message + '</div>';
+            container.classList.remove('hidden');
+        }
+
+        // Load history on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserHistory();
         });
     </script>
 </body>

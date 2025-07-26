@@ -24,8 +24,8 @@ class IntelligentVehicleAnalyzer:
             # Prepare comprehensive data for AI analysis
             analysis_data = self._prepare_analysis_data(vehicle_data)
             
-            # Get AI analysis
-            ai_analysis = self._get_ai_analysis(analysis_data)
+            # Get AI analysis with flexible output structure
+            ai_analysis = self._get_ai_analysis_flexible(analysis_data)
             
             # MANDATORY market research data - always retrieved
             market_data = self._get_market_research(vehicle_data)
@@ -310,6 +310,140 @@ class IntelligentVehicleAnalyzer:
         else:
             return 'very_high_usage'
     
+    def _get_ai_analysis_flexible(self, analysis_data):
+        """Get flexible AI analysis that adapts to various output structures"""
+        try:
+            ai_analysis = self._get_ai_analysis(analysis_data)
+            
+            # If analysis succeeds but has unexpected structure, normalize it
+            if ai_analysis and 'error' not in ai_analysis:
+                return self._normalize_ai_output(ai_analysis)
+            
+            # Fallback to simplified analysis
+            return self._create_simplified_analysis(analysis_data)
+            
+        except Exception as e:
+            logger.error(f"Error in flexible AI analysis: {e}")
+            return self._create_simplified_analysis(analysis_data)
+    
+    def _normalize_ai_output(self, analysis):
+        """Normalize AI output to ensure consistent structure for frontend"""
+        normalized = {
+            'vehicle_assessment': {},
+            'trade_recommendation': {},
+            'risk_assessment': {},
+            'cost_analysis': {},
+            'market_analysis': {},
+            'ownership_analysis': {}
+        }
+        
+        # Handle various possible structures from AI response
+        if isinstance(analysis, dict):
+            # Try to map common keys to normalized structure
+            for key, value in analysis.items():
+                if any(term in key.lower() for term in ['trade', 'purchase', 'recommendation']):
+                    normalized['trade_recommendation'].update(self._extract_trade_info(value))
+                elif any(term in key.lower() for term in ['risk', 'mechanical', 'reliability']):
+                    normalized['risk_assessment'].update(self._extract_risk_info(value))
+                elif any(term in key.lower() for term in ['cost', 'price', 'maintenance']):
+                    normalized['cost_analysis'].update(self._extract_cost_info(value))
+                elif any(term in key.lower() for term in ['market', 'demand', 'valuation']):
+                    normalized['market_analysis'].update(self._extract_market_info(value))
+                elif any(term in key.lower() for term in ['owner', 'v5c', 'keeper']):
+                    normalized['ownership_analysis'].update(self._extract_ownership_info(value))
+                else:
+                    normalized['vehicle_assessment'][key] = value
+        
+        return normalized
+    
+    def _extract_trade_info(self, data):
+        """Extract trade recommendation information"""
+        if isinstance(data, dict):
+            return {
+                'recommendation': data.get('recommendation', 'CONSIDER'),
+                'reasoning': data.get('reasoning', data.get('reason', 'Analysis available')),
+                'confidence': data.get('confidence', 'Medium'),
+                'cap_tier': data.get('cap_tier', data.get('price_tier', 'CAP Average'))
+            }
+        elif isinstance(data, str):
+            return {'recommendation': data, 'reasoning': 'See full analysis'}
+        return {'recommendation': 'CONSIDER', 'reasoning': str(data)}
+    
+    def _extract_risk_info(self, data):
+        """Extract risk assessment information"""
+        if isinstance(data, dict):
+            return {
+                'mechanical_risk': data.get('mechanical_risk', data.get('risk_band', 'Moderate')),
+                'failure_probability': data.get('failure_probability', data.get('mot_risk', 0.0)),
+                'risk_factors': data.get('risk_factors', data.get('factors', []))
+            }
+        return {'mechanical_risk': str(data)}
+    
+    def _extract_cost_info(self, data):
+        """Extract cost analysis information"""
+        if isinstance(data, dict):
+            return {
+                'estimated_repairs': data.get('estimated_repairs', data.get('repair_costs', 0)),
+                'annual_maintenance': data.get('annual_maintenance', data.get('maintenance', 0)),
+                'immediate_costs': data.get('immediate_costs', [])
+            }
+        return {'cost_summary': str(data)}
+    
+    def _extract_market_info(self, data):
+        """Extract market analysis information"""
+        if isinstance(data, dict):
+            return {
+                'demand_level': data.get('demand', data.get('demand_level', 'Medium')),
+                'price_range': data.get('price_range', {}),
+                'market_position': data.get('position', data.get('market_position', 'Average'))
+            }
+        return {'market_summary': str(data)}
+    
+    def _extract_ownership_info(self, data):
+        """Extract ownership analysis information"""
+        if isinstance(data, dict):
+            return {
+                'ownership_pattern': data.get('pattern', data.get('ownership_pattern', 'Normal')),
+                'estimated_owners': data.get('owners', data.get('estimated_owners', 'Unknown')),
+                'v5c_changes': data.get('v5c_changes', data.get('changes', 'Normal'))
+            }
+        return {'ownership_summary': str(data)}
+    
+    def _create_simplified_analysis(self, analysis_data):
+        """Create simplified analysis when AI analysis fails"""
+        mot_analysis = analysis_data.get('mot_analysis', {})
+        mileage_analysis = analysis_data.get('mileage_analysis', {})
+        
+        return {
+            'vehicle_assessment': {
+                'status': 'Simplified analysis',
+                'mot_tests': mot_analysis.get('total_tests', 0),
+                'failure_rate': mot_analysis.get('failure_rate', 0)
+            },
+            'trade_recommendation': {
+                'recommendation': 'REVIEW MANUALLY',
+                'reasoning': 'Detailed AI analysis unavailable - manual review recommended',
+                'confidence': 'Low'
+            },
+            'risk_assessment': {
+                'mechanical_risk': 'Unknown',
+                'failure_probability': mot_analysis.get('failure_rate', 0),
+                'risk_factors': ['Manual assessment required']
+            },
+            'cost_analysis': {
+                'estimated_repairs': 'TBD',
+                'annual_maintenance': 'TBD'
+            },
+            'market_analysis': {
+                'demand_level': 'Unknown',
+                'market_position': 'Manual valuation required'
+            },
+            'ownership_analysis': {
+                'ownership_pattern': analysis_data.get('ownership_data', {}).get('total_keepers', 'Unknown'),
+                'v5c_changes': 'See vehicle details'
+            }
+        }
+
     def _get_ai_analysis(self, analysis_data):
         """Get comprehensive AI analysis from OpenAI"""
         try:
