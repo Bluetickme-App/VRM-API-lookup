@@ -73,6 +73,9 @@ class VehicleData(db.Model):
     # Raw data storage for future reference
     raw_data = db.Column(JSON)
     mot_history = db.Column(JSON)
+    
+    # Sharing functionality
+    share_id = db.Column(db.String(20), unique=True)
     mileage_history = db.Column(JSON)
     
     # Analysis cache to avoid redundant OpenAI API calls

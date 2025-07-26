@@ -156,13 +156,28 @@ def intelligent_vehicle_analysis():
             failure_predictions = analyze_vehicle_failures(vehicle_data)
             logging.info(f"Enhanced failure predictions generated: {failure_predictions.keys() if failure_predictions else 'None'}")
             
-            # Merge failure predictions into main analysis
+            # Merge failure predictions into main analysis - fix structure
             if analysis_result and failure_predictions:
+                # Ensure the ai_analysis structure exists
                 if 'ai_analysis' not in analysis_result:
                     analysis_result['ai_analysis'] = {}
+                
+                # Add enhanced predictions
                 analysis_result['ai_analysis']['enhanced_mot_predictions'] = failure_predictions
-                analysis_result['ai_analysis']['mot_predictions'] = failure_predictions  # Also add as regular mot_predictions
-                logging.info("Enhanced failure predictions successfully merged into analysis")
+                analysis_result['ai_analysis']['mot_predictions'] = failure_predictions
+                
+                # Also add to prediction section if it exists
+                if 'prediction' in analysis_result.get('ai_analysis', {}):
+                    analysis_result['ai_analysis']['prediction']['enhanced_failure_analysis'] = failure_predictions
+                
+                # Override the mot_history_analysis with enhanced data
+                if 'mot_history_analysis' in analysis_result.get('ai_analysis', {}):
+                    analysis_result['ai_analysis']['mot_history_analysis']['enhanced_predictions'] = failure_predictions
+                    # Update failure probability
+                    if 'failure_probability' in failure_predictions:
+                        analysis_result['ai_analysis']['mot_history_analysis']['failure_probability'] = failure_predictions['failure_probability']
+                
+                logging.info("Enhanced failure predictions successfully merged into analysis structure")
         except Exception as e:
             logging.error(f"Failed to generate enhanced failure predictions: {e}")
         

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Report: {{ vehicle.registration }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .share-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            color: #34495e;
+            font-size: 1.1rem;
+        }
+        .share-actions {
+            padding: 20px 30px;
+            background: #ecf0f1;
+            text-align: center;
+        }
+        .share-btn {
+            margin: 0 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+        .whatsapp-btn:hover {
+            background: #20b855;
+            color: white;
+        }
+        .copy-btn {
+            background: #3498db;
+            color: white;
+        }
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+        .mot-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .mot-current { background: #d4edda; color: #155724; }
+        .mot-expired { background: #f8d7da; color: #721c24; }
+        .mot-urgent { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="share-container">
+        <div class="header-section">
+            <h1>{{ vehicle.registration }}</h1>
+            <h3>{{ vehicle.make }} {{ vehicle.model }}</h3>
+            <p class="mb-0">Complete Vehicle Report</p>
+        </div>
+
+        <div class="vehicle-grid">
+            <div class="info-card">
+                <div class="info-label">Vehicle Details</div>
+                <div class="info-value">{{ vehicle.year or 'Unknown' }}</div>
+                <div class="info-value">{{ vehicle.color or 'Unknown' }}</div>
+                <div class="info-value">{{ vehicle.fuel_type or 'Unknown' }} {{ vehicle.transmission or '' }}</div>
+                <div class="info-value">{{ vehicle.engine or 'Unknown' }}</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Ownership</div>
+                <div class="info-value">{{ vehicle.total_keepers or 'Unknown' }} Total Keepers</div>
+                <div class="info-value">V5C: {{ vehicle.last_v5c_issue_date or 'Unknown' }}</div>
+                <div class="info-value">{{ vehicle.registration_place or 'Unknown' }}</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">MOT Status</div>
+                {% if vehicle.mot_expiry_date %}
+                    <div class="mot-status mot-current">Expires: {{ vehicle.mot_expiry_date }}</div>
+                {% else %}
+                    <div class="mot-status mot-unknown">MOT Status Unknown</div>
+                {% endif %}
+                {% if vehicle.last_mot_mileage %}
+                    <div class="info-value mt-2">Last MOT: {{ "{:,}".format(vehicle.last_mot_mileage) }} miles</div>
+                {% endif %}
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Annual Tax Costs</div>
+                {% if vehicle.tax_12_months %}
+                    <div class="info-value">12 Months: {{ vehicle.tax_12_months }}</div>
+                {% endif %}
+                {% if vehicle.tax_6_months %}
+                    <div class="info-value">6 Months: {{ vehicle.tax_6_months }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if vehicle.analysis_data %}
+        <div style="padding: 20px 30px;">
+            <h4 class="mb-3">AI Analysis Summary</h4>
+            <div class="info-card">
+                {% set ai_analysis = vehicle.analysis_data.get('ai_analysis', {}) %}
+                
+                {% if ai_analysis.get('market_analysis') %}
+                    <div class="info-label">Market Analysis</div>
+                    <div class="info-value mb-3">Professional vehicle assessment available</div>
+                {% endif %}
+                
+                {% if ai_analysis.get('mot_history_analysis') %}
+                    <div class="info-label">MOT History</div>
+                    {% set mot_analysis = ai_analysis.get('mot_history_analysis', {}) %}
+                    <div class="info-value">Failure Rate: {{ mot_analysis.get('failure_rate', 'Unknown') }}%</div>
+                {% endif %}
+
+                {% if ai_analysis.get('trade_recommendation') %}
+                    <div class="info-label mt-3">Trade Assessment</div>
+                    {% set trade = ai_analysis.get('trade_recommendation', {}) %}
+                    <div class="info-value">{{ trade.get('recommendation', 'Analysis available') }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="share-actions">
+            <h5 class="mb-3">Share This Report</h5>
+            <a href="https://wa.me/?text=Check out this vehicle report: {{ vehicle.share_url }}" 
+               class="share-btn whatsapp-btn" target="_blank">
+                Share on WhatsApp
+            </a>
+            <button onclick="copyShareLink()" class="share-btn copy-btn">
+                Copy Link
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function copyShareLink() {
+            const shareUrl = "{{ vehicle.share_url }}";
+            navigator.clipboard.writeText(shareUrl).then(function() {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#27ae60';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#3498db';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

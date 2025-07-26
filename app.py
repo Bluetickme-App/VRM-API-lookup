@@ -1,5 +1,6 @@
 import os
 import logging
+import uuid
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -70,6 +71,83 @@ def index():
                                  show_cached=True)
     
     return render_template('simple_dashboard.html')
+
+@app.route('/share/<share_id>')
+def public_share(share_id):
+    """Public sharing endpoint for WhatsApp and social media"""
+    try:
+        from models import VehicleData
+        # Find vehicle by share_id or registration
+        vehicle = VehicleData.query.filter_by(share_id=share_id).first()
+        if not vehicle:
+            # Fallback to registration if share_id not found
+            vehicle = VehicleData.query.filter_by(registration=share_id.upper()).first()
+        
+        if not vehicle:
+            return render_template('share_not_found.html'), 404
+        
+        # Create comprehensive vehicle data for sharing
+        share_data = {
+            'registration': vehicle.registration,
+            'make': vehicle.make,
+            'model': vehicle.model,
+            'year': vehicle.year,
+            'color': vehicle.color,
+            'fuel_type': vehicle.fuel_type,
+            'transmission': vehicle.transmission,
+            'engine': vehicle.engine,
+            'mot_expiry_date': vehicle.mot_expiry_date,
+            'last_mot_mileage': vehicle.last_mot_mileage,
+            'total_keepers': vehicle.total_keepers,
+            'tax_6_months': vehicle.tax_6_months,
+            'tax_12_months': vehicle.tax_12_months,
+            'last_v5c_issue_date': vehicle.last_v5c_issue_date,
+            'registration_place': vehicle.registration_place,
+            'mot_history': vehicle.mot_history,
+            'analysis_data': vehicle.analysis_data,
+            'share_url': f"{request.host_url}share/{share_id}"
+        }
+        
+        return render_template('public_share.html', vehicle=share_data)
+        
+    except Exception as e:
+        logging.error(f"Error in public share: {e}")
+        return render_template('share_error.html'), 500
+
+@app.route('/api/generate-share-link', methods=['POST'])
+def generate_share_link():
+    """Generate public sharing link for vehicle report"""
+    try:
+        data = request.get_json()
+        registration = data.get('registration', '').upper().strip()
+        
+        if not registration:
+            return jsonify({'success': False, 'error': 'Registration required'}), 400
+        
+        from models import VehicleData
+        vehicle = VehicleData.query.filter_by(registration=registration).first()
+        
+        if not vehicle:
+            return jsonify({'success': False, 'error': 'Vehicle not found'}), 404
+        
+        # Generate or get share ID
+        if not vehicle.share_id:
+            vehicle.share_id = str(uuid.uuid4())[:8].upper()
+            db.session.commit()
+        
+        share_url = f"{request.host_url}share/{vehicle.share_id}"
+        whatsapp_url = f"https://wa.me/?text=Check out this vehicle report: {share_url}"
+        
+        return jsonify({
+            'success': True,
+            'share_url': share_url,
+            'whatsapp_url': whatsapp_url,
+            'share_id': vehicle.share_id
+        })
+        
+    except Exception as e:
+        logging.error(f"Error generating share link: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/ocr-process', methods=['POST'])
 def process_ocr():
