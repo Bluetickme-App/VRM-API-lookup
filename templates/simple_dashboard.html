@@ -248,6 +248,61 @@
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 8px;
         }
+        
+        /* Comprehensive Vehicle Data Styling */
+        .comprehensive-vehicle-data {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .comprehensive-vehicle-data h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .data-section {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .data-section h4 {
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .tax-section {
+            border-left-color: #28a745;
+        }
+        .ownership-section {
+            border-left-color: #17a2b8;
+        }
+        .mot-section {
+            border-left-color: #ffc107;
+        }
+        .additional-section {
+            border-left-color: #6f42c1;
+        }
+        .tax-cost, .ownership-detail, .mot-detail, .additional-detail {
+            margin-bottom: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 14px;
+        }
+        .tax-cost:last-child, .ownership-detail:last-child, .mot-detail:last-child, .additional-detail:last-child {
+            border-bottom: none;
+        }
         .mot-history-list {
             margin-top: 12px;
         }
@@ -1519,6 +1574,75 @@
             try {
                 console.log('Analysis Data:', analysisData);
                 var html = '<div class="intelligent-analysis-results">';
+                
+                // Display comprehensive vehicle data including tax information at the top
+                if (analysisData.vehicle_data || currentResults) {
+                    var vData = analysisData.vehicle_data || currentResults;
+                    html += '<div class="comprehensive-vehicle-data">';
+                    html += '<h3>📊 Complete Vehicle Information</h3>';
+                    html += '<div class="data-grid">';
+                    
+                    // Tax Information - Always prominently displayed
+                    if (vData.tax_12_months || vData.tax_6_months) {
+                        html += '<div class="data-section tax-section">';
+                        html += '<h4>💰 Annual Tax Costs</h4>';
+                        if (vData.tax_12_months) {
+                            html += '<div class="tax-cost"><strong>12 Months:</strong> ' + vData.tax_12_months + '</div>';
+                        }
+                        if (vData.tax_6_months) {
+                            html += '<div class="tax-cost"><strong>6 Months:</strong> ' + vData.tax_6_months + '</div>';
+                        }
+                        if (vData.tax_expiry) {
+                            html += '<div class="tax-expiry"><strong>Tax Expires:</strong> ' + vData.tax_expiry + '</div>';
+                        }
+                        html += '</div>';
+                    }
+                    
+                    // Ownership Information
+                    html += '<div class="data-section ownership-section">';
+                    html += '<h4>👥 Ownership Details</h4>';
+                    if (vData.total_keepers) {
+                        html += '<div class="ownership-detail"><strong>Total Keepers:</strong> ' + vData.total_keepers + '</div>';
+                    }
+                    if (vData.last_v5c_issue_date) {
+                        html += '<div class="ownership-detail"><strong>Last V5C Issue Date:</strong> ' + vData.last_v5c_issue_date + '</div>';
+                    }
+                    if (vData.registration_place) {
+                        html += '<div class="ownership-detail"><strong>Registration Place:</strong> ' + vData.registration_place + '</div>';
+                    }
+                    html += '</div>';
+                    
+                    // MOT & Mileage Information
+                    html += '<div class="data-section mot-section">';
+                    html += '<h4>🔧 MOT & Mileage</h4>';
+                    if (vData.mot_expiry) {
+                        html += '<div class="mot-detail"><strong>MOT Expires:</strong> ' + vData.mot_expiry + '</div>';
+                    }
+                    if (vData.last_mot_mileage) {
+                        html += '<div class="mot-detail"><strong>Last MOT Mileage:</strong> ' + parseInt(vData.last_mot_mileage).toLocaleString() + ' miles</div>';
+                    }
+                    if (vData.mileage_issues) {
+                        html += '<div class="mot-detail"><strong>Mileage Issues:</strong> ' + vData.mileage_issues + '</div>';
+                    }
+                    html += '</div>';
+                    
+                    // Additional Information
+                    html += '<div class="data-section additional-section">';
+                    html += '<h4>ℹ️ Additional Details</h4>';
+                    if (vData.exported && vData.exported !== 'No') {
+                        html += '<div class="additional-detail"><strong>Export Status:</strong> ' + vData.exported + '</div>';
+                    }
+                    if (vData.has_outstanding_recall && vData.has_outstanding_recall !== 'No') {
+                        html += '<div class="additional-detail"><strong>Outstanding Recalls:</strong> ' + vData.has_outstanding_recall + '</div>';
+                    }
+                    if (vData.v5c_certificate_count) {
+                        html += '<div class="additional-detail"><strong>V5C Certificates:</strong> ' + vData.v5c_certificate_count + '</div>';
+                    }
+                    html += '</div>';
+                    
+                    html += '</div>'; // end data-grid
+                    html += '</div>'; // end comprehensive-vehicle-data
+                }
                 
                 // Access the ai_analysis data correctly
                 var ai = analysisData.ai_analysis || analysisData;

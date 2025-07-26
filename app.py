@@ -214,11 +214,13 @@ def intelligent_analysis():
                 'error': 'Vehicle data not found. Please search for the vehicle first.'
             }), 404
         
-        # Prepare vehicle data for analysis
+        # Prepare comprehensive vehicle data for analysis including tax information
         vehicle_data = {
             'registration': vehicle_record.registration,
             'make': vehicle_record.make,
             'model': vehicle_record.model,
+            'variant': vehicle_record.variant,
+            'description': vehicle_record.description,
             'year': vehicle_record.year,
             'color': vehicle_record.color,
             'fuel_type': vehicle_record.fuel_type,
@@ -228,10 +230,25 @@ def intelligent_analysis():
             'total_keepers': vehicle_record.total_keepers,
             'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
             'registration_place': vehicle_record.registration_place,
+            'registration_date': vehicle_record.registration_date.isoformat() if vehicle_record.registration_date else None,
+            # Tax information
+            'tax_expiry': vehicle_record.tax_expiry.isoformat() if vehicle_record.tax_expiry else None,
+            'tax_days_left': vehicle_record.tax_days_left,
+            'tax_12_months': vehicle_record.tax_12_months,
+            'tax_6_months': vehicle_record.tax_6_months,
+            # MOT information
             'mot_expiry_date': vehicle_record.mot_expiry.isoformat() if vehicle_record.mot_expiry else None,
             'mot_days_left': vehicle_record.mot_days_left,
+            'last_mot_mileage': vehicle_record.last_mot_mileage,
+            'mileage_issues': vehicle_record.mileage_issues,
+            # Additional comprehensive data
             'exported': vehicle_record.exported,
             'has_outstanding_recall': vehicle_record.has_outstanding_recall,
+            'v5c_certificate_count': vehicle_record.v5c_certificate_count,
+            'euro_status': vehicle_record.euro_status,
+            'type_approval': vehicle_record.type_approval,
+            'co2_emissions': vehicle_record.co2_emissions,
+            # Historical data
             'mot_history': vehicle_record.mot_history or {},
             'mileage_history': vehicle_record.mileage_history or {},
             'raw_data': vehicle_record.raw_data or {}
@@ -242,17 +259,47 @@ def intelligent_analysis():
         analysis_result = analyzer.analyze_vehicle_comprehensive(vehicle_data)
         
         if analysis_result:
-            # Store analysis result in database for caching
+            # Store comprehensive analysis result in database including all relevant data
             from datetime import datetime
             vehicle_record.analysis_data = analysis_result
             vehicle_record.analysis_completed = True
             vehicle_record.analysis_timestamp = datetime.now()
             db.session.commit()
             
+            # Return comprehensive response with all relevant vehicle and analysis data
             return jsonify({
                 'success': True,
                 'analysis': analysis_result,
-                'generated_at': datetime.now().isoformat()
+                'vehicle_data': {
+                    'registration': vehicle_record.registration,
+                    'make': vehicle_record.make,
+                    'model': vehicle_record.model,
+                    'year': vehicle_record.year,
+                    'color': vehicle_record.color,
+                    'fuel_type': vehicle_record.fuel_type,
+                    'transmission': vehicle_record.transmission,
+                    'engine_size': vehicle_record.engine_size,
+                    'body_style': vehicle_record.body_style,
+                    'total_keepers': vehicle_record.total_keepers,
+                    'last_v5c_issue_date': vehicle_record.last_v5c_issue_date.isoformat() if vehicle_record.last_v5c_issue_date else None,
+                    'registration_place': vehicle_record.registration_place,
+                    # Tax data always included
+                    'tax_12_months': vehicle_record.tax_12_months,
+                    'tax_6_months': vehicle_record.tax_6_months,
+                    'tax_expiry': vehicle_record.tax_expiry.isoformat() if vehicle_record.tax_expiry else None,
+                    'tax_days_left': vehicle_record.tax_days_left,
+                    # MOT data
+                    'mot_expiry': vehicle_record.mot_expiry.isoformat() if vehicle_record.mot_expiry else None,
+                    'mot_days_left': vehicle_record.mot_days_left,
+                    'last_mot_mileage': vehicle_record.last_mot_mileage,
+                    'mileage_issues': vehicle_record.mileage_issues,
+                    # Additional data
+                    'exported': vehicle_record.exported,
+                    'has_outstanding_recall': vehicle_record.has_outstanding_recall,
+                    'v5c_certificate_count': vehicle_record.v5c_certificate_count
+                },
+                'generated_at': datetime.now().isoformat(),
+                'source': 'comprehensive_analysis_with_tax_data'
             })
         else:
             return jsonify({
