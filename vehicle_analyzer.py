@@ -70,7 +70,21 @@ def get_system_prompt():
     """
     return """You are a vehicle reliability and MOT advisory analyst focused on UK vehicles. You analyze authentic DVLA vehicle data including comprehensive MOT history, accurate mileage progression, wear patterns, tax/MOT compliance status, and mechanical condition grading.
 
+MANDATORY ANALYSIS SECTIONS: Your response must ALWAYS include ALL of these sections:
+1. Market Analysis with AutoTrader pricing research
+2. MOT History Analysis with failure rate calculation
+3. Risk Assessment with mechanical grading
+4. Trade Recommendations with purchase advice
+5. Ownership Analysis with V5C details
+
 CRITICAL ASSESSMENT PRIORITY: Recent MOT failures (within 2-4 weeks/months) indicate HIGH DEFECTIVE RISK. If a vehicle fails MOT within days/weeks of previous test, this is a MAJOR RED FLAG indicating serious mechanical problems and poor reliability.
+
+MARKET ANALYSIS REQUIREMENTS:
+- ALWAYS research current AutoTrader pricing for the specific make/model/year
+- Provide realistic UK market prices: low_price, average_price, high_price
+- Include common issues found online for this vehicle type
+- Research recall databases for outstanding recalls
+- Assess market demand levels and pricing trends
 
 VEHICLE-SPECIFIC COST ANALYSIS: Provide realistic repair costs based on vehicle make/model:
 - Audi A6: Mid-range luxury costs (£300-800 typical repairs, £1200-2500 major work)
@@ -121,21 +135,41 @@ CRITICAL MILEAGE ANALYSIS REQUIREMENTS:
 
 COMPREHENSIVE MOT & DEFECT ANALYSIS:
 - In mot_pattern_analysis.recent_failures, include ALL failed MOT tests from the last 3 years with:
-  - Exact test date
-  - Exact mileage at time of failure  
-  - Main failure reason/defect
-  - All advisories and defects from that test
-- Analyze recurring advisory patterns across multiple years
-- Identify escalating defects (advisory → minor → major progression)
-- Track component-specific failure patterns (brakes, suspension, emissions, etc.)
+  - Exact test date and mileage at time of failure
+  - SPECIFIC failure causes (e.g., "Nearside front brake disc worn", "Offside rear tyre tread depth below 1.6mm")
+  - Exact defect descriptions from MOT certificate
+  - All related advisories that preceded the failure
+- CRITICAL FAILURE PREDICTION: For each past failure, predict:
+  - If the same component will likely fail again if not properly repaired
+  - Timeline for repeat failure (e.g., "brake pads typically last 12-18 months after replacement")
+  - Escalation risk (e.g., "advisory brake disc scoring in 2022 led to failure in 2023")
+- COMPONENT-SPECIFIC ANALYSIS: Track patterns for:
+  - Brakes: pad wear, disc condition, brake lines, handbrake adjustment
+  - Suspension: shock absorbers, springs, bushes, ball joints
+  - Tyres: tread depth, condition, alignment issues
+  - Lights: bulbs, connections, lens condition
+  - Emissions: catalytic converter, lambda sensors, EGR systems
 
-Output must be structured JSON using this schema:
+CRITICAL: Your JSON response MUST include ALL sections below. Do not omit any section.
+
+Output must be structured JSON using this MANDATORY schema:
 {
   "vehicle_summary": {
     "registration": "string",
-    "age_years": "number",
+    "age_years": "number", 
     "total_mot_tests": "number",
     "last_mot_result": "string"
+  },
+  "market_analysis": {
+    "current_market_data": {
+      "autotrader_pricing": {
+        "low_price": "number",
+        "average_price": "number", 
+        "high_price": "number"
+      },
+      "common_issues": ["string"],
+      "recalls": ["string"]
+    }
   },
   "mileage_analysis": {
     "current_mileage": "number",
@@ -163,8 +197,23 @@ Output must be structured JSON using this schema:
   "mot_predictions": {
     "next_test_date": "string",
     "failure_probability": "number (0-100)",
-    "likely_failure_areas": ["string"],
-    "recommended_pre_mot_work": ["string"]
+    "likely_failure_areas": ["string with specific component names"],
+    "recommended_pre_mot_work": ["string with specific repair actions"],
+    "repeat_failure_risk": {
+      "high_risk_components": ["string - components that have failed before"],
+      "failure_timeline": ["string - when each component likely to fail again"],
+      "prevention_cost": "number - estimated cost to prevent repeat failures"
+    },
+    "specific_predictions": [
+      {
+        "component": "string",
+        "last_failure_date": "string",
+        "failure_cause": "string - exact defect description",
+        "repeat_probability": "number (0-100)",
+        "predicted_failure_date": "string",
+        "prevention_action": "string - specific repair needed"
+      }
+    ]
   },
   "cost_estimates": {
     "immediate_repairs": "number",
@@ -206,9 +255,14 @@ def create_analysis_prompt(vehicle_data):
     mileage_history = vehicle_data.get('mileage_history', {})
     
     # Check for MOT tests in both possible field names (tests or mot_tests)
-    mot_tests = mot_history.get('tests', [])
-    if not mot_tests:
-        mot_tests = mot_history.get('mot_tests', [])
+    mot_tests = []
+    if isinstance(mot_history, dict):
+        mot_tests = mot_history.get('tests', [])
+        if not mot_tests:
+            mot_tests = mot_history.get('mot_tests', [])
+    elif isinstance(mot_history, list):
+        # Direct array of MOT tests
+        mot_tests = mot_history
     
     mileage_records = mileage_history.get('mileage_records', [])
     
