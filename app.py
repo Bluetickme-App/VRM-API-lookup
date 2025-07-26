@@ -55,8 +55,8 @@ ocr_processor = NumberPlateOCR()
 
 @app.route('/')
 def index():
-    """Render the main interface"""
-    return render_template('index.html')
+    """Render the simple clean interface"""
+    return render_template('simple.html')
 
 @app.route('/simple')
 def simple_dashboard():
