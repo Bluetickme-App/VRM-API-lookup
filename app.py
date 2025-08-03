@@ -422,12 +422,12 @@ def scrape_vehicle():
             # Cache only used for history display, never for new searches
             logger.info(f"Fetching fresh data for {registration} - caching disabled for daily data changes")
             
-            # Use original working scraper for basic data plus MOT/mileage history
+            # Use direct Ferrari scraper for authentic data extraction
             try:
-                from vehicle_scraper import VehicleScraper
+                from direct_ferrari_scraper import DirectFerrariScraper
                 
-                logger.info(f"Starting working vehicle scraper for registration: {registration}")
-                scraper = VehicleScraper()
+                logger.info(f"Starting direct Ferrari scraper for registration: {registration}")
+                scraper = DirectFerrariScraper()
                 basic_data = scraper.scrape_vehicle_data(registration)
                 
                 if basic_data:

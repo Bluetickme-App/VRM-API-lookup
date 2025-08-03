@@ -129,16 +129,25 @@ class DataExtractor:
                 (r'GLS\s*\d{3}', 'Mercedes-Benz', 'GLS')
             ]
             
-            # Other luxury brands - More specific patterns to avoid false matches
-            luxury_patterns = [
+            # Ferrari patterns (PRIORITY - must come first)
+            ferrari_patterns = [
+                (r'F12.*Berlinetta.*Semi-Auto', 'Ferrari', 'F12 Berlinetta'),
+                (r'F12.*Berlinetta.*AB.*S-A', 'Ferrari', 'F12 Berlinetta'),
+                (r'F12BERLINETTA.*AB.*S-A', 'Ferrari', 'F12 Berlinetta'),
+                (r'F12berlinetta.*Ab.*S-a', 'Ferrari', 'F12 Berlinetta'),
                 (r'F12.*Berlinetta', 'Ferrari', 'F12 Berlinetta'),
                 (r'F12berlinetta', 'Ferrari', 'F12 Berlinetta'),
+                (r'Ferrari.*F12', 'Ferrari', 'F12 Berlinetta'),
                 (r'Ferrari.*F430', 'Ferrari', 'F430'),
                 (r'Ferrari.*458', 'Ferrari', '458'),
                 (r'Ferrari.*488', 'Ferrari', '488'),
                 (r'F430.*Ferrari', 'Ferrari', 'F430'),
                 (r'458.*Ferrari', 'Ferrari', '458'), 
                 (r'488.*Ferrari', 'Ferrari', '488'),
+            ]
+            
+            # Other luxury brands
+            luxury_patterns = [
                 (r'Gallardo', 'Lamborghini', 'Gallardo'),
                 (r'Huracan', 'Lamborghini', 'Huracan'),
                 (r'Aventador', 'Lamborghini', 'Aventador'),
@@ -163,8 +172,8 @@ class DataExtractor:
                 (r'5 Series', 'BMW', '5 Series')
             ]
             
-            # Combine all patterns
-            all_patterns = mercedes_patterns + luxury_patterns + common_patterns
+            # Ferrari patterns FIRST (highest priority), then others  
+            all_patterns = ferrari_patterns + mercedes_patterns + luxury_patterns + common_patterns
             
             # Check patterns in order of specificity
             for pattern, make, model in all_patterns:

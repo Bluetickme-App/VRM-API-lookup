@@ -50,6 +50,11 @@ class VehicleScraper:
             firefox_options.set_preference("dom.webdriver.enabled", False)
             firefox_options.set_preference("useAutomationExtension", False)
             firefox_options.set_preference("dom.disable_beforeunload", True)
+            # Additional stealth preferences
+            firefox_options.set_preference("privacy.trackingprotection.enabled", False)
+            firefox_options.set_preference("geo.enabled", False)
+            firefox_options.set_preference("media.navigator.enabled", False)
+            firefox_options.set_preference("webgl.disabled", True)
             
             # Use webdriver-manager to automatically manage GeckoDriver
             service = Service(GeckoDriverManager().install())
@@ -62,40 +67,83 @@ class VehicleScraper:
             raise
     
     def _navigate_to_search(self, registration):
-        """Navigate directly to vehicle-specific URL with Cloudflare bypass"""
+        """Navigate with multi-step Cloudflare bypass strategy"""
         try:
-            # Navigate directly to vehicle details page - this works reliably
+            # Step 1: First visit the main page to establish session
+            logger.info("Step 1: Establishing session on main page")
+            self.driver.get("https://www.checkcardetails.co.uk/")
+            time.sleep(3)
+            
+            # Step 2: Navigate to vehicle details page
             direct_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}"
             self.driver.get(direct_url)
-            logger.info(f"Navigated directly to: {direct_url}")
+            logger.info(f"Step 2: Navigated to vehicle page: {direct_url}")
             
-            # Wait for page to load
+            # Wait for initial page load
             self.wait.until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
             )
             
-            # Check for Cloudflare protection and wait it out
-            max_cloudflare_wait = 15  # Maximum seconds to wait for Cloudflare
+            # Step 3: Enhanced Cloudflare bypass with aggressive waiting
+            max_cloudflare_wait = 30  # Increased timeout further
             start_time = time.time()
+            bypass_attempts = 0
             
             while time.time() - start_time < max_cloudflare_wait:
                 page_title = self.driver.title.lower()
                 page_source = self.driver.page_source.lower()
+                bypass_attempts += 1
                 
                 # Check if we're still on Cloudflare page
                 if ("just a moment" in page_title or 
                     "cloudflare" in page_source or 
                     "checking your browser" in page_source or
-                    "please wait" in page_source):
-                    logger.info("Cloudflare protection detected, waiting...")
-                    time.sleep(2)
+                    "please wait" in page_source or
+                    "ray id" in page_source or
+                    len(page_source) < 3000):  # Small page likely means Cloudflare
+                    
+                    logger.info(f"Cloudflare detected (attempt {bypass_attempts}), using advanced bypass...")
+                    
+                    # Multiple bypass techniques
+                    try:
+                        # Simulate human behavior
+                        self.driver.execute_script("window.scrollTo(0, 100);")
+                        time.sleep(1)
+                        self.driver.execute_script("document.body.click();")
+                        time.sleep(1)
+                        
+                        # Try to interact with potential Cloudflare elements
+                        self.driver.execute_script("""
+                            // Try to trigger any hidden Cloudflare elements
+                            var elements = document.querySelectorAll('input, button, div');
+                            for(var i = 0; i < Math.min(elements.length, 5); i++) {
+                                try { elements[i].click(); } catch(e) {}
+                            }
+                        """)
+                    except:
+                        pass
+                    
+                    time.sleep(4)  # Longer wait
                     continue
                 else:
-                    logger.info("Cloudflare bypass successful")
-                    break
+                    # Check for actual vehicle content
+                    if ("car" in page_source or "vehicle" in page_source or 
+                        "registration" in page_source or len(page_source) > 8000):
+                        logger.info(f"Cloudflare bypass successful after {bypass_attempts} attempts!")
+                        break
+                    else:
+                        logger.info("Waiting for full content to load...")
+                        time.sleep(2)
+                        continue
             
-            logger.info("Vehicle page loaded successfully")
-            return True
+            # Final verification
+            current_title = self.driver.title
+            if "just a moment" not in current_title.lower():
+                logger.info("Vehicle page loaded successfully")
+                return True
+            else:
+                logger.error("Failed to bypass Cloudflare protection")
+                return False
             
         except TimeoutException:
             logger.error("Timeout waiting for vehicle page to load")
@@ -106,7 +154,7 @@ class VehicleScraper:
     
     def _check_timeout(self):
         """Check if execution time limit exceeded"""
-        if time.time() - self.start_time > SCRAPER_CONFIG.get('max_execution_time', 20):
+        if time.time() - self.start_time > SCRAPER_CONFIG.get('max_execution_time', 40):  # Increased timeout for Cloudflare
             raise TimeoutException("Maximum execution time exceeded")
     
     def scrape_vehicle_data(self, registration):
