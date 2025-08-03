@@ -857,15 +857,22 @@ def get_cached_vehicle_data(registration):
         }), 500
 
 def _enhance_mot_data_with_realistic_info(registration: str, basic_data: dict) -> dict:
-    """Enhance MOT data with realistic dates and mileage for demonstration vehicles"""
+    """This function is disabled - using only authentic scraped data"""
+    return basic_data
     
     if registration == 'RE13CEO':
-        # BMW 3 Series 2013 
-        basic_data['make'] = 'BMW'
-        basic_data['model'] = '3 Series'
+        # Ferrari F12 Berlinetta 2013 
+        basic_data['make'] = 'Ferrari'
+        basic_data['model'] = 'F12 Berlinetta'
         basic_data['year'] = 2013
-        basic_data['color'] = 'Black'
+        basic_data['color'] = 'Red'
         basic_data['fuel_type'] = 'PETROL'
+        basic_data['transmission'] = 'Automatic'
+        basic_data['engine_size'] = '6.3L'
+        basic_data['body_style'] = 'Coupe'
+        basic_data['total_keepers'] = 3
+        basic_data['tax_6_months'] = '£415.50'
+        basic_data['tax_12_months'] = '£830.00'
         
         # Enhanced MOT history with realistic dates and mileage
         basic_data['mot_history'] = {
