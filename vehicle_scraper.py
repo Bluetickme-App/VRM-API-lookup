@@ -41,10 +41,15 @@ class VehicleScraper:
             firefox_options.add_argument('--disable-dev-shm-usage')
             firefox_options.add_argument('--disable-gpu')
             firefox_options.add_argument('--disable-images')  # Speed optimization
-            firefox_options.add_argument('--window-size=1280,720')  # Smaller window
-            firefox_options.set_preference("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0")
+            firefox_options.add_argument('--window-size=1920,1080')  # Full size to avoid mobile detection
+            
+            # Enhanced anti-detection settings for Cloudflare bypass
+            firefox_options.set_preference("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             firefox_options.set_preference("media.volume_scale", "0.0")
             firefox_options.set_preference("dom.ipc.plugins.enabled.libflashplayer.so", "false")
+            firefox_options.set_preference("dom.webdriver.enabled", False)
+            firefox_options.set_preference("useAutomationExtension", False)
+            firefox_options.set_preference("dom.disable_beforeunload", True)
             
             # Use webdriver-manager to automatically manage GeckoDriver
             service = Service(GeckoDriverManager().install())
@@ -57,17 +62,37 @@ class VehicleScraper:
             raise
     
     def _navigate_to_search(self, registration):
-        """Navigate directly to vehicle-specific URL"""
+        """Navigate directly to vehicle-specific URL with Cloudflare bypass"""
         try:
             # Navigate directly to vehicle details page - this works reliably
             direct_url = f"https://www.checkcardetails.co.uk/cardetails/{registration.lower()}"
             self.driver.get(direct_url)
             logger.info(f"Navigated directly to: {direct_url}")
             
-            # Wait for vehicle details page to load
+            # Wait for page to load
             self.wait.until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
             )
+            
+            # Check for Cloudflare protection and wait it out
+            max_cloudflare_wait = 15  # Maximum seconds to wait for Cloudflare
+            start_time = time.time()
+            
+            while time.time() - start_time < max_cloudflare_wait:
+                page_title = self.driver.title.lower()
+                page_source = self.driver.page_source.lower()
+                
+                # Check if we're still on Cloudflare page
+                if ("just a moment" in page_title or 
+                    "cloudflare" in page_source or 
+                    "checking your browser" in page_source or
+                    "please wait" in page_source):
+                    logger.info("Cloudflare protection detected, waiting...")
+                    time.sleep(2)
+                    continue
+                else:
+                    logger.info("Cloudflare bypass successful")
+                    break
             
             logger.info("Vehicle page loaded successfully")
             return True
