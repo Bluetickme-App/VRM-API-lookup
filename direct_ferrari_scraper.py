@@ -128,7 +128,7 @@ class DirectFerrariScraper:
                 logger.info(f"Color detected: {color}")
                 break
         
-        # Build comprehensive vehicle data
+        # Build comprehensive vehicle data with model_variant for priority extraction
         vehicle_data = {
             'registration': registration.upper(),
             'basic_info': {
@@ -138,6 +138,9 @@ class DirectFerrariScraper:
                 'image_url': 'https://www.checkcardetails.co.uk/images/account.png'
             },
             'vehicle_details': {
+                'make': make,  # Ensure make is in vehicle_details
+                'model': model,  # Ensure model is in vehicle_details  
+                'model_variant': f'{make} {model}' if make != 'Unknown' else None,  # Priority field
                 'year': year,
                 'color': color,
                 'fuel_type': fuel_type,
@@ -145,6 +148,7 @@ class DirectFerrariScraper:
                 'engine_size': '6.3L V12' if make == 'Ferrari' else None,
                 'body_style': 'Coupe' if make == 'Ferrari' else None,
             },
+            'description': f'{year} {make} {model}' if year and make != 'Unknown' else f'{make} {model}',
             'tax_mot': {},
             'mileage': {},
             'performance': {},

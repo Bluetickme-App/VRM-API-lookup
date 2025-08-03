@@ -467,7 +467,10 @@ def scrape_vehicle():
                     if model_variant and model_variant.strip():
                         logger.info(f"🔍 PATTERN MATCHING - model_variant: '{model_variant}', description: '{description}'")
                         
-                        if 'focus' in model_variant.lower() or 'focus' in description.lower():
+                        if 'ferrari' in model_variant.lower() or 'f12' in model_variant.lower() or 'berlinetta' in model_variant.lower():
+                            make = 'Ferrari'
+                            logger.info(f"✅ FERRARI DETECTED from model_variant: '{model_variant}'")
+                        elif 'focus' in model_variant.lower() or 'focus' in description.lower():
                             make = 'Ford'
                             logger.info(f"✅ FORD DETECTED from model_variant: '{model_variant}'")
                         elif 'corsa' in model_variant.lower() or 'astra' in model_variant.lower() or 'insignia' in model_variant.lower():
@@ -566,12 +569,21 @@ def scrape_vehicle():
                     transmission = vehicle_details.get('transmission', 'Unknown')
                     vehicle_record.transmission = transmission[:100] if transmission != 'Unknown' else None
                     
-                    engine_size = vehicle_details.get('engine', '')
-                    if engine_size and 'cc' in engine_size:
-                        # Convert '1364 cc' to proper format
-                        vehicle_record.engine_size = engine_size[:50]
+                    # Handle engine size from multiple sources
+                    engine_size = (vehicle_details.get('engine_size') or 
+                                  vehicle_details.get('engine') or 
+                                  basic_info.get('engine_size'))
+                    if engine_size:
+                        if 'cc' in engine_size:
+                            # Convert '1364 cc' to proper format
+                            vehicle_record.engine_size = engine_size[:50]
+                        else:
+                            # Handle direct values like '6.3L V12'
+                            vehicle_record.engine_size = engine_size[:50]
+                        logger.info(f"Engine size extracted: {engine_size}")
                     else:
                         vehicle_record.engine_size = None
+                        logger.warning("No engine size found")
                     
                     body_style = vehicle_details.get('body_style', '')
                     vehicle_record.body_style = body_style[:50] if body_style else None
@@ -654,13 +666,20 @@ def scrape_vehicle():
                     
                     logger.info(f"FIXED: Comprehensive fields mapped - transmission: {bool(vehicle_record.transmission)}, engine: {bool(vehicle_record.engine_size)}, body: {bool(vehicle_record.body_style)}")
                     
-                    # Handle year conversion
-                    year_value = basic_info.get('year') or basic_data.get('year')
+                    # Handle year conversion - check multiple sources
+                    year_value = (vehicle_details.get('year') or 
+                                 basic_info.get('year') or 
+                                 basic_data.get('year') or
+                                 vehicle_details.get('year_manufacture'))
                     if year_value:
                         try:
                             vehicle_record.year = int(year_value)
+                            logger.info(f"Year successfully extracted: {year_value}")
                         except (ValueError, TypeError):
                             vehicle_record.year = None
+                            logger.warning(f"Could not convert year to integer: {year_value}")
+                    else:
+                        logger.warning("No year value found in any data source")
                     
                     # Add V5 issue date to top-level response from database record
                     if vehicle_record.last_v5c_issue_date:
